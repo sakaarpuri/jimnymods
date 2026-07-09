@@ -80,6 +80,7 @@
   .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:100;cursor:zoom-out;padding:16px}
   .lightbox.open{display:flex}
   .lightbox img{max-width:100%;max-height:85vh;border-radius:12px}
+  .hotbadge{display:inline-block;background:#3d2f14;color:var(--accent);font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:10px;vertical-align:2px;white-space:nowrap}
   footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:36px;padding:0 10px}
   footer a{color:var(--muted)}
 </style>
@@ -220,7 +221,7 @@
 
   <h2>🪑 Interior Mods</h2>
   <div id="imods"></div>
-  <div class="note">Interior items are included in your build total but aren't drawn in the sketch configurator above. Tap any photo to enlarge. Product images are AI-generated illustrations — see seller links for actual product photos.</div>
+  <div class="note">Every toggled item counts toward your build total; the sketch configurator above draws the core exterior mods only. Tap any photo to enlarge. Product images are AI-generated illustrations — see seller links for actual product photos.</div>
 
   <div class="note">⚠️ <b>Legal note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads (MV Act §52), and suspension or tyre-size changes may need RTO endorsement. Off-road use is unrestricted — check rules before road use.</div>
 
@@ -237,15 +238,15 @@
 <script>
 /* ---------------- data ---------------- */
 const MODS = [
-  {id:"lift", name:"Suspension Lift Kit (1.5–2\")", price:[25000,60000], usd:"$300–700",
+  {id:"lift", hot:true, name:"Suspension Lift Kit (1.5–2\")", price:[25000,60000], usd:"$300–700",
    desc:"Raises ride height for bigger tyres & better approach angles. Most popular first mod.",
    in:[["Amazon.in","https://www.amazon.in/s?k=suzuki+jimny+lift+kit"],["Bimbra 4x4","https://www.bimbra4x4.com"]],
    intl:[["Ironman 4x4","https://ironman4x4.com"],["APIO Japan","https://www.apio.jp"]]},
-  {id:"tires", name:"A/T Tyres + Alloy Wheels", price:[60000,110000], usd:"$700–1,300",
+  {id:"tires", hot:true, name:"A/T Tyres + Alloy Wheels", price:[60000,110000], usd:"$700–1,300",
    desc:"All-terrain rubber on tougher alloys — grip on trails, fine on tarmac.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+all+terrain+tyres+215"],["Bimbra 4x4","https://www.bimbra4x4.com"]],
    intl:[["Maxxis","https://www.maxxis.com"],["BFGoodrich","https://www.bfgoodrichtires.com"]]},
-  {id:"snorkel", name:"Snorkel", price:[8000,25000], usd:"$100–350",
+  {id:"snorkel", hot:true, name:"Snorkel", price:[8000,25000], usd:"$100–350",
    desc:"Raised air intake for water crossings and dusty trails.",
    in:[["Amazon.in","https://www.amazon.in/s?k=suzuki+jimny+snorkel"],["Azad 4x4","https://www.azad4x4.com"]],
    intl:[["Safari Snorkel","https://safarisnorkel.com"],["Ironman 4x4","https://ironman4x4.com"]]},
@@ -273,6 +274,42 @@ const MODS = [
    desc:"Covers wider tyres and adds stance. ABS or steel options.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+fender+flares"]],
    intl:[["DAMD Japan","https://www.damd.co.jp"]]},
+  {id:"grille", hot:true, name:"Classic Front Grille", price:[5000,20000], usd:"$80–300",
+   desc:"Vertical-slot retro grille — the most popular face-lift for the Jimny worldwide.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+front+grille"]],
+   intl:[["DAMD Japan","https://www.damd.co.jp"]]},
+  {id:"winch", name:"Electric Winch", price:[25000,80000], usd:"$300–1,200",
+   desc:"Self-recovery essential with synthetic rope. Needs a winch-compatible bumper.",
+   in:[["Bimbra 4x4","https://www.bimbra4x4.com"],["Amazon.in","https://www.amazon.in/s?k=4x4+electric+winch"]],
+   intl:[["ARB","https://www.arb.com.au"],["Ironman 4x4","https://ironman4x4.com"]]},
+  {id:"skid", name:"Skid Plates / Underbody Armour", price:[15000,50000], usd:"$250–800",
+   desc:"Aluminium or steel guards for engine, transfer case and fuel tank.",
+   in:[["Azad 4x4","https://www.azad4x4.com"]],
+   intl:[["Ironman 4x4","https://ironman4x4.com"],["APIO Japan","https://www.apio.jp"]]},
+  {id:"rtt", hot:true, name:"Rooftop Tent", price:[80000,250000], usd:"$1,000–3,500",
+   desc:"Fold-out bed on the rack — the overlanding favourite. Mind the Jimny's roof load rating.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=rooftop+tent+car"]],
+   intl:[["Front Runner","https://www.frontrunneroutfitters.com"],["iKamper","https://www.ikamper.com"]]},
+  {id:"awning", name:"Side Awning", price:[15000,60000], usd:"$200–800",
+   desc:"Rack-mounted shade canopy that deploys in minutes at camp.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=car+side+awning+4x4"]],
+   intl:[["ARB","https://www.arb.com.au"]]},
+  {id:"sparecover", name:"Spare Wheel Cover", price:[1500,6000], usd:"$30–120",
+   desc:"Soft or hard cover for the tailgate spare — cheap, protective, personalisable.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+spare+wheel+cover"]],
+   intl:[["APIO Japan","https://www.apio.jp"]]},
+  {id:"mudflaps", hot:true, name:"Mud Flaps", price:[1500,5000], usd:"$25–80",
+   desc:"India's most-fitted accessory — protects paint and following traffic from spray.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+mud+flaps"]],
+   intl:[["APIO Japan","https://www.apio.jp"]]},
+  {id:"pods", name:"LED Spot Pods", price:[2000,10000], usd:"$40–150",
+   desc:"Compact round auxiliary lights for bumper or A-pillar mounts. Trail use.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=led+pod+lights+4x4"]],
+   intl:[["ARB","https://www.arb.com.au"]]},
+  {id:"boards", name:"Recovery Traction Boards", price:[3000,15000], usd:"$60–300",
+   desc:"Get unstuck from sand and mud without a second vehicle. Mounts on the rack.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=recovery+traction+boards"]],
+   intl:[["MAXTRAX","https://maxtrax.com.au"]]},
   {id:"seats", interior:true, name:"Custom Seat Covers", price:[8000,25000], usd:"$100–300",
    desc:"Tailored leatherette covers with diamond stitching — protects OEM fabric.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+seat+covers"]],
@@ -292,7 +329,27 @@ const MODS = [
   {id:"drawer", interior:true, name:"Boot Storage Drawer", price:[10000,40000], usd:"$150–600",
    desc:"Slide-out drawer system for recovery gear and camp kit in the boot.",
    in:[["Amazon.in","https://www.amazon.in/s?k=suv+boot+storage+drawer"]],
-   intl:[["Front Runner","https://www.frontrunneroutfitters.com"]]}
+   intl:[["Front Runner","https://www.frontrunneroutfitters.com"]]},
+  {id:"molle", interior:true, hot:true, name:"MOLLE Panels", price:[4000,15000], usd:"$60–200",
+   desc:"Modular gear panels for rear windows and tailgate — the biggest Jimny interior trend.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+molle+panel"]],
+   intl:[["Front Runner","https://www.frontrunneroutfitters.com"]]},
+  {id:"armrest", interior:true, hot:true, name:"Armrest Console Box", price:[2000,8000], usd:"$30–100",
+   desc:"Adds the armrest and storage the Jimny doesn't come with. Top seller in India.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+armrest+console"]],
+   intl:[["APIO Japan","https://www.apio.jp"]]},
+  {id:"dashcam", interior:true, hot:true, name:"Dashcam (Front + Rear)", price:[5000,25000], usd:"$70–300",
+   desc:"Loop-recording cameras with parking mode — insurance for road and trail.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=dashcam+front+and+rear"]],
+   intl:[["70mai","https://www.70mai.com"]]},
+  {id:"ambient", interior:true, name:"Ambient / Footwell Lighting", price:[1000,5000], usd:"$15–60",
+   desc:"App-controlled LED strips for footwells and door pockets.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=car+ambient+lighting+kit"]],
+   intl:[]},
+  {id:"shelf", interior:true, name:"Rear Parcel Shelf", price:[3000,10000], usd:"$40–120",
+   desc:"Keeps boot contents hidden and gives a flat shelf for light items.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+parcel+shelf"]],
+   intl:[["APIO Japan","https://www.apio.jp"]]}
 ];
 
 const SHOPS = [
@@ -326,7 +383,7 @@ MODS.forEach(m=>{
       <img class="thumb" src="assets/parts/${m.id}.webp" alt="${m.name}" loading="lazy">
       <div class="mod-head">
         <div>
-          <h3>${m.name}</h3>
+          <h3>${m.name}${m.hot?' <span class="hotbadge">🔥 Popular</span>':''}</h3>
           <div class="price">${fmt(m.price[0])} – ${fmt(m.price[1])} · intl ~${m.usd}</div>
         </div>
         <label class="switch"><input type="checkbox" data-id="${m.id}"><span class="slider"></span></label>
