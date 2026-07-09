@@ -24,17 +24,8 @@
 
   /* Visualizer */
   .viz{position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 85%,transparent);padding:8px 0 4px}
-  .stage{background:linear-gradient(180deg,#16202b 0%,#1b2836 70%,#243242 100%);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-  .stage svg{display:block;width:100%;height:auto}
-  #bodyGroup{transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
-  .layer{display:none}
   .totalbar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-top:8px;font-size:.85rem}
   .totalbar b{color:var(--accent);font-size:1rem}
-
-  /* Color swatches */
-  .swatches{display:flex;gap:10px;justify-content:center;padding:10px 0 2px}
-  .sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);cursor:pointer;flex:none}
-  .sw.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,200,46,.25)}
 
   h2{font-size:1.05rem;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
   h2::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -103,112 +94,6 @@
 
   <!-- ============ VISUALIZER ============ -->
   <div class="viz">
-    <div class="stage">
-      <svg id="car" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" aria-label="Suzuki Jimny side view">
-        <!-- ground -->
-        <rect x="0" y="316" width="640" height="44" fill="#2a3844"/>
-        <line x1="0" y1="316" x2="640" y2="316" stroke="#3d4f5f" stroke-width="2"/>
-
-        <g id="bodyGroup">
-          <!-- ===== base body ===== -->
-          <!-- main shell -->
-          <path class="paint" d="M74 252
-            L74 206 Q74 190 92 188
-            L96 186 Q98 170 116 168
-            L196 164
-            L236 118 Q240 110 252 110
-            L536 110 Q552 110 552 126
-            L556 244 Q556 254 544 254
-            L96 254 Q76 254 74 252 Z" fill="#8ea842" stroke="#0c1116" stroke-width="3"/>
-          <!-- hood line -->
-          <line x1="98" y1="186" x2="196" y2="180" stroke="#0c1116" stroke-width="2.5" opacity=".55"/>
-          <!-- windshield -->
-          <path d="M242 122 L253 118 L253 158 L216 162 Z" fill="#bfe3f2" stroke="#0c1116" stroke-width="3"/>
-          <!-- door window -->
-          <path d="M262 118 L376 118 L376 172 L262 176 Z" fill="#bfe3f2" stroke="#0c1116" stroke-width="3"/>
-          <!-- rear window -->
-          <path d="M388 118 L512 118 L512 170 L388 172 Z" fill="#bfe3f2" stroke="#0c1116" stroke-width="3"/>
-          <!-- door seam & handle -->
-          <path d="M256 118 L256 250" stroke="#0c1116" stroke-width="2.5" opacity=".5"/>
-          <path d="M382 118 L382 250" stroke="#0c1116" stroke-width="2.5" opacity=".5"/>
-          <rect x="340" y="188" width="30" height="8" rx="4" fill="#0c1116" opacity=".6"/>
-          <!-- headlight + grille -->
-          <circle cx="96" cy="206" r="11" fill="#fff3c4" stroke="#0c1116" stroke-width="3"/>
-          <rect x="80" y="222" width="34" height="9" rx="4" fill="#141b22"/>
-          <!-- bumper -->
-          <rect x="66" y="238" width="46" height="16" rx="6" fill="#28323c" stroke="#0c1116" stroke-width="2"/>
-          <!-- indicator -->
-          <rect x="118" y="224" width="16" height="8" rx="3" fill="#ffb04f"/>
-          <!-- rocker -->
-          <rect x="96" y="246" width="448" height="8" fill="#0c1116" opacity=".35"/>
-          <!-- wheel arches (cutout look) -->
-          <path d="M104 254 Q106 202 152 200 Q198 202 200 254 Z" fill="#16202b"/>
-          <path d="M438 254 Q440 202 486 200 Q532 202 534 254 Z" fill="#16202b"/>
-
-          <!-- ===== mod layers that move with body ===== -->
-          <!-- roof rack -->
-          <g id="l-rack" class="layer">
-            <rect x="238" y="96" width="300" height="8" rx="3" fill="#31404d" stroke="#0c1116" stroke-width="2"/>
-            <rect x="252" y="102" width="8" height="14" fill="#31404d"/>
-            <rect x="380" y="102" width="8" height="14" fill="#31404d"/>
-            <rect x="512" y="102" width="8" height="14" fill="#31404d"/>
-          </g>
-          <!-- LED light bar -->
-          <g id="l-led" class="layer">
-            <rect x="244" y="84" width="120" height="12" rx="4" fill="#22303c" stroke="#0c1116" stroke-width="2"/>
-            <rect x="250" y="88" width="108" height="5" rx="2" fill="#fff7c9"/>
-          </g>
-          <!-- snorkel -->
-          <g id="l-snorkel" class="layer">
-            <path d="M198 178 L198 128 Q198 116 210 114 L224 112" fill="none" stroke="#141b22" stroke-width="13" stroke-linecap="round"/>
-            <rect x="216" y="104" width="22" height="15" rx="4" fill="#141b22"/>
-          </g>
-          <!-- rear ladder -->
-          <g id="l-ladder" class="layer">
-            <rect x="566" y="128" width="5" height="128" fill="#31404d"/>
-            <rect x="584" y="128" width="5" height="128" fill="#31404d"/>
-            <g fill="#31404d">
-              <rect x="566" y="140" width="23" height="5"/><rect x="566" y="168" width="23" height="5"/>
-              <rect x="566" y="196" width="23" height="5"/><rect x="566" y="224" width="23" height="5"/>
-            </g>
-          </g>
-          <!-- bull bar -->
-          <g id="l-bull" class="layer">
-            <path d="M60 258 L60 196 Q60 186 70 186 L86 186" fill="none" stroke="#141b22" stroke-width="11" stroke-linecap="round"/>
-            <path d="M60 226 L88 226" stroke="#141b22" stroke-width="8" stroke-linecap="round"/>
-            <rect x="52" y="252" width="40" height="14" rx="5" fill="#141b22"/>
-          </g>
-          <!-- rock sliders -->
-          <g id="l-sliders" class="layer">
-            <rect x="216" y="262" width="212" height="11" rx="5" fill="#141b22"/>
-            <rect x="250" y="254" width="8" height="12" fill="#141b22"/>
-            <rect x="380" y="254" width="8" height="12" fill="#141b22"/>
-          </g>
-          <!-- fender flares -->
-          <g id="l-flares" class="layer" fill="#141b22">
-            <path d="M96 254 Q100 196 152 194 Q206 196 210 254 L196 254 Q192 210 152 208 Q112 210 110 254 Z"/>
-            <path d="M430 254 Q434 196 486 194 Q540 196 544 254 L530 254 Q526 210 486 208 Q446 210 444 254 Z"/>
-          </g>
-
-        </g>
-
-        <!-- ===== wheels (drawn over body) ===== -->
-        <g id="wheels">
-          <g class="wheel" data-x="152"></g>
-          <g class="wheel" data-x="486"></g>
-        </g>
-      </svg>
-    </div>
-
-    <div class="swatches" id="swatches">
-      <div class="sw active" data-c="#8ea842" style="background:#8ea842" title="Jungle Green"></div>
-      <div class="sw" data-c="#f2c230" style="background:#f2c230" title="Kinetic Yellow"></div>
-      <div class="sw" data-c="#c0392b" style="background:#c0392b" title="Sizzling Red"></div>
-      <div class="sw" data-c="#e8e8e6" style="background:#e8e8e6" title="Pearl White"></div>
-      <div class="sw" data-c="#5d6d7e" style="background:#5d6d7e" title="Granite Gray"></div>
-      <div class="sw" data-c="#1c2833" style="background:#1c2833" title="Bluish Black"></div>
-    </div>
-
     <div class="totalbar">
       <span id="modcount">Stock Jimny — toggle mods below</span>
       <b id="total">₹0</b>
@@ -221,7 +106,7 @@
 
   <h2>🪑 Interior Mods</h2>
   <div id="imods"></div>
-  <div class="note">Every toggled item counts toward your build total; the sketch configurator above draws the core exterior mods only. Tap any photo to enlarge. Product images are AI-generated illustrations — see seller links for actual product photos.</div>
+  <div class="note">Every toggled item counts toward your build total. The 360° car above shows a representative modified build. Tap any photo to enlarge. Product images are AI-generated illustrations — see seller links for actual product photos.</div>
 
   <div class="note">⚠️ <b>Legal note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads (MV Act §52), and suspension or tyre-size changes may need RTO endorsement. Off-road use is unrestricted — check rules before road use.</div>
 
@@ -436,41 +321,13 @@ SHOPS.forEach(s=>{
   </div>`);
 });
 
-/* ---------------- wheels ---------------- */
-function drawWheels(big){
-  const r = big ? 50 : 42, cy = 316 - r;
-  document.querySelectorAll(".wheel").forEach(w=>{
-    const x = +w.dataset.x;
-    w.innerHTML = `
-      <circle cx="${x}" cy="${cy}" r="${r}" fill="#10151b" stroke="#0c1116" stroke-width="3"/>
-      ${big?`<g stroke="#1f2831" stroke-width="6">${[...Array(8)].map((_,i)=>{
-        const a=i*Math.PI/4, x1=x+Math.cos(a)*(r-3), y1=cy+Math.sin(a)*(r-3);
-        return `<line x1="${x1}" y1="${y1}" x2="${x+Math.cos(a)*r}" y2="${cy+Math.sin(a)*r}"/>`;}).join("")}</g>`:""}
-      <circle cx="${x}" cy="${cy}" r="${r*0.55}" fill="${big?"#37424e":"#4a5560"}" stroke="#0c1116" stroke-width="3"/>
-      <g fill="#10151b">${[...Array(5)].map((_,i)=>{
-        const a=i*2*Math.PI/5 - Math.PI/2, sx=x+Math.cos(a)*r*0.32, sy=cy+Math.sin(a)*r*0.32;
-        return `<circle cx="${sx}" cy="${sy}" r="${r*0.09}"/>`;}).join("")}</g>
-      <circle cx="${x}" cy="${cy}" r="${r*0.12}" fill="#0c1116"/>`;
-  });
-}
-drawWheels(false);
 
 /* ---------------- state & interactions ---------------- */
 const state = {};
-const body = document.getElementById("bodyGroup");
 const totalEl = document.getElementById("total");
 const countEl = document.getElementById("modcount");
 
 function update(){
-  // layers
-  MODS.forEach(m=>{
-    const l = document.getElementById("l-"+m.id);
-    if(l) l.style.display = state[m.id] ? "block" : "none";
-  });
-  drawWheels(!!state.tires);
-  // lift: lift kit +16px, bigger tyres +8px
-  const lift = (state.lift?16:0) + (state.tires?8:0);
-  body.style.transform = `translateY(${-lift}px)`;
   // totals
   const on = MODS.filter(m=>state[m.id]);
   if(on.length){
@@ -486,13 +343,6 @@ document.querySelectorAll('input[data-id]').forEach(cb=>{
   cb.addEventListener("change", ()=>{ state[cb.dataset.id]=cb.checked; update(); });
 });
 
-/* paint swatches */
-document.getElementById("swatches").addEventListener("click", e=>{
-  const sw = e.target.closest(".sw"); if(!sw) return;
-  document.querySelectorAll(".sw").forEach(s=>s.classList.remove("active"));
-  sw.classList.add("active");
-  document.querySelectorAll(".paint").forEach(p=>p.setAttribute("fill", sw.dataset.c));
-});
 </script>
 </body>
 </html>
