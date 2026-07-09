@@ -87,7 +87,7 @@
 
   <!-- ============ 360 VIEW ============ -->
   <div class="spin360" id="spin360">
-    <img id="spinImg" src="assets/360/f01.jpg" alt="Modified Suzuki Jimny 360 degree view" draggable="false">
+    <img id="spinImg" src="assets/360/f01.jpg?v=2" alt="Modified Suzuki Jimny 360 degree view" draggable="false">
     <div class="hint">⟲ drag to spin</div>
     <div class="ai-tag">AI render</div>
   </div>
@@ -289,7 +289,7 @@ document.addEventListener("click", e=>{
 
 /* 360 viewer */
 const FRAMES = 36, spinImg = document.getElementById("spinImg"), spinBox = document.getElementById("spin360");
-const frameSrc = i => `assets/360/f${String((i%FRAMES+FRAMES)%FRAMES+1).padStart(2,"0")}.jpg`;
+const frameSrc = i => `assets/360/f${String((i%FRAMES+FRAMES)%FRAMES+1).padStart(2,"0")}.jpg?v=2`;
 for(let i=1;i<=FRAMES;i++){ new Image().src = frameSrc(i-1); }
 let frame = 0, auto = setInterval(()=>{ frame++; spinImg.src = frameSrc(frame); }, 130);
 let dragX = null, dragFrame = 0;
