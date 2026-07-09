@@ -65,6 +65,21 @@
   .shop p{color:var(--muted);font-size:.83rem;margin:6px 0 10px}
 
   .note{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:.78rem;color:var(--muted);margin-top:8px}
+
+  /* 360 viewer */
+  .spin360{position:relative;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#222;touch-action:pan-y;cursor:grab;user-select:-webkit-none;user-select:none}
+  .spin360 img{display:block;width:100%;height:auto;pointer-events:none}
+  .spin360 .hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font-size:.75rem;padding:5px 12px;border-radius:20px;pointer-events:none;transition:opacity .4s}
+  .spin360.touched .hint{opacity:0}
+  .ai-tag{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);color:#cfd8e0;font-size:.62rem;padding:3px 8px;border-radius:12px;pointer-events:none}
+
+  /* part thumbnails + lightbox */
+  .thumb{width:76px;height:76px;border-radius:10px;object-fit:cover;flex:none;border:1px solid var(--line);cursor:zoom-in}
+  .mod-top{display:flex;gap:12px;align-items:flex-start}
+  .mod-top .mod-head{flex:1}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:100;cursor:zoom-out;padding:16px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:85vh;border-radius:12px}
   footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:36px;padding:0 10px}
   footer a{color:var(--muted)}
 </style>
@@ -77,6 +92,13 @@
 </header>
 
 <div class="wrap">
+
+  <!-- ============ 360 VIEW ============ -->
+  <div class="spin360" id="spin360">
+    <img id="spinImg" src="assets/360/f01.jpg" alt="Modified Suzuki Jimny 360 degree view" draggable="false">
+    <div class="hint">⟲ drag to spin</div>
+    <div class="ai-tag">AI render</div>
+  </div>
 
   <!-- ============ VISUALIZER ============ -->
   <div class="viz">
@@ -193,8 +215,12 @@
   </div>
 
   <!-- ============ MODS ============ -->
-  <h2>🔧 Mods & Parts</h2>
+  <h2>🔧 Exterior Mods</h2>
   <div id="mods"></div>
+
+  <h2>🪑 Interior Mods</h2>
+  <div id="imods"></div>
+  <div class="note">Interior items are included in your build total but aren't drawn in the sketch configurator above. Tap any photo to enlarge. Product images are AI-generated illustrations — see seller links for actual product photos.</div>
 
   <div class="note">⚠️ <b>Legal note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads (MV Act §52), and suspension or tyre-size changes may need RTO endorsement. Off-road use is unrestricted — check rules before road use.</div>
 
@@ -246,7 +272,27 @@ const MODS = [
   {id:"flares", name:"Fender Flares (Wide)", price:[8000,20000], usd:"$150–400",
    desc:"Covers wider tyres and adds stance. ABS or steel options.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+fender+flares"]],
-   intl:[["DAMD Japan","https://www.damd.co.jp"]]}
+   intl:[["DAMD Japan","https://www.damd.co.jp"]]},
+  {id:"seats", interior:true, name:"Custom Seat Covers", price:[8000,25000], usd:"$100–300",
+   desc:"Tailored leatherette covers with diamond stitching — protects OEM fabric.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+seat+covers"]],
+   intl:[["DAMD Japan","https://www.damd.co.jp"]]},
+  {id:"mats", interior:true, name:"7D Floor Mats", price:[3000,8000], usd:"$40–100",
+   desc:"Full-coverage stitched mats with boot mat — easy to hose off after trails.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+7d+floor+mats"]],
+   intl:[]},
+  {id:"headunit", interior:true, name:"9\" Android Head Unit", price:[8000,30000], usd:"$100–400",
+   desc:"Touchscreen with wireless CarPlay/Android Auto, maps and reverse-camera input.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+android+stereo+9+inch"]],
+   intl:[["Pioneer","https://global.pioneer/en/"]]},
+  {id:"steering", interior:true, name:"Steering Wheel Upgrade", price:[10000,40000], usd:"$150–500",
+   desc:"Smaller-diameter leather wheel with better grip. Airbag-compatible options exist.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+steering+wheel"]],
+   intl:[["DAMD Japan","https://www.damd.co.jp"]]},
+  {id:"drawer", interior:true, name:"Boot Storage Drawer", price:[10000,40000], usd:"$150–600",
+   desc:"Slide-out drawer system for recovery gear and camp kit in the boot.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=suv+boot+storage+drawer"]],
+   intl:[["Front Runner","https://www.frontrunneroutfitters.com"]]}
 ];
 
 const SHOPS = [
@@ -269,25 +315,53 @@ const SHOPS = [
 
 /* ---------------- render mods ---------------- */
 const fmt = n => "₹" + (n>=100000 ? (n/100000).toFixed(1).replace(/\.0$/,"")+"L" : (n/1000)+"k");
-const modsEl = document.getElementById("mods");
 MODS.forEach(m=>{
   const links = [
     ...m.in.map(([t,u])=>`<a class="btn in" target="_blank" rel="noopener" href="${u}">🇮🇳 ${t}</a>`),
     ...m.intl.map(([t,u])=>`<a class="btn intl" target="_blank" rel="noopener" href="${u}">🌍 ${t}</a>`)
   ].join("");
-  modsEl.insertAdjacentHTML("beforeend", `
+  document.getElementById(m.interior?"imods":"mods").insertAdjacentHTML("beforeend", `
   <div class="mod">
-    <div class="mod-head">
-      <div>
-        <h3>${m.name}</h3>
-        <div class="price">${fmt(m.price[0])} – ${fmt(m.price[1])} · intl ~${m.usd}</div>
+    <div class="mod-top">
+      <img class="thumb" src="assets/parts/${m.id}.webp" alt="${m.name}" loading="lazy">
+      <div class="mod-head">
+        <div>
+          <h3>${m.name}</h3>
+          <div class="price">${fmt(m.price[0])} – ${fmt(m.price[1])} · intl ~${m.usd}</div>
+        </div>
+        <label class="switch"><input type="checkbox" data-id="${m.id}"><span class="slider"></span></label>
       </div>
-      <label class="switch"><input type="checkbox" data-id="${m.id}"><span class="slider"></span></label>
     </div>
     <p class="desc">${m.desc}</p>
     <div class="links">${links}</div>
   </div>`);
 });
+
+/* lightbox */
+document.body.insertAdjacentHTML("beforeend",'<div class="lightbox" id="lightbox"><img alt="Part photo"></div>');
+const lb = document.getElementById("lightbox");
+document.addEventListener("click", e=>{
+  if(e.target.classList.contains("thumb")){ lb.querySelector("img").src = e.target.src; lb.classList.add("open"); }
+  else if(e.target.closest("#lightbox")) lb.classList.remove("open");
+});
+
+/* 360 viewer */
+const FRAMES = 36, spinImg = document.getElementById("spinImg"), spinBox = document.getElementById("spin360");
+const frameSrc = i => `assets/360/f${String((i%FRAMES+FRAMES)%FRAMES+1).padStart(2,"0")}.jpg`;
+for(let i=1;i<=FRAMES;i++){ new Image().src = frameSrc(i-1); }
+let frame = 0, auto = setInterval(()=>{ frame++; spinImg.src = frameSrc(frame); }, 130);
+let dragX = null, dragFrame = 0;
+spinBox.addEventListener("pointerdown", e=>{
+  if(auto){ clearInterval(auto); auto = null; spinBox.classList.add("touched"); }
+  dragX = e.clientX; dragFrame = frame; spinBox.setPointerCapture(e.pointerId);
+});
+spinBox.addEventListener("pointermove", e=>{
+  if(dragX===null) return;
+  frame = dragFrame + Math.round((e.clientX - dragX)/9);
+  spinImg.src = frameSrc(frame);
+});
+spinBox.addEventListener("pointerup", ()=>{ dragX = null; });
+spinBox.addEventListener("pointercancel", ()=>{ dragX = null; });
 
 /* ---------------- render shops ---------------- */
 const shopsEl = document.getElementById("shops");
