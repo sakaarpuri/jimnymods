@@ -87,7 +87,7 @@
 
   <!-- ============ 360 VIEW ============ -->
   <div class="spin360" id="spin360">
-    <img id="spinImg" src="assets/360/f01.jpg?v=2" alt="Modified Suzuki Jimny 360 degree view" draggable="false">
+    <img id="spinImg" src="assets/360/stock/f01.jpg" alt="Suzuki Jimny 360 degree view" draggable="false">
     <div class="hint">⟲ drag to spin</div>
     <div class="ai-tag">AI render</div>
   </div>
@@ -287,10 +287,30 @@ document.addEventListener("click", e=>{
   else if(e.target.closest("#lightbox")) lb.classList.remove("open");
 });
 
-/* 360 viewer */
+/* 360 viewer with build presets */
 const FRAMES = 36, spinImg = document.getElementById("spinImg"), spinBox = document.getElementById("spin360");
-const frameSrc = i => `assets/360/f${String((i%FRAMES+FRAMES)%FRAMES+1).padStart(2,"0")}.jpg?v=2`;
-for(let i=1;i<=FRAMES;i++){ new Image().src = frameSrc(i-1); }
+let preset = "stock";
+const frameSrc = i => `assets/360/${preset}/f${String((i%FRAMES+FRAMES)%FRAMES+1).padStart(2,"0")}.jpg`;
+const preloaded = {};
+function preload(p){
+  if(preloaded[p]) return;
+  preloaded[p] = true;
+  const old = preset; preset = p;
+  for(let i=0;i<FRAMES;i++){ new Image().src = frameSrc(i); }
+  preset = old;
+}
+preload("stock");
+setTimeout(()=>{ preload("touring"); preload("overland"); }, 1500);
+const presetLabel = document.createElement("div");
+presetLabel.className = "ai-tag"; presetLabel.style.top = "34px";
+presetLabel.textContent = "Stock build";
+spinBox.appendChild(presetLabel);
+function setPreset(p, label){
+  if(preset === p) return;
+  preset = p; preload(p);
+  presetLabel.textContent = label;
+  spinImg.src = frameSrc(frame);
+}
 let frame = 0, auto = setInterval(()=>{ frame++; spinImg.src = frameSrc(frame); }, 130);
 let dragX = null, dragFrame = 0;
 spinBox.addEventListener("pointerdown", e=>{
@@ -328,6 +348,11 @@ const totalEl = document.getElementById("total");
 const countEl = document.getElementById("modcount");
 
 function update(){
+  // preset spin: 0 exterior mods = stock, 1-4 = touring, 5+ = overland
+  const ext = MODS.filter(m=>!m.interior && state[m.id]).length;
+  if(ext === 0) setPreset("stock","Stock build");
+  else if(ext <= 4) setPreset("touring","Touring build");
+  else setPreset("overland","Overland build");
   // totals
   const on = MODS.filter(m=>state[m.id]);
   if(on.length){
