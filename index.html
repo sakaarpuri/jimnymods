@@ -136,6 +136,15 @@
   <p class="secsub">Pick a vibe — one tap selects all its parts. Or build your own piece by piece below.</p>
   <div class="pkgrow" id="pkgs"></div>
 
+  <!-- ============ WRAPS & GRILLES ============ -->
+  <h2>🎨 Wraps & Decals</h2>
+  <p class="secsub">Full wraps and graphic kits on the 5-door — tap a look to enlarge, add it to your build with one tap.</p>
+  <div class="pkgrow" id="wraps"></div>
+
+  <h2>⚙️ Grille Styles</h2>
+  <p class="secsub">Three takes on the Jimny's face. All fit the same grille clips.</p>
+  <div class="pkgrow" id="grilles"></div>
+
   <!-- ============ MODS ============ -->
   <h2>🔧 Exterior Mods</h2>
   <div id="mods"></div>
@@ -231,6 +240,14 @@ const MODS = [
    desc:"Get unstuck from sand and mud without a second vehicle. Mounts on the rack.",
    in:[["Amazon.in","https://www.amazon.in/s?k=recovery+traction+boards"]],
    intl:[["MAXTRAX","https://maxtrax.com.au"]]},
+  {id:"wrap", name:"Full Body Wrap", price:[40000,150000], usd:"$500–2,000", img:"assets/looks/camo.webp",
+   desc:"Colour-change or printed vinyl wrap — reversible, protects the paint. Fitted by wrap studios.",
+   in:[["BigDaddy Customs","https://www.bigdaddycustoms.com"],["3M India","https://www.3mindia.in"]],
+   intl:[["Avery Dennison","https://graphics.averydennison.com"]]},
+  {id:"decals", name:"Decal / Graphics Kit", price:[3000,20000], usd:"$40–250",  img:"assets/looks/topo.webp",
+   desc:"Side stripes, topo maps, mountain silhouettes — DIY-friendly precut vinyl.",
+   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+decals+graphics"]],
+   intl:[]},
   {id:"seats", interior:true, name:"Custom Seat Covers", price:[8000,25000], usd:"$100–300",
    desc:"Tailored leatherette covers with diamond stitching — protects OEM fabric.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+seat+covers"]],
@@ -301,7 +318,7 @@ MODS.forEach(m=>{
   document.getElementById(m.interior?"imods":"mods").insertAdjacentHTML("beforeend", `
   <div class="mod">
     <div class="mod-top">
-      <img class="thumb" src="assets/parts/${m.id}.webp" alt="${m.name}" loading="lazy">
+      <img class="thumb" src="${m.img || `assets/parts/${m.id}.webp`}" alt="${m.name}" loading="lazy">
       <div class="mod-head">
         <div>
           <h3>${m.name}${m.hot?' <span class="hotbadge">🔥 Popular</span>':''}</h3>
@@ -370,6 +387,40 @@ function applyPkg(id){
 pkgsEl.addEventListener("click", e=>{
   const b = e.target.closest("[data-apply]");
   if(b) applyPkg(b.dataset.apply);
+});
+
+/* ---------------- wraps & grille looks ---------------- */
+const LOOKS = [
+  {el:"wraps", id:"camo", name:"Forest Camo Wrap", part:"wrap", tag:"Matte camo, full coverage"},
+  {el:"wraps", id:"heritage", name:"Heritage Stripes", part:"wrap", tag:"1970s rally tricolor"},
+  {el:"wraps", id:"street", name:"Two-Tone Street", part:"wrap", tag:"Satin gray + yellow sweep"},
+  {el:"wraps", id:"topo", name:"Topo Map Decals", part:"decals", tag:"Contour lines, overland style"},
+  {el:"wraps", id:"mountains", name:"Mountain Graphics", part:"decals", tag:"Peaks + compass motif"},
+  {el:"grilles", id:"gclassic", name:"Classic Slot", part:"grille", tag:"Matte black retro slots"},
+  {el:"grilles", id:"gmesh", name:"Sport Mesh", part:"grille", tag:"Honeycomb + red accent"},
+  {el:"grilles", id:"gchrome", name:"Retro Chrome", part:"grille", tag:"70s SJ-style shine"}
+];
+LOOKS.forEach(l=>{
+  const m = modById[l.part];
+  document.getElementById(l.el).insertAdjacentHTML("beforeend", `
+  <div class="pkg look" data-look="${l.id}">
+    <img class="pkgimg" src="assets/looks/${l.id}.webp" alt="${l.name}" loading="lazy">
+    <div class="body">
+      <h3>${l.name}</h3>
+      <div class="tag">${l.tag}</div>
+      <div class="row">
+        <span class="pprice">${fmt(m.price[0])} – ${fmt(m.price[1])}</span>
+        <button class="apply" data-addpart="${l.part}">Add to build</button>
+      </div>
+    </div>
+  </div>`);
+});
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-addpart]");
+  if(!b) return;
+  const cb = document.querySelector(`input[data-id="${b.dataset.addpart}"]`);
+  cb.checked = true; state[b.dataset.addpart] = true; update();
+  b.textContent = "In build ✓";
 });
 
 /* lightbox */
