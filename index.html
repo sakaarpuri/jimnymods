@@ -578,6 +578,7 @@ const compareIds = new Set();
 
 /* ---------------- render mods ---------------- */
 const fmt = n => n===0 ? "₹0" : "₹" + (n>=100000 ? (n/100000).toFixed(1).replace(/\.0$/,"")+"L" : (n/1000)+"k");
+const escHtml = value => String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 MODS.forEach(m=>{
   if(m.designOnly) return;
   const meta=metaFor(m);
@@ -588,7 +589,7 @@ MODS.forEach(m=>{
   document.getElementById(m.interior?"imods":"mods").insertAdjacentHTML("beforeend", `
   <article class="mod" data-mod-id="${m.id}" data-category="${m.interior?"interior":"exterior"}" data-install="${meta.install}">
     <div class="mod-top">
-      <button class="thumbbtn" type="button" aria-label="View larger photo of ${m.name}"><img class="thumb" src="${m.img || `assets/parts/${m.id}.webp`}" alt="${m.name}" loading="lazy"></button>
+      <button class="thumbbtn" type="button" aria-label="View larger photo of ${escHtml(m.name)}"><img class="thumb" src="${m.img || `assets/parts/${m.id}.webp`}" alt="${escHtml(m.name)}" loading="lazy"></button>
       <div class="mod-head">
         <div>
           <h3>${m.name}${m.hot?' <span class="hotbadge">Popular</span>':''}</h3>
@@ -682,7 +683,7 @@ PACKAGES.forEach(p=>{
   const names = p.parts.map(id=>modById[id].name.split(" (")[0]).join(" · ");
   pkgsEl.insertAdjacentHTML("beforeend", `
   <div class="pkg" data-pkg="${p.id}">
-    <img class="pkgimg" src="assets/packages/${p.id}.webp" alt="${p.name} build" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${p.name} build">
+    <img class="pkgimg" src="assets/packages/${p.id}.webp" alt="${escHtml(p.name)} build" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${escHtml(p.name)} build">
     <div class="body">
       <h3>${p.name}</h3>
       <div class="tag">${p.tag}</div>
@@ -730,7 +731,7 @@ LOOKS.forEach(l=>{
   const option = group.options.find(o=>o.id===l.option);
   document.getElementById(l.el).insertAdjacentHTML("beforeend", `
   <div class="pkg look" data-look="${l.id}">
-    <img class="pkgimg" src="assets/looks/${l.id}.webp" alt="${l.name}" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${l.name}">
+    <img class="pkgimg" src="assets/looks/${l.id}.webp" alt="${escHtml(l.name)}" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${escHtml(l.name)}">
     <div class="body">
       <h3>${l.name}</h3>
       <div class="tag">${l.tag}</div>
@@ -834,7 +835,14 @@ SHOPS.forEach(s=>{
 const sharedParam = new URLSearchParams(location.search).get("build");
 function decodeBuild(value){ try{return JSON.parse(decodeURIComponent(escape(atob(value.replace(/-/g,"+").replace(/_/g,"/")))))}catch{return null} }
 function encodeBuild(value){ return btoa(unescape(encodeURIComponent(JSON.stringify(value)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
-const savedBuild = (sharedParam && decodeBuild(sharedParam)) || readJSON("jimnylab-build",{});
+function sanitizeBuild(data){
+  const source=data&&typeof data==="object"?data:{};
+  const validParts=new Set(MODS.filter(m=>!m.designOnly).map(m=>m.id));
+  const cleanDesign={};DESIGN_GROUPS.forEach(g=>{const proposed=source.design?.[g.id];cleanDesign[g.id]=g.options.some(o=>o.id===proposed)?proposed:g.options[0].id});
+  const tyre=source.tyre||{}, allowed={width:[195,215,225,235],ratio:[70,75,80],rim:[15,16],lift:[0,38,50]};
+  return {v:1,vehicle:"india-5-door",name:String(source.name||"My Jimny 5-door").replace(/[<>]/g,"").slice(0,48),parts:Array.isArray(source.parts)?[...new Set(source.parts.filter(id=>validParts.has(id)))]:[],design:cleanDesign,tyre:{width:allowed.width.includes(+tyre.width)?+tyre.width:215,ratio:allowed.ratio.includes(+tyre.ratio)?+tyre.ratio:75,rim:allowed.rim.includes(+tyre.rim)?+tyre.rim:15,lift:allowed.lift.includes(+tyre.lift)?+tyre.lift:0}};
+}
+const savedBuild = sanitizeBuild((sharedParam && decodeBuild(sharedParam)) || readJSON("jimnylab-build",{}));
 const state = {};
 (savedBuild.parts||[]).forEach(id=>state[id]=true);
 Object.assign(designState,savedBuild.design||{});
@@ -985,10 +993,11 @@ async function copyText(text){try{await navigator.clipboard.writeText(text);retu
 document.getElementById("buildFab").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDrawer()}});document.getElementById("closeDrawer").addEventListener("click",closeDrawer);drawerBackdrop.addEventListener("click",closeDrawer);document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
 buildNameEl.addEventListener("input",persist);
 document.getElementById("shareBuild").addEventListener("click",async()=>{const url=new URL(location.href);url.search="";url.hash="";url.searchParams.set("build",encodeBuild(currentPayload()));await copyText(url.href);showToast("Share link copied")});
-let buildSnapshots=readJSON("jimnylab-snapshots",[]);
+let buildSnapshots=readJSON("jimnylab-snapshots",[]);if(!Array.isArray(buildSnapshots))buildSnapshots=[];
 const savedBuildsEl=document.getElementById("savedBuilds");
-function renderSnapshots(){savedBuildsEl.innerHTML=buildSnapshots.length?`<option value="">Choose a saved build</option>${buildSnapshots.map(x=>`<option value="${x.id}">${x.data.name}</option>`).join("")}`:`<option value="">No saved snapshots</option>`}
+function renderSnapshots(){savedBuildsEl.innerHTML=buildSnapshots.length?`<option value="">Choose a saved build</option>${buildSnapshots.map(x=>`<option value="${escHtml(x.id)}">${escHtml(sanitizeBuild(x.data).name)}</option>`).join("")}`:`<option value="">No saved snapshots</option>`}
 function loadPayload(data){
+  data=sanitizeBuild(data);
   Object.keys(state).forEach(k=>state[k]=false);(data.parts||[]).forEach(id=>state[id]=true);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem"},data.design||{});buildNameEl.value=data.name||"My Jimny 5-door";
   document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=!!state[cb.dataset.id]);DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));
   if(data.tyre){tyreWidth.value=data.tyre.width;tyreRatio.value=data.tyre.ratio;tyreRim.value=data.tyre.rim;liftHeight.value=data.tyre.lift}updateTyreCalc();update();
