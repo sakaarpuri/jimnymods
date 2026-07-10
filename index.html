@@ -72,6 +72,22 @@
   .lightbox.open{display:flex}
   .lightbox img{max-width:100%;max-height:85vh;border-radius:12px}
   .hotbadge{display:inline-block;background:#3d2f14;color:var(--accent);font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:10px;vertical-align:2px;white-space:nowrap}
+
+  /* packages */
+  .secsub{color:var(--muted);font-size:.8rem;margin:-6px 0 12px}
+  .pkgrow{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 14px;-webkit-overflow-scrolling:touch}
+  .pkg{flex:0 0 82%;max-width:340px;scroll-snap-align:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+  .pkg.applied{border-color:var(--accent)}
+  .pkg img{width:100%;aspect-ratio:16/9;object-fit:cover;cursor:zoom-in}
+  .pkg .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .pkg h3{font-size:.95rem}
+  .pkg .tag{color:var(--muted);font-size:.78rem}
+  .pkg .parts{color:var(--muted);font-size:.7rem;line-height:1.6}
+  .pkg .row{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px}
+  .pkg .pprice{color:var(--accent);font-weight:700;font-size:.9rem}
+  .pkg .apply{background:var(--accent);color:#101418;border:none;font-weight:700;font-size:.8rem;padding:8px 14px;border-radius:9px;cursor:pointer}
+  .pkg.applied .apply{background:#2e5c39;color:#bfe8c8}
+  .pkg .fitlink{font-size:.72rem}
   footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:36px;padding:0 10px}
   footer a{color:var(--muted)}
 </style>
@@ -100,6 +116,11 @@
     </div>
   </div>
 
+  <!-- ============ PACKAGES ============ -->
+  <h2>🧩 Build Packages</h2>
+  <p class="secsub">Pick a vibe — one tap selects all its parts. Or build your own piece by piece below.</p>
+  <div class="pkgrow" id="pkgs"></div>
+
   <!-- ============ MODS ============ -->
   <h2>🔧 Exterior Mods</h2>
   <div id="mods"></div>
@@ -111,7 +132,7 @@
   <div class="note">⚠️ <b>Legal note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads (MV Act §52), and suspension or tyre-size changes may need RTO endorsement. Off-road use is unrestricted — check rules before road use.</div>
 
   <!-- ============ SHOPS ============ -->
-  <h2>📍 Fitting Shops in India</h2>
+  <h2 id="shops-title">📍 Fitting Shops in India</h2>
   <div id="shops"></div>
   <div class="note">Call ahead to confirm current address, Jimny-specific stock, and fitting slots before visiting. Listings are independent businesses, not affiliated with this site.</div>
 
@@ -279,11 +300,68 @@ MODS.forEach(m=>{
   </div>`);
 });
 
+/* ---------------- packages ---------------- */
+const PACKAGES = [
+  {id:"overland", name:"Overland Expedition", tag:"Sleep on the roof, live on the trail", parts:["rack","rtt","awning","boards","tires","lift","snorkel"]},
+  {id:"desert", name:"Desert Storm", tag:"Dunes, heat and momentum", parts:["tires","lift","snorkel","pods","skid","boards"]},
+  {id:"monsoon", name:"Monsoon Master", tag:"Flooded roads are your roads", parts:["snorkel","mudflaps","tires","mats","dashcam"]},
+  {id:"crawler", name:"Rock Crawler", tag:"Boulders for breakfast", parts:["lift","tires","sliders","skid","winch","bull"]},
+  {id:"urban", name:"Urban Stance", tag:"City looks, parking-lot flex", parts:["grille","flares","tires","ambient","armrest"]},
+  {id:"retro", name:"Retro Heritage", tag:"1970 called, it approves", parts:["grille","sparecover","mudflaps","seats"]},
+  {id:"camp", name:"Camp & Chill", tag:"Awning out, kettle on", parts:["rack","awning","drawer","shelf","ambient"]},
+  {id:"creator", name:"Content Creator", tag:"Built for the thumbnail", parts:["rack","pods","molle","dashcam","headunit"]},
+  {id:"family", name:"Family Tourer", tag:"Comfort first, chaos-proof", parts:["mats","seats","headunit","dashcam","shelf","armrest"]},
+  {id:"weekend", name:"Weekend Warrior", tag:"Office Monday, trail Saturday", parts:["lift","tires","pods","sliders"]},
+  {id:"stealth", name:"Blackout Stealth", tag:"All black, everything", parts:["grille","flares","tires","led"]},
+  {id:"safari", name:"Safari Lodge", tag:"Golden grass, ladder up", parts:["rack","ladder","sparecover","awning"]},
+  {id:"alpine", name:"Alpine Snow", tag:"Chains on, pass open", parts:["winch","boards","pods","tires","lift"]},
+  {id:"tech", name:"Tech Commuter", tag:"Screens, cams and calm", parts:["headunit","dashcam","ambient","armrest","molle"]},
+  {id:"fullsend", name:"Full Send", tag:"Every box ticked", parts:["lift","tires","snorkel","rack","led","bull","sliders","ladder","flares","winch","skid","rtt","awning","pods","boards","molle","drawer"]}
+];
+const modById = Object.fromEntries(MODS.map(m=>[m.id,m]));
+const pkgsEl = document.getElementById("pkgs");
+PACKAGES.forEach(p=>{
+  const lo = p.parts.reduce((s,id)=>s+modById[id].price[0],0);
+  const hi = p.parts.reduce((s,id)=>s+modById[id].price[1],0);
+  const names = p.parts.map(id=>modById[id].name.split(" (")[0]).join(" · ");
+  pkgsEl.insertAdjacentHTML("beforeend", `
+  <div class="pkg" data-pkg="${p.id}">
+    <img class="pkgimg" src="assets/packages/${p.id}.webp" alt="${p.name} build" loading="lazy">
+    <div class="body">
+      <h3>${p.name}</h3>
+      <div class="tag">${p.tag}</div>
+      <div class="parts">${p.parts.length} parts: ${names}</div>
+      <div class="row">
+        <span class="pprice">${fmt(lo)} – ${fmt(hi)}</span>
+        <button class="apply" data-apply="${p.id}">Apply</button>
+      </div>
+      <a class="fitlink" href="#shops-title">📍 Where to buy & fit ↓</a>
+    </div>
+  </div>`);
+});
+function applyPkg(id){
+  const p = PACKAGES.find(x=>x.id===id);
+  document.querySelectorAll('input[data-id]').forEach(cb=>{
+    cb.checked = p.parts.includes(cb.dataset.id);
+    state[cb.dataset.id] = cb.checked;
+  });
+  update();
+  document.querySelectorAll(".pkg").forEach(el=>{
+    const on = el.dataset.pkg===id;
+    el.classList.toggle("applied", on);
+    el.querySelector(".apply").textContent = on ? "Applied ✓" : "Apply";
+  });
+}
+pkgsEl.addEventListener("click", e=>{
+  const b = e.target.closest("[data-apply]");
+  if(b) applyPkg(b.dataset.apply);
+});
+
 /* lightbox */
 document.body.insertAdjacentHTML("beforeend",'<div class="lightbox" id="lightbox"><img alt="Part photo"></div>');
 const lb = document.getElementById("lightbox");
 document.addEventListener("click", e=>{
-  if(e.target.classList.contains("thumb")){ lb.querySelector("img").src = e.target.src; lb.classList.add("open"); }
+  if(e.target.classList.contains("thumb") || e.target.classList.contains("pkgimg")){ lb.querySelector("img").src = e.target.src; lb.classList.add("open"); }
   else if(e.target.closest("#lightbox")) lb.classList.remove("open");
 });
 
