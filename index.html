@@ -16,9 +16,11 @@
   html{-webkit-text-size-adjust:100%}
   body{background:var(--bg);color:var(--text);font-family:Geist,"Avenir Next",Avenir,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
   a{color:var(--accent2)}
-  .wrap{max-width:560px;margin:0 auto;padding:0 14px 110px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 14px 110px}
+  .workbench{display:block}
+  .planner-rail,.planner-main{min-width:0}
 
-  header{max-width:560px;margin:0 auto;padding:18px 14px 10px;text-align:left}
+  header{max-width:1180px;margin:0 auto;padding:18px 14px 10px;text-align:left}
   .brandline{display:flex;align-items:center;justify-content:space-between;gap:12px}
   header h1{font-size:1.45rem;letter-spacing:.5px}
   header h1 span{color:var(--accent)}
@@ -159,6 +161,8 @@
   .compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
   .compare-item{background:var(--panel2);border-radius:9px;padding:9px;font-size:.7rem}
   .compare-item b{display:block;font-size:.76rem;margin-bottom:5px}
+  .no-results{background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:.78rem;padding:16px;text-align:center;margin:10px 0 14px}
+  [hidden]{display:none!important}
 
   /* fitter discovery and guides */
   .directory-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
@@ -208,8 +212,35 @@
   .pkg .apply{background:var(--accent);color:#101418;border:none;font-weight:700;font-size:.8rem;padding:8px 14px;border-radius:9px;cursor:pointer}
   .pkg.applied .apply{background:#2e5c39;color:#bfe8c8}
   .pkg .fitlink{font-size:.72rem}
+  .choice-meta,.pkg .meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .mini-badge{display:inline-flex;align-items:center;border:1px solid #534923;background:#2d2918;color:var(--accent);border-radius:999px;padding:2px 7px;font-size:.58rem;font-weight:850;letter-spacing:.2px;text-transform:uppercase}
+  .mini-badge.muted{background:#171d23;border-color:var(--line);color:var(--muted)}
+  .photo-wrap{position:relative;display:block}
+  .grille-wordmark{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);min-width:46%;text-align:center;background:rgba(4,6,8,.72);border:1px solid rgba(255,255,255,.32);border-radius:5px;color:#f2f5f7;font-size:.72rem;font-weight:900;letter-spacing:.12em;padding:2px 8px;pointer-events:none;text-shadow:0 1px 2px #000}
+  .grille-wordmark.script{font-family:Georgia,serif;font-style:italic;letter-spacing:.04em;text-transform:none}
+  .grille-wordmark.emblem{min-width:28px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;padding:0;font-size:.86rem;letter-spacing:0}
   footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:36px;padding:0 10px}
   footer a{color:var(--muted)}
+  @media (min-width:900px){
+    .workbench{display:grid;grid-template-columns:minmax(340px,410px) minmax(0,1fr);gap:28px;align-items:start}
+    .planner-rail{position:sticky;top:12px;align-self:start}
+    .planner-main{padding-top:2px}
+    .wrap{padding-bottom:80px}
+    .viz{position:static;background:transparent;padding-top:0}
+    .totalbar{padding:11px 13px}
+    .totalcopy small{max-width:250px}
+    h2:first-child{margin-top:0}
+    .pkgrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));overflow:visible;scroll-snap-type:none;padding:2px 0 16px}
+    .pkg{max-width:none;min-width:0;flex:none;scroll-snap-align:none}
+    .choice-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    #grilles{grid-template-columns:repeat(3,minmax(0,1fr))}
+    #wraps{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .part-tools{top:0}
+    .build-drawer{right:18px;left:auto;bottom:18px;transform:translateY(calc(100% + 24px));width:430px;border:1px solid var(--line);border-radius:16px}
+    .build-drawer.open{transform:translateY(0)}
+    .drawer-head{top:-16px}
+    .toast{bottom:28px}
+  }
 </style>
 </head>
 <body>
@@ -223,6 +254,8 @@
 </header>
 
 <div class="wrap" id="build">
+<div class="workbench">
+<aside class="planner-rail">
 
   <!-- ============ 360 VIEW ============ -->
   <div class="spin360" id="spin360">
@@ -251,6 +284,8 @@
   </div>
 
   <div class="note"><b>Vehicle profile:</b> Maruti Suzuki Jimny 5-door sold in India, Zeta or Alpha, manual or automatic. Three-door and older-generation compatibility is intentionally out of scope.</div>
+</aside>
+<main class="planner-main">
 
   <!-- ============ GOAL WIZARD ============ -->
   <h2>Start with your use</h2>
@@ -316,6 +351,7 @@
 
   <h2>Interior Mods</h2>
   <div id="imods"></div>
+  <div class="no-results" id="partNoResults" hidden>No parts match that search or filter. Try All, clear the search, or turn off Saved.</div>
   <div class="note">Every toggled item counts toward your build total. The 360° car above shows a representative modified build. Tap any photo to enlarge. Product images are AI-generated illustrations — see seller links for actual product photos.</div>
 
   <div class="note"><b>Legal note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads (MV Act §52), and suspension or tyre-size changes may need RTO endorsement. Check current local rules before road use.</div>
@@ -324,11 +360,14 @@
   <h2 id="shops-title">Fitting shops in India</h2>
   <div class="directory-tools"><input id="shopSearch" type="search" placeholder="Search city or shop" aria-label="Search fitters"><select id="shopType" aria-label="Filter fitter type"><option value="all">All listing types</option><option value="verified">Verified / specialist</option><option value="market">Accessory markets</option></select></div>
   <div id="shops"></div>
+  <div class="no-results" id="shopNoResults" hidden>No fitter listing matches that search. Try a nearby city, choose all listing types, or use one of the accessory markets.</div>
   <div class="note"><b>Directory note:</b> JimnyLab is an information resource only. Every listing is an independent business with no affiliation to this site. Always call ahead to confirm the address, Jimny-specific stock, fitting slots and warranty impact before paying or leaving your vehicle. Entries marked "Unverified" are community-known names we have not confirmed.</div>
 
   <!-- ============ OWNER GUIDES ============ -->
   <h2 id="guides">Five-door owner guides</h2>
   <section class="owner-card" id="guideList"></section>
+</main>
+</div>
 
   <footer>
     <p>JimnyLab is an independent enthusiast information resource — not a seller, installer or agent for any listed business, and not responsible for their prices, policies or work. Prices are indicative estimates (July 2026); actual prices set by sellers. All trademarks belong to their owners. Suzuki Jimny is a trademark of Suzuki Motor Corporation.</p>
@@ -624,23 +663,35 @@ const DESIGN_GROUPS = [
     {id:"geo", name:"Geometric quarter panels", label:"Geometric panels", img:"assets/packages/creator.webp", price:[5000,14000]}
   ]},
   {id:"grille", title:"Grille & branding", hint:"logo and logo-delete styles", options:[
-    {id:"oem", name:"OEM grille · S emblem", label:"OEM S emblem", img:"assets/360/stock/f01.jpg", price:[0,0]},
-    {id:"block", name:"Classic grille · SUZUKI", label:"Block SUZUKI", img:"assets/looks/gclassic.webp", price:[6000,9000]},
-    {id:"script", name:"Retro grille · Suzuki script", label:"Suzuki script", img:"assets/looks/gchrome.webp", price:[6000,9500]},
-    {id:"delete", name:"OEM-style · logo delete", label:"Logo delete", img:"assets/looks/gmesh.webp", price:[4500,8000]},
-    {id:"classic", name:"Five-slot · no logo", label:"Five-slot clean", img:"assets/looks/gclassic.webp", price:[6000,12000]},
-    {id:"mesh", name:"Mesh sport · no logo", label:"Mesh clean", img:"assets/looks/gmesh.webp", price:[7000,14000]},
-    {id:"chrome", name:"Chrome heritage · SUZUKI", label:"Chrome SUZUKI", img:"assets/looks/gchrome.webp", price:[8500,16000]}
+    {id:"oem", name:"OEM grille · Suzuki S emblem", label:"OEM S emblem", img:"assets/360/stock/f01.jpg", price:[0,0], badge:"Suzuki badge", wordmark:"S", wordClass:"emblem", meta:["Factory look","with badge"]},
+    {id:"block", name:"Heritage grille · SUZUKI badge", label:"Heritage SUZUKI", img:"assets/looks/gclassic.webp", price:[6000,9000], badge:"Suzuki wordmark", wordmark:"SUZUKI", meta:["Popular","with badge"]},
+    {id:"rhino", name:"Black hex grille · SUZUKI badge", label:"Black hex SUZUKI", img:"assets/looks/gmesh.webp", price:[9000,18000], badge:"Suzuki wordmark", wordmark:"SUZUKI", meta:["Rhino-style","with badge"]},
+    {id:"script", name:"Retro grille · Suzuki script badge", label:"Suzuki script", img:"assets/looks/gchrome.webp", price:[6000,9500], badge:"Suzuki script", wordmark:"Suzuki", wordClass:"script", meta:["Retro","with badge"]},
+    {id:"chrome", name:"Chrome heritage · SUZUKI badge", label:"Chrome SUZUKI", img:"assets/looks/gchrome.webp", price:[8500,16000], badge:"Suzuki wordmark", wordmark:"SUZUKI", meta:["Bright trim","with badge"]},
+    {id:"delete", name:"OEM-style · logo delete", label:"Logo delete", img:"assets/looks/gmesh.webp", price:[4500,8000], badge:"No logo", meta:["Clean face","logo-free"]},
+    {id:"classic", name:"Five-slot grille · no logo", label:"Five-slot clean", img:"assets/looks/gclassic.webp", price:[6000,12000], badge:"No logo", meta:["Retro slots","logo-free"]},
+    {id:"mesh", name:"Mesh sport grille · no logo", label:"Mesh clean", img:"assets/looks/gmesh.webp", price:[7000,14000], badge:"No logo", meta:["Sport mesh","logo-free"]}
   ]}
 ];
 const designState = {finish:"oem", decal:"none", grille:"oem"};
 const studio = document.getElementById("studio");
 function optionPrice(o){ return o.price[1] ? `${fmt(o.price[0])} – ${fmt(o.price[1])}` : "Included"; }
+function grilleOverlay(option){
+  if(!option.wordmark) return "";
+  const cls = option.wordClass ? ` ${option.wordClass}` : "";
+  return `<span class="grille-wordmark${cls}">${escHtml(option.wordmark)}</span>`;
+}
+function optionBadges(option){
+  const tags = option.meta || [];
+  if(!option.badge && !tags.length) return "";
+  const main = option.badge ? `<span class="mini-badge">${escHtml(option.badge)}</span>` : "";
+  return `<span class="choice-meta">${main}${tags.map(t=>`<span class="mini-badge muted">${escHtml(t)}</span>`).join("")}</span>`;
+}
 DESIGN_GROUPS.forEach(g=>{
   const choices = g.options.map(o=>{
-    const preview = `<img class="choice-photo" src="${o.img}" alt="" loading="lazy">`;
+    const preview = `<span class="photo-wrap"><img class="choice-photo" src="${o.img}" alt="" loading="lazy">${g.id==="grille"?grilleOverlay(o):""}</span>`;
     return `<button class="choice${designState[g.id]===o.id?" active":""}" type="button" data-group="${g.id}" data-option="${o.id}" aria-pressed="${designState[g.id]===o.id}">
-      ${preview}<span class="choice-name">${o.name}</span><span class="choice-price">${optionPrice(o)}</span>
+      ${preview}<span class="choice-name">${o.name}</span><span class="choice-price">${optionPrice(o)}</span>${optionBadges(o)}
     </button>`;
   }).join("");
   studio.insertAdjacentHTML("beforeend",`<section class="studio-group"><div class="studio-title"><h3>${g.title}</h3><span>${g.hint}</span></div><div class="choice-grid">${choices}</div></section>`);
@@ -651,6 +702,7 @@ function selectDesign(group,id){
     const active = b.dataset.option === id;
     b.classList.toggle("active",active); b.setAttribute("aria-pressed",String(active));
   });
+  document.querySelectorAll(`[data-design-group="${group}"]`).forEach(b=>{b.textContent=b.dataset.designOption===id?"Selected":"Choose"});
   update();
 }
 studio.addEventListener("click",e=>{
@@ -722,19 +774,22 @@ const LOOKS = [
   {el:"wraps", id:"street", name:"Two-Tone Street", group:"finish", option:"twotone", tag:"Contrast roof and pillars"},
   {el:"wraps", id:"topo", name:"Topo Map Decals", group:"decal", option:"topo", tag:"Contour lines, overland style"},
   {el:"wraps", id:"mountains", name:"Mountain Graphics", group:"decal", option:"mountain", tag:"Peaks and horizon motif"},
-  {el:"grilles", id:"gclassic", name:"Classic SUZUKI", group:"grille", option:"block", tag:"Matte slots with block branding"},
-  {el:"grilles", id:"gmesh", name:"Logo-delete Mesh", group:"grille", option:"mesh", tag:"Clean sport mesh, no logo"},
-  {el:"grilles", id:"gchrome", name:"Chrome SUZUKI", group:"grille", option:"chrome", tag:"Heritage brightwork and branding"}
+  {el:"grilles", id:"gclassic", name:"Heritage SUZUKI", group:"grille", option:"block", tag:"Matte slots with block Suzuki wordmark", img:"assets/looks/gclassic.webp"},
+  {el:"grilles", id:"grhino", name:"Black Hex SUZUKI", group:"grille", option:"rhino", tag:"Rhino-style black grille with Suzuki nameplate", img:"assets/looks/gmesh.webp"},
+  {el:"grilles", id:"gscript", name:"Suzuki Script", group:"grille", option:"script", tag:"Retro script-badge grille", img:"assets/looks/gchrome.webp"},
+  {el:"grilles", id:"gchrome", name:"Chrome SUZUKI", group:"grille", option:"chrome", tag:"Heritage brightwork and branding", img:"assets/looks/gchrome.webp"},
+  {el:"grilles", id:"gmesh", name:"Logo-delete Mesh", group:"grille", option:"mesh", tag:"Clean sport mesh, no logo", img:"assets/looks/gmesh.webp"}
 ];
 LOOKS.forEach(l=>{
   const group = DESIGN_GROUPS.find(g=>g.id===l.group);
   const option = group.options.find(o=>o.id===l.option);
   document.getElementById(l.el).insertAdjacentHTML("beforeend", `
   <div class="pkg look" data-look="${l.id}">
-    <img class="pkgimg" src="assets/looks/${l.id}.webp" alt="${escHtml(l.name)}" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${escHtml(l.name)}">
+    <span class="photo-wrap"><img class="pkgimg" src="${l.img || `assets/looks/${l.id}.webp`}" alt="${escHtml(l.name)}" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${escHtml(l.name)}">${l.group==="grille"?grilleOverlay(option):""}</span>
     <div class="body">
       <h3>${l.name}</h3>
       <div class="tag">${l.tag}</div>
+      ${l.group==="grille"?`<div class="meta">${optionBadges(option)}</div>`:""}
       <div class="row">
         <span class="pprice">${optionPrice(option)}</span>
         <button class="apply" data-design-group="${l.group}" data-design-option="${l.option}">Choose</button>
@@ -746,8 +801,6 @@ document.addEventListener("click", e=>{
   const b = e.target.closest("[data-design-group]");
   if(!b) return;
   selectDesign(b.dataset.designGroup,b.dataset.designOption);
-  document.querySelectorAll(`[data-design-group="${b.dataset.designGroup}"]`).forEach(x=>x.textContent="Choose");
-  b.textContent = "Selected";
 });
 
 /* lightbox */
@@ -791,6 +844,7 @@ function setPreset(p, label){
 let frame = 0, auto = setInterval(()=>{ frame++; spinImg.src = frameSrc(frame); }, 130);
 let dragX = null, dragFrame = 0;
 spinBox.addEventListener("pointerdown", e=>{
+  if(e.target.closest("button,a,input,select,textarea,label")) return;
   if(auto){ clearInterval(auto); auto = null; spinBox.classList.add("touched"); }
   dragX = e.clientX; dragFrame = frame; spinBox.setPointerCapture(e.pointerId);
 });
@@ -964,11 +1018,13 @@ applyGoal.addEventListener("click",()=>{const parts=goalParts();document.querySe
 /* search, favourites and compare */
 function applyPartFilters(){
   const q=document.getElementById("partSearch").value.trim().toLowerCase();
-  document.querySelectorAll(".mod").forEach(card=>{const id=card.dataset.modId,text=card.textContent.toLowerCase(),category=card.dataset.category,install=card.dataset.install;const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===install;const show=filterOk&&(!q||text.includes(q))&&(!favoritesOnly||favorites.has(id));card.classList.toggle("hidden",!show)});
+  let shown=0;
+  document.querySelectorAll(".mod").forEach(card=>{const id=card.dataset.modId,text=card.textContent.toLowerCase(),category=card.dataset.category,install=card.dataset.install;const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===install;const show=filterOk&&(!q||text.includes(q))&&(!favoritesOnly||favorites.has(id));card.classList.toggle("hidden",!show);if(show)shown++});
+  document.getElementById("partNoResults").hidden = shown>0;
 }
 document.getElementById("partSearch").addEventListener("input",applyPartFilters);
 document.getElementById("partFilters").addEventListener("click",e=>{const b=e.target.closest("[data-filter]");if(!b)return;activePartFilter=b.dataset.filter;document.querySelectorAll(".filterchip").forEach(x=>x.classList.toggle("active",x===b));applyPartFilters()});
-document.getElementById("favoritesOnly").addEventListener("click",e=>{favoritesOnly=!favoritesOnly;e.currentTarget.classList.toggle("primary",favoritesOnly);applyPartFilters()});
+document.getElementById("favoritesOnly").addEventListener("click",e=>{favoritesOnly=!favoritesOnly;e.currentTarget.classList.toggle("primary",favoritesOnly);e.currentTarget.textContent=favoritesOnly?"Saved only":"Saved";applyPartFilters()});
 function renderCompare(){const panel=document.getElementById("comparePanel"),grid=document.getElementById("compareGrid"),items=[...compareIds].map(id=>modById[id]).filter(Boolean);panel.classList.toggle("open",items.length>0);grid.innerHTML=items.map(m=>{const meta=metaFor(m);return `<div class="compare-item"><b>${m.name}</b>${fmt(m.price[0])} – ${fmt(m.price[1])}<br>${meta.install==="easy"?"DIY-friendly":"Professional fit"}<br>~${meta.weight} kg · fit ${fmt(meta.fit[0])} – ${fmt(meta.fit[1])}</div>`}).join("")}
 document.addEventListener("click",e=>{
   const fav=e.target.closest("[data-favorite]");if(fav){const id=fav.dataset.favorite;favorites.has(id)?favorites.delete(id):favorites.add(id);try{localStorage.setItem("jimnylab-favorites",JSON.stringify([...favorites]))}catch{}fav.classList.toggle("active",favorites.has(id));fav.setAttribute("aria-pressed",String(favorites.has(id)));fav.textContent=favorites.has(id)?"Saved":"Save";applyPartFilters();return}
@@ -976,7 +1032,7 @@ document.addEventListener("click",e=>{
 });
 
 /* fitter filters and owner guides */
-function filterShops(){const q=document.getElementById("shopSearch").value.trim().toLowerCase(),type=document.getElementById("shopType").value;document.querySelectorAll(".shop").forEach(s=>s.classList.toggle("hidden",!!q&&!s.dataset.search.includes(q)||type!=="all"&&s.dataset.shopType!==type))}
+function filterShops(){const q=document.getElementById("shopSearch").value.trim().toLowerCase(),type=document.getElementById("shopType").value;let shown=0;document.querySelectorAll(".shop").forEach(s=>{const hide=!!q&&!s.dataset.search.includes(q)||type!=="all"&&s.dataset.shopType!==type;s.classList.toggle("hidden",hide);if(!hide)shown++});document.getElementById("shopNoResults").hidden=shown>0}
 document.getElementById("shopSearch").addEventListener("input",filterShops);document.getElementById("shopType").addEventListener("change",filterShops);
 const GUIDES=[
   ["First upgrades for a new five-door","Start with reversible protection and visibility: mats, mud flaps, dashcam and correctly fitted all-terrain tyres if your use needs them. Drive the vehicle stock first. Add lift, bumpers and recovery equipment only after a real use case appears."],
