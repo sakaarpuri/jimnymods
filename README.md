@@ -1,6 +1,6 @@
 # JimnyLab
 
-Mobile-first Suzuki Jimny mod visualizer — toggle mods on an interactive SVG Jimny, see live ₹ price estimates, order parts (India + international), and find fitting shops across India.
+Mobile-first Suzuki Jimny mod visualizer with a 360° viewer, photo-based finish/decal/grille choices, illustrated part cards, live ₹ price estimates, build packages, parts links, and a fitting-shop directory for India.
 
 Single static file, no build step, no dependencies.
 
