@@ -82,16 +82,20 @@
 
   /* part thumbnails + lightbox */
   .thumb{width:76px;height:76px;border-radius:10px;object-fit:cover;flex:none;border:1px solid var(--line);cursor:zoom-in}
+  .thumbbtn{width:76px;height:76px;flex:none;border:0;background:transparent;padding:0;border-radius:10px}
+  .thumbbtn:focus-visible,.pkgimg:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
   .mod-top{display:flex;gap:12px;align-items:flex-start}
   .mod-top .mod-head{flex:1}
   .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:100;cursor:zoom-out;padding:16px}
   .lightbox.open{display:flex}
   .lightbox img{max-width:100%;max-height:85vh;border-radius:12px}
+  .lightbox-close{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;border:1px solid #56616a;background:#202830;color:#fff;font-size:1rem;cursor:pointer}
   .hotbadge{display:inline-block;background:#3d2f14;color:var(--accent);font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:10px;vertical-align:2px;white-space:nowrap}
 
   /* paint swatches */
   .swatches{display:flex;gap:10px;justify-content:center;padding:10px 0 0;flex-wrap:wrap}
-  .sw{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);cursor:pointer;flex:none}
+  .sw{appearance:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--line);cursor:pointer;flex:none;padding:0}
+  .sw:focus-visible{outline:2px solid var(--text);outline-offset:3px}
   .sw.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,200,46,.25)}
 
   /* exterior studio */
@@ -229,13 +233,13 @@
   </div>
 
   <div class="swatches" id="swatches">
-    <div class="sw active" data-f="" style="background:#e8d23a" title="Kinetic Yellow"></div>
-    <div class="sw" data-f="hue-rotate(-62deg) saturate(1.25) brightness(.92)" style="background:#e2574c" title="Coral Red"></div>
-    <div class="sw" data-f="hue-rotate(-30deg) saturate(1.15)" style="background:#e07b28" title="Burnt Orange"></div>
-    <div class="sw" data-f="hue-rotate(55deg) saturate(.95)" style="background:#5d8a3c" title="Jungle Green"></div>
-    <div class="sw" data-f="hue-rotate(125deg) saturate(.9)" style="background:#2e8b8b" title="Ocean Teal"></div>
-    <div class="sw" data-f="hue-rotate(175deg) saturate(1.15) brightness(.92)" style="background:#5a6fd6" title="Nexa Blue"></div>
-    <div class="sw" data-f="saturate(0) brightness(.96)" style="background:#8a9099" title="Granite Gray"></div>
+    <button type="button" class="sw active" data-f="" style="background:#e8d23a" aria-label="Kinetic Yellow"></button>
+    <button type="button" class="sw" data-f="hue-rotate(-62deg) saturate(1.25) brightness(.92)" style="background:#e2574c" aria-label="Coral Red"></button>
+    <button type="button" class="sw" data-f="hue-rotate(-30deg) saturate(1.15)" style="background:#e07b28" aria-label="Burnt Orange"></button>
+    <button type="button" class="sw" data-f="hue-rotate(55deg) saturate(.95)" style="background:#5d8a3c" aria-label="Jungle Green"></button>
+    <button type="button" class="sw" data-f="hue-rotate(125deg) saturate(.9)" style="background:#2e8b8b" aria-label="Ocean Teal"></button>
+    <button type="button" class="sw" data-f="hue-rotate(175deg) saturate(1.15) brightness(.92)" style="background:#5a6fd6" aria-label="Nexa Blue"></button>
+    <button type="button" class="sw" data-f="saturate(0) brightness(.96)" style="background:#8a9099" aria-label="Granite Gray"></button>
   </div>
 
   <!-- ============ VISUALIZER ============ -->
@@ -584,7 +588,7 @@ MODS.forEach(m=>{
   document.getElementById(m.interior?"imods":"mods").insertAdjacentHTML("beforeend", `
   <article class="mod" data-mod-id="${m.id}" data-category="${m.interior?"interior":"exterior"}" data-install="${meta.install}">
     <div class="mod-top">
-      <img class="thumb" src="${m.img || `assets/parts/${m.id}.webp`}" alt="${m.name}" loading="lazy">
+      <button class="thumbbtn" type="button" aria-label="View larger photo of ${m.name}"><img class="thumb" src="${m.img || `assets/parts/${m.id}.webp`}" alt="${m.name}" loading="lazy"></button>
       <div class="mod-head">
         <div>
           <h3>${m.name}${m.hot?' <span class="hotbadge">Popular</span>':''}</h3>
@@ -678,7 +682,7 @@ PACKAGES.forEach(p=>{
   const names = p.parts.map(id=>modById[id].name.split(" (")[0]).join(" · ");
   pkgsEl.insertAdjacentHTML("beforeend", `
   <div class="pkg" data-pkg="${p.id}">
-    <img class="pkgimg" src="assets/packages/${p.id}.webp" alt="${p.name} build" loading="lazy">
+    <img class="pkgimg" src="assets/packages/${p.id}.webp" alt="${p.name} build" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${p.name} build">
     <div class="body">
       <h3>${p.name}</h3>
       <div class="tag">${p.tag}</div>
@@ -726,7 +730,7 @@ LOOKS.forEach(l=>{
   const option = group.options.find(o=>o.id===l.option);
   document.getElementById(l.el).insertAdjacentHTML("beforeend", `
   <div class="pkg look" data-look="${l.id}">
-    <img class="pkgimg" src="assets/looks/${l.id}.webp" alt="${l.name}" loading="lazy">
+    <img class="pkgimg" src="assets/looks/${l.id}.webp" alt="${l.name}" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${l.name}">
     <div class="body">
       <h3>${l.name}</h3>
       <div class="tag">${l.tag}</div>
@@ -746,12 +750,17 @@ document.addEventListener("click", e=>{
 });
 
 /* lightbox */
-document.body.insertAdjacentHTML("beforeend",'<div class="lightbox" id="lightbox"><img alt="Part photo"></div>');
+document.body.insertAdjacentHTML("beforeend",'<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Image preview"><button class="lightbox-close" type="button" aria-label="Close image preview">×</button><img alt="Enlarged product preview"></div>');
 const lb = document.getElementById("lightbox");
+let lightboxTrigger=null;
+function openLightbox(img){lightboxTrigger=img.closest(".thumbbtn")||img;lb.querySelector("img").src=img.src;lb.classList.add("open");lb.setAttribute("aria-hidden","false");lb.querySelector(".lightbox-close").focus()}
+function closeLightbox(){if(!lb.classList.contains("open"))return;lb.classList.remove("open");lb.setAttribute("aria-hidden","true");lightboxTrigger?.focus();lightboxTrigger=null}
 document.addEventListener("click", e=>{
-  if(e.target.classList.contains("thumb") || e.target.classList.contains("pkgimg")){ lb.querySelector("img").src = e.target.src; lb.classList.add("open"); }
-  else if(e.target.closest("#lightbox")) lb.classList.remove("open");
+  const thumb=e.target.closest(".thumbbtn")?.querySelector("img");
+  if(thumb || e.target.classList.contains("pkgimg")) openLightbox(thumb||e.target);
+  else if(e.target.closest(".lightbox-close") || e.target===lb) closeLightbox();
 });
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("pkgimg")){e.preventDefault();openLightbox(e.target)}else if(e.key==="Escape")closeLightbox()});
 
 /* 360 viewer with build presets */
 const FRAMES = 36, spinImg = document.getElementById("spinImg"), spinBox = document.getElementById("spin360");
