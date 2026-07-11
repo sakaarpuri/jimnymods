@@ -344,7 +344,7 @@
   <h2 id="parts-title">Parts for the five-door</h2>
   <div class="part-tools">
     <div class="searchrow"><input id="partSearch" type="search" placeholder="Search parts, uses or brands" aria-label="Search parts"><button class="action" id="favoritesOnly" type="button">Saved</button></div>
-    <div class="filterrow" id="partFilters"><button class="filterchip active" data-filter="all">All</button><button class="filterchip" data-filter="exterior">Exterior</button><button class="filterchip" data-filter="interior">Interior</button><button class="filterchip" data-filter="easy">DIY-friendly</button><button class="filterchip" data-filter="pro">Professional fit</button></div>
+    <div class="filterrow" id="partFilters"><button class="filterchip active" data-filter="all">All</button><button class="filterchip" data-filter="verified">Direct India products</button><button class="filterchip" data-filter="exterior">Exterior</button><button class="filterchip" data-filter="interior">Interior</button><button class="filterchip" data-filter="easy">DIY-friendly</button><button class="filterchip" data-filter="pro">Professional fit</button></div>
   </div>
   <div class="compare-panel" id="comparePanel"><strong>Compare selected parts</strong><div class="compare-grid" id="compareGrid"></div></div>
   <div id="mods"></div>
@@ -401,10 +401,22 @@ const MODS = [
    desc:"Raised air intake for water crossings and dusty trails.",
    in:[["Amazon.in","https://www.amazon.in/s?k=suzuki+jimny+snorkel"],["Azad 4x4","https://www.azad4x4.com"]],
    intl:[["Safari Snorkel","https://safarisnorkel.com"],["Ironman 4x4","https://ironman4x4.com"]]},
+  {id:"bimbra_snorkel", hot:true, realIndia:true, name:"Bimbra Jimny Functional Snorkel", price:[8000,25000], usd:"India listing", img:"assets/parts/snorkel.webp",
+   desc:"Direct India product page for a functional Jimny snorkel. Confirm five-door fitment, cutting requirements and installer before ordering.",
+   in:[["Bimbra product page","https://bimbra.in/products/jimny-functional-snorkel/"]],
+   intl:[]},
   {id:"rack", name:"Roof Rack / Expedition Rack", price:[15000,45000], usd:"$250–800",
    desc:"Flat platform for luggage, jerry cans, rooftop tent mounts.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+roof+rack"],["Azad 4x4","https://www.azad4x4.com"]],
    intl:[["Front Runner","https://www.frontrunneroutfitters.com"],["Rhino-Rack","https://www.rhinorack.com"]]},
+  {id:"msga_roofbasket", hot:true, realIndia:true, name:"Maruti Genuine Premium Roof Basket", price:[21747,21747], usd:"India MRP", img:"assets/parts/rack.webp",
+   desc:"Official Maruti Suzuki Jimny premium roof basket listing, part 99177-78R01. Count basket weight and published cargo limit before adding loads.",
+   in:[["Maruti Genuine Accessories","https://www.marutisuzuki.com/genuine-accessories/jimny/roof-luggage-carrier"]],
+   intl:[]},
+  {id:"prad_roofrack", hot:true, realIndia:true, name:"PRAD Expedition Roofrack · Jimny", price:[26500,33500], usd:"India listing", img:"assets/parts/rack.webp",
+   desc:"PRAD bolt-on sheet-metal modular roofrack for Maruti Suzuki Jimny, listed with mild-steel and aluminium-crossrail variants.",
+   in:[["PRAD product page","https://shop.prad4x4.com/products/xpd-roofrack-maruti-suzuki-jimny"]],
+   intl:[]},
   {id:"led", name:"LED Light Bar", price:[3000,15000], usd:"$50–250",
    desc:"Trail-only auxiliary lighting. Mounts to rack or windshield brackets.",
    in:[["Amazon.in","https://www.amazon.in/s?k=led+light+bar+off+road"]],
@@ -413,6 +425,10 @@ const MODS = [
    desc:"Steel protection with winch & recovery points. Off-road / private-land use in India.",
    in:[["Azad 4x4","https://www.azad4x4.com"],["Bimbra 4x4","https://www.bimbra4x4.com"]],
    intl:[["ARB","https://www.arb.com.au"],["Ironman 4x4","https://ironman4x4.com"]]},
+  {id:"autostylenn_bumper_v1", realIndia:true, name:"Auto Stylenn Front Metal Bumper V1", price:[30460,30460], usd:"India sale price", img:"assets/parts/bull.webp",
+   desc:"Direct Jimny4x4Products listing for a Maruti Suzuki Jimny front metal bumper with winch plate. Private-road/off-road legality still needs checking.",
+   in:[["Jimny4x4Products","https://jimny4x4product.com/product/maruti-suzuki-jimny-front-metal-bumper-with-winch-plate-v1/"]],
+   intl:[]},
   {id:"sliders", name:"Rock Sliders / Side Steps", price:[12000,30000], usd:"$200–450",
    desc:"Protects sills from rocks; doubles as a step.",
    in:[["Azad 4x4","https://www.azad4x4.com"],["Amazon.in","https://www.amazon.in/s?k=jimny+side+step"]],
@@ -429,6 +445,18 @@ const MODS = [
    desc:"Vertical-slot retro grille — the most popular face-lift for the Jimny worldwide.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+front+grille"]],
    intl:[["DAMD Japan","https://www.damd.co.jp"]]},
+  {id:"autostylenn_s_grille", hot:true, realIndia:true, name:"Auto Stylenn ABS Grille With S Logo", price:[6000,6000], usd:"India listing", img:"assets/parts/grille.webp",
+   desc:"Direct India catalogue listing for a Jimny ABS front grille with Suzuki S-logo option in matte black, gloss black or grey.",
+   in:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"]],
+   intl:[]},
+  {id:"autostylenn_big_suzuki_grille", hot:true, realIndia:true, name:"Auto Stylenn ABS Grille With SUZUKI Logo", price:[6500,6500], usd:"India listing", img:"assets/parts/grille.webp",
+   desc:"Direct product page for the bold SUZUKI wordmark ABS grille. A strong option for owners specifically wanting the Suzuki badge visible.",
+   in:[["Jimny4x4Products","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]],
+   intl:[]},
+  {id:"autostylenn_cursive_grille", realIndia:true, name:"Auto Stylenn Suzuki Cursive Logo Grille", price:[6500,6500], usd:"India listing", img:"assets/parts/grille.webp",
+   desc:"India catalogue listing for a Jimny ABS grille with cursive Suzuki branding. Good for a softer retro look than the block-letter grille.",
+   in:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"]],
+   intl:[]},
   {id:"winch", name:"Electric Winch", price:[25000,80000], usd:"$300–1,200",
    desc:"Self-recovery essential with synthetic rope. Needs a winch-compatible bumper.",
    in:[["Bimbra 4x4","https://www.bimbra4x4.com"],["Amazon.in","https://www.amazon.in/s?k=4x4+electric+winch"]],
@@ -449,9 +477,9 @@ const MODS = [
    desc:"Soft or hard cover for the tailgate spare — cheap, protective, personalisable.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+spare+wheel+cover"]],
    intl:[["APIO Japan","https://www.apio.jp"]]},
-  {id:"mudflaps", hot:true, name:"Mud Flaps", price:[1500,5000], usd:"$25–80",
-   desc:"India's most-fitted accessory — protects paint and following traffic from spray.",
-   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+mud+flaps"]],
+  {id:"mudflaps", hot:true, realIndia:true, name:"Maruti Genuine Jimny Mud Flaps", price:[829,829], usd:"India MRP",
+   desc:"Official Maruti Suzuki Jimny mud flap listing. India's most-fitted accessory — protects paint and following traffic from spray.",
+   in:[["Maruti Genuine Accessories","https://www.marutisuzuki.com/genuine-accessories/jimny/mud-flaps"],["Amazon.in","https://www.amazon.in/s?k=jimny+mud+flaps"]],
    intl:[["APIO Japan","https://www.apio.jp"]]},
   {id:"pods", name:"LED Spot Pods", price:[2000,10000], usd:"$40–150",
    desc:"Compact round auxiliary lights for bumper or A-pillar mounts. Trail use.",
@@ -477,9 +505,9 @@ const MODS = [
    desc:"Smoked or matte leading-edge guard that helps deflect stones and insects from the bonnet lip.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+bonnet+protector"]],
    intl:[["Suzuki Australia","https://www.suzuki.com.au/vehicles/4x4/jimny/accessories/"]]},
-  {id:"visors", name:"Slim Rain Visors", price:[1800,5000], usd:"$30–80", img:"assets/parts/visors-photo.jpg",
-   desc:"Low-profile window visors for ventilation during rain. Choose clip-on or automotive-tape fitment.",
-   in:[["Maruti Genuine Accessories","https://www.marutisuzuki.com/genuine-accessories/jimny-accessories"],["Amazon.in","https://www.amazon.in/s?k=jimny+door+visor"]],
+  {id:"visors", realIndia:true, name:"Maruti Genuine Door Visor Set", price:[1835,1835], usd:"India MRP", img:"assets/parts/visors-photo.jpg",
+   desc:"Official Jimny door visor set with 3M automotive-grade tape. Useful for ventilation in rain and parked heat build-up.",
+   in:[["Maruti Genuine Accessories","https://www.marutisuzuki.com/genuine-accessories/jimny/door-visor-set"],["Amazon.in","https://www.amazon.in/s?k=jimny+door+visor"]],
    intl:[]},
   {id:"cladding", name:"Door & Quarter Cladding", price:[7000,18000], usd:"$100–250", img:"assets/parts/cladding-photo.jpg",
    desc:"Textured body-side protection for trail brush and parking scuffs, with a chunkier lower-body profile.",
@@ -493,13 +521,13 @@ const MODS = [
    desc:"Bolt-on visual hardware in matte black, silver or body colour; no drilling on most kits.",
    in:[["Jimny 4x4 Products","https://jimny4x4product.com/"],["Amazon.in","https://www.amazon.in/s?k=jimny+hinge+cover"]],
    intl:[]},
-  {id:"seats", interior:true, name:"Custom Seat Covers", price:[8000,25000], usd:"$100–300",
-   desc:"Tailored leatherette covers with diamond stitching — protects OEM fabric.",
-   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+seat+covers"]],
+  {id:"seats", interior:true, realIndia:true, name:"Maruti Genuine Adventure Trek Seat Cover", price:[9290,9290], usd:"India MRP",
+   desc:"Official Jimny Adventure Trek fabric-finish seat cover listing for Zeta and Alpha variants. Keeps the build warranty-friendlier than unknown covers.",
+   in:[["Maruti Genuine Accessories","https://www.marutisuzuki.com/genuine-accessories/jimny-accessories"],["Amazon.in","https://www.amazon.in/s?k=jimny+seat+covers"]],
    intl:[["DAMD Japan","https://www.damd.co.jp"]]},
-  {id:"mats", interior:true, name:"7D Floor Mats", price:[3000,8000], usd:"$40–100",
-   desc:"Full-coverage stitched mats with boot mat — easy to hose off after trails.",
-   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+7d+floor+mats"]],
+  {id:"mats", interior:true, realIndia:true, name:"Maruti Genuine All Weather Mats", price:[3390,3390], usd:"India MRP",
+   desc:"Official Jimny all-weather tread-metal mat listing for MT/AT. Easy first upgrade for monsoon and trail dirt.",
+   in:[["Maruti Genuine Accessories","https://www.marutisuzuki.com/genuine-accessories/jimny/mats"],["Amazon.in","https://www.amazon.in/s?k=jimny+7d+floor+mats"]],
    intl:[]},
   {id:"headunit", interior:true, name:"9\" Android Head Unit", price:[8000,30000], usd:"$100–400",
    desc:"Touchscreen with wireless CarPlay/Android Auto, maps and reverse-camera input.",
@@ -588,12 +616,19 @@ const MOD_META = {
   lift:{weight:12,install:"pro",fit:[6000,15000],warning:"Wheel alignment and a geometry check are required after installation."},
   tires:{weight:18,install:"pro",fit:[2500,6000],warning:"Confirm offset, rubbing at full lock and spare-wheel clearance before purchase."},
   snorkel:{weight:5,install:"pro",fit:[5000,12000],warning:"Body cutting may be required. A snorkel does not make the vehicle waterproof."},
+  bimbra_snorkel:{weight:5,install:"pro",fit:[5000,12000],warning:"Confirm cutting, sealing and warranty impact before snorkel installation."},
   rack:{weight:24,roof:24,install:"pro",fit:[3000,8000],warning:"Confirm the rack system's own dynamic and static load ratings."},
+  msga_roofbasket:{weight:12,roof:12,install:"pro",fit:[1500,4000],warning:"Use with compatible roof bars and stay inside the published Maruti accessory load guidance."},
+  prad_roofrack:{weight:24,roof:24,install:"pro",fit:[3000,8000],warning:"Confirm rack weight, dynamic load and static camp load directly with PRAD before fitting tents or awnings."},
   led:{weight:3,watts:120,install:"pro",fit:[2500,6000],warning:"Use a fused relay harness. Auxiliary lights may be restricted on public roads."},
   bull:{weight:42,install:"pro",fit:[5000,15000],warning:"Aftermarket crash guards may not be road-legal in India."},
+  autostylenn_bumper_v1:{weight:42,install:"pro",fit:[5000,12000],warning:"Aftermarket metal bumpers and crash guards may not be road-legal in India. Confirm use case before fitting."},
   sliders:{weight:28,install:"pro",fit:[3000,8000]},
   ladder:{weight:8,roof:8,install:"pro",fit:[1500,4000]},
   flares:{weight:5,install:"easy",fit:[1200,3500]},
+  autostylenn_s_grille:{weight:3,install:"easy",fit:[800,2000]},
+  autostylenn_big_suzuki_grille:{weight:3,install:"easy",fit:[800,2000]},
+  autostylenn_cursive_grille:{weight:3,install:"easy",fit:[800,2000]},
   winch:{weight:29,watts:400,install:"pro",fit:[5000,15000],requires:["bull"],warning:"Requires a rated winch-compatible bumper, fused power and safe recovery points."},
   skid:{weight:26,install:"pro",fit:[3500,9000]},
   rtt:{weight:55,roof:55,install:"pro",fit:[6000,15000],requires:["rack"],warning:"A rooftop tent needs a rack and roof system explicitly rated for its dynamic and static loads."},
@@ -616,7 +651,7 @@ const favorites = new Set(readJSON("jimnylab-favorites",[]));
 const compareIds = new Set();
 
 /* ---------------- render mods ---------------- */
-const fmt = n => n===0 ? "₹0" : "₹" + (n>=100000 ? (n/100000).toFixed(1).replace(/\.0$/,"")+"L" : (n/1000)+"k");
+const fmt = n => n===0 ? "₹0" : "₹" + (n>=100000 ? (n/100000).toFixed(1).replace(/\.0$/,"")+"L" : n>=1000 ? (n/1000).toFixed(n%1000?1:0).replace(/\.0$/,"")+"k" : Math.round(n));
 const escHtml = value => String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 MODS.forEach(m=>{
   if(m.designOnly) return;
@@ -626,19 +661,19 @@ MODS.forEach(m=>{
     ...m.intl.map(([t,u])=>`<a class="btn intl" target="_blank" rel="noopener" href="${u}">Intl · ${t}</a>`)
   ].join("");
   document.getElementById(m.interior?"imods":"mods").insertAdjacentHTML("beforeend", `
-  <article class="mod" data-mod-id="${m.id}" data-category="${m.interior?"interior":"exterior"}" data-install="${meta.install}">
+  <article class="mod" data-mod-id="${m.id}" data-category="${m.interior?"interior":"exterior"}" data-install="${meta.install}" data-verified="${m.realIndia?"true":"false"}">
     <div class="mod-top">
       <button class="thumbbtn" type="button" aria-label="View larger photo of ${escHtml(m.name)}"><img class="thumb" src="${m.img || `assets/parts/${m.id}.webp`}" alt="${escHtml(m.name)}" loading="lazy"></button>
       <div class="mod-head">
         <div>
-          <h3>${m.name}${m.hot?' <span class="hotbadge">Popular</span>':''}</h3>
-          <div class="price">${fmt(m.price[0])} – ${fmt(m.price[1])} · intl ~${m.usd}</div>
+          <h3>${m.name}${m.hot?' <span class="hotbadge">Popular</span>':''}${m.realIndia?' <span class="hotbadge">Direct India product</span>':''}</h3>
+          <div class="price">${fmt(m.price[0])} – ${fmt(m.price[1])}${m.realIndia?" · direct India listing":` · intl ~${m.usd}`}</div>
         </div>
         <label class="switch" aria-label="Add ${m.name} to build"><input type="checkbox" data-id="${m.id}"><span class="slider"></span></label>
       </div>
     </div>
     <p class="desc">${m.desc}</p>
-    <div class="factrow"><span class="fact">5-door scope · verify SKU</span><span class="fact">${meta.install==="easy"?"DIY-friendly":"Professional fit"}</span><span class="fact">~${meta.weight} kg</span><span class="fact">Listing checked ${meta.verified}</span></div>
+    <div class="factrow">${m.realIndia?'<span class="fact">direct India product page</span>':'<span class="fact">5-door scope · verify SKU</span>'}<span class="fact">${meta.install==="easy"?"DIY-friendly":"Professional fit"}</span><span class="fact">~${meta.weight} kg</span><span class="fact">Listing checked ${meta.verified}</span></div>
     <div class="links">${links}</div>
     <div class="mod-actions"><button class="iconbtn${favorites.has(m.id)?" active":""}" type="button" data-favorite="${m.id}" aria-pressed="${favorites.has(m.id)}">${favorites.has(m.id)?"Saved":"Save"}</button><button class="iconbtn" type="button" data-compare="${m.id}" aria-pressed="false">Compare</button></div>
   </article>`);
@@ -1018,8 +1053,9 @@ applyGoal.addEventListener("click",()=>{const parts=goalParts();document.querySe
 /* search, favourites and compare */
 function applyPartFilters(){
   const q=document.getElementById("partSearch").value.trim().toLowerCase();
+  const terms=q.split(/\s+/).filter(Boolean);
   let shown=0;
-  document.querySelectorAll(".mod").forEach(card=>{const id=card.dataset.modId,text=card.textContent.toLowerCase(),category=card.dataset.category,install=card.dataset.install;const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===install;const show=filterOk&&(!q||text.includes(q))&&(!favoritesOnly||favorites.has(id));card.classList.toggle("hidden",!show);if(show)shown++});
+  document.querySelectorAll(".mod").forEach(card=>{const id=card.dataset.modId,text=card.textContent.toLowerCase(),category=card.dataset.category,install=card.dataset.install,verified=card.dataset.verified==="true";const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===install||activePartFilter==="verified"&&verified;const searchOk=!terms.length||terms.every(term=>text.includes(term));const show=filterOk&&searchOk&&(!favoritesOnly||favorites.has(id));card.classList.toggle("hidden",!show);if(show)shown++});
   document.getElementById("partNoResults").hidden = shown>0;
 }
 document.getElementById("partSearch").addEventListener("input",applyPartFilters);
