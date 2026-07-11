@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JimnyLab — Plan Your Maruti Suzuki Jimny 5-Door Build</title>
 <meta name="description" content="Plan a Maruti Suzuki Jimny 5-door build for India with fitment checks, tyre calculations, safety warnings, price estimates, parts and fitting shops.">
+<link rel="canonical" href="https://jimnylab.netlify.app/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="JimnyLab — Plan Your Maruti Suzuki Jimny 5-Door Build">
+<meta property="og:description" content="Plan a Maruti Suzuki Jimny 5-door build for India with packages, exact exterior choices, India product links, fitters and safety checks.">
+<meta property="og:image" content="https://jimnylab.netlify.app/assets/360/stock/f01.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <style>
   :root{
@@ -28,7 +34,7 @@
   .vehicle-badge{font-size:.68rem;font-weight:800;letter-spacing:.45px;text-transform:uppercase;color:var(--accent);background:#302b18;border:1px solid #5d5122;border-radius:999px;padding:5px 9px;white-space:nowrap}
   .quicknav{display:flex;gap:7px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
   .quicknav::-webkit-scrollbar{display:none}
-  .quicknav a{flex:none;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.72rem;font-weight:700}
+  .quicknav a{flex:none;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:10px 12px;min-height:42px;font-size:.72rem;font-weight:700}
   .quicknav a:hover,.quicknav a:focus-visible{color:var(--text);border-color:#566675}
 
   /* Visualizer */
@@ -48,16 +54,16 @@
   .mod-head .price{color:var(--muted);font-size:.8rem;margin-top:2px}
   .mod p.desc{color:var(--muted);font-size:.83rem;margin-top:8px}
   .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-  .btn{display:inline-block;padding:8px 12px;border-radius:9px;font-size:.8rem;font-weight:600;text-decoration:none;border:1px solid var(--line)}
+  .btn{display:inline-block;padding:10px 12px;min-height:40px;border-radius:9px;font-size:.8rem;font-weight:600;text-decoration:none;border:1px solid var(--line)}
   button.btn{color:var(--text);background:var(--panel2);cursor:pointer}
   .btn.in{background:#243626;color:var(--good);border-color:#33513a}
   .btn.intl{background:#1e2f3d;color:var(--accent2);border-color:#2b4a60}
 
   /* Toggle switch */
-  .switch{position:relative;width:52px;height:30px;flex:none}
+  .switch{position:relative;width:60px;height:38px;flex:none}
   .switch input{opacity:0;width:100%;height:100%;position:absolute;z-index:2;cursor:pointer;margin:0}
   .slider{position:absolute;inset:0;background:#37424e;border-radius:30px;transition:.25s}
-  .slider::before{content:"";position:absolute;width:24px;height:24px;border-radius:50%;background:#cfd8e0;top:3px;left:3px;transition:.25s}
+  .slider::before{content:"";position:absolute;width:30px;height:30px;border-radius:50%;background:#cfd8e0;top:4px;left:4px;transition:.25s}
   .switch input:checked + .slider{background:var(--accent)}
   .switch input:checked + .slider::before{transform:translateX(22px);background:#101418}
 
@@ -78,7 +84,7 @@
   .spin360.touched .hint{opacity:0}
   .spin360.night img{filter:brightness(.52) contrast(1.15) saturate(.8)!important}
   .view-toggle{position:absolute;left:9px;bottom:9px;display:flex;gap:5px;background:rgba(15,19,22,.72);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px}
-  .view-toggle button{border:0;background:transparent;color:#cbd3d9;border-radius:999px;padding:5px 8px;font:inherit;font-size:.62rem;font-weight:750;cursor:pointer}
+  .view-toggle button{border:0;background:transparent;color:#cbd3d9;border-radius:999px;padding:8px 11px;min-height:38px;font:inherit;font-size:.68rem;font-weight:750;cursor:pointer}
   .view-toggle button.active{background:var(--accent);color:#171b1e}
   .ai-tag{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);color:#cfd8e0;font-size:.62rem;padding:3px 8px;border-radius:12px;pointer-events:none}
 
@@ -96,7 +102,7 @@
 
   /* paint swatches */
   .swatches{display:flex;gap:10px;justify-content:center;padding:10px 0 0;flex-wrap:wrap}
-  .sw{appearance:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--line);cursor:pointer;flex:none;padding:0}
+  .sw{appearance:none;width:44px;height:44px;border-radius:50%;border:2px solid var(--line);cursor:pointer;flex:none;padding:0}
   .sw:focus-visible{outline:2px solid var(--text);outline-offset:3px}
   .sw.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,200,46,.25)}
 
@@ -107,7 +113,7 @@
   .studio-title h3{font-size:.92rem}
   .studio-title span{color:var(--muted);font-size:.7rem;text-align:right}
   .choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .choice{appearance:none;text-align:left;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px;cursor:pointer;transition:transform .2s,border-color .2s,background .2s;min-height:76px}
+  .choice{appearance:none;text-align:left;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px;cursor:pointer;transition:transform .2s,border-color .2s,background .2s;min-height:92px}
   .choice:active{transform:scale(.98)}
   .choice.active{border-color:var(--accent);background:#2b2c25;box-shadow:inset 0 0 0 1px rgba(255,200,46,.18)}
   .choice-photo{display:block;width:100%;height:72px;object-fit:cover;border-radius:7px;margin-bottom:9px;border:1px solid rgba(255,255,255,.08);background:#171b1e}
@@ -127,8 +133,9 @@
   .field input,.field select{width:100%;min-height:40px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:.8rem}
   .field input:focus,.field select:focus{outline:2px solid rgba(255,200,46,.28);border-color:var(--accent)}
   .actionrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-  .action{border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-size:.76rem;font-weight:750;border-radius:9px;padding:9px 12px;cursor:pointer;transition:transform .18s,border-color .18s}
+  .action{border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-size:.76rem;font-weight:750;border-radius:9px;padding:10px 13px;min-height:42px;cursor:pointer;transition:transform .18s,border-color .18s}
   .action.primary{background:var(--accent);border-color:var(--accent);color:#171b1e}
+  .action:disabled{opacity:.55;cursor:not-allowed}
   .action:active{transform:scale(.98)}
   .resultbox{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
   .resultgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -139,20 +146,24 @@
   .warning{font-size:.72rem;padding:8px 9px;border-radius:8px;background:#332b18;color:#e8d892;border:1px solid #594a20}
   .warning.good{background:#1e3025;color:#a8d6b7;border-color:#31513b}
   .wizard-options{display:flex;gap:7px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
-  .wizard-chip{flex:none;border:1px solid var(--line);background:var(--panel2);color:var(--muted);padding:8px 10px;border-radius:999px;font-size:.72rem;font-weight:750;cursor:pointer}
+  .wizard-chip{flex:none;border:1px solid var(--line);background:var(--panel2);color:var(--muted);padding:10px 12px;min-height:42px;border-radius:999px;font-size:.72rem;font-weight:750;cursor:pointer}
   .wizard-chip.active{border-color:var(--accent);color:var(--text);background:#302b18}
   .recommendation{font-size:.76rem;color:var(--muted);line-height:1.6;margin-top:10px}
+  .stage-grid{display:grid;gap:8px;margin-top:10px}
+  .stage-card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .stage-card strong{display:block;color:var(--text);font-size:.76rem;margin-bottom:5px}
+  .stage-card span{display:block;color:var(--muted);font-size:.72rem;line-height:1.55}
 
   /* part discovery */
   .part-tools{position:sticky;top:55px;z-index:15;background:rgba(16,20,24,.96);padding:8px 0 10px;margin-bottom:10px}
   .searchrow{display:grid;grid-template-columns:1fr auto;gap:8px}
   .searchrow input{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px 11px;font:inherit;font-size:.8rem}
   .filterrow{display:flex;gap:7px;overflow-x:auto;padding-top:8px;scrollbar-width:none}
-  .filterchip{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:6px 9px;font-size:.68rem;font-weight:750;cursor:pointer}
+  .filterchip{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:9px 11px;min-width:44px;min-height:40px;font-size:.68rem;font-weight:750;cursor:pointer}
   .filterchip.active{color:#171b1e;background:var(--accent);border-color:var(--accent)}
   .mod.hidden,.shop.hidden{display:none}
   .mod-actions{display:flex;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-  .iconbtn{border:1px solid var(--line);background:var(--panel2);color:var(--muted);font:inherit;font-size:.68rem;font-weight:750;border-radius:8px;padding:7px 9px;cursor:pointer}
+  .iconbtn{border:1px solid var(--line);background:var(--panel2);color:var(--muted);font:inherit;font-size:.68rem;font-weight:750;border-radius:8px;padding:9px 10px;min-height:38px;cursor:pointer}
   .iconbtn.active{color:var(--accent);border-color:#675a25;background:#302b18}
   .factrow{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
   .fact{font-size:.61rem;color:var(--muted);background:#151a1f;border:1px solid var(--line);border-radius:999px;padding:3px 7px}
@@ -162,6 +173,8 @@
   .compare-item{background:var(--panel2);border-radius:9px;padding:9px;font-size:.7rem}
   .compare-item b{display:block;font-size:.76rem;margin-bottom:5px}
   .no-results{background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:.78rem;padding:16px;text-align:center;margin:10px 0 14px}
+  .starter-picks{display:flex;gap:7px;overflow-x:auto;padding:8px 0 0;scrollbar-width:none}
+  .starter-picks button{flex:none}
   [hidden]{display:none!important}
 
   /* fitter discovery and guides */
@@ -175,7 +188,8 @@
   details.guide p{font-size:.76rem;color:var(--muted);padding:0 2px 13px;line-height:1.65}
 
   /* build drawer */
-  .build-fab{display:none}
+  .build-fab{position:fixed;left:12px;right:12px;bottom:12px;z-index:55;display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #6a5a19;background:var(--accent);color:#15191d;border-radius:12px;padding:11px 13px calc(11px + env(safe-area-inset-bottom));font:inherit;font-size:.82rem;font-weight:850;box-shadow:0 12px 32px rgba(0,0,0,.42);cursor:pointer}
+  .fab-total{font-size:.9rem}
   .drawer-backdrop{position:fixed;inset:0;background:rgba(5,8,10,.72);z-index:60;display:none}
   .drawer-backdrop.open{display:block}
   .build-drawer{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(100%,560px);max-height:86dvh;overflow:auto;background:#151b21;border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;z-index:65;padding:16px;transition:transform .28s cubic-bezier(.16,1,.3,1)}
@@ -187,11 +201,17 @@
   .drawer-items{display:grid;gap:6px;margin:12px 0}
   .drawer-empty{text-align:center;color:var(--muted);font-size:.78rem;padding:24px 8px}
   .drawer-item{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.74rem}
+  .next-steps{display:grid;gap:9px;margin:12px 0}
+  .next-card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:.72rem;color:var(--muted)}
+  .next-card strong{display:block;color:var(--text);font-size:.78rem;margin-bottom:5px}
+  .next-card a{display:inline-block;margin:5px 8px 0 0}
   .cost-table{display:grid;gap:7px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .cost-row{display:flex;justify-content:space-between;gap:12px;font-size:.75rem;color:var(--muted)}
   .cost-row.total{color:var(--text);font-weight:800;font-size:.84rem}
   .toast{position:fixed;left:50%;bottom:74px;transform:translate(-50%,12px);opacity:0;pointer-events:none;background:#e9edf0;color:#15191d;border-radius:9px;padding:9px 12px;font-size:.74rem;font-weight:750;z-index:90;transition:opacity .2s,transform .2s;white-space:nowrap}
   .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast button{margin-left:10px;border:0;background:#15191d;color:#fff;border-radius:7px;padding:5px 8px;font:inherit;font-size:.68rem;font-weight:800;cursor:pointer}
+  .toast.show.has-action{pointer-events:auto}
   @media (min-width:700px){.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.choice-photo{height:88px}}
   @media print{
     body{background:#fff;color:#15191d}.wrap,header,.build-fab,.drawer-backdrop{display:none!important}.build-drawer{position:static;display:block;transform:none;width:100%;max-height:none;border:0;background:#fff;color:#15191d;padding:20px}.drawer-head{position:static;background:#fff}.closebtn,.build-drawer .actionrow{display:none}.drawer-item,.cost-table{border-color:#d5d9dc}.secsub,.cost-row,.drawer-empty{color:#52606b}.field input{border:1px solid #c8ced3;background:#fff;color:#15191d}
@@ -209,9 +229,12 @@
   .pkg .parts{color:var(--muted);font-size:.7rem;line-height:1.6}
   .pkg .row{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px}
   .pkg .pprice{color:var(--accent);font-weight:700;font-size:.9rem}
-  .pkg .apply{background:var(--accent);color:#101418;border:none;font-weight:700;font-size:.8rem;padding:8px 14px;border-radius:9px;cursor:pointer}
+  .pkg .apply{background:var(--accent);color:#101418;border:none;font-weight:700;font-size:.8rem;padding:10px 14px;min-height:40px;border-radius:9px;cursor:pointer}
+  .pkg .replace{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:700;font-size:.72rem;padding:10px 10px;min-height:40px;border-radius:9px;cursor:pointer}
+  .pkg .pkg-actions{display:flex;gap:7px;align-items:center}
   .pkg.applied .apply{background:#2e5c39;color:#bfe8c8}
-  .pkg .fitlink{font-size:.72rem}
+  .pkg.more-hidden{display:none}
+  .pkg .fitlink{font-size:.72rem;display:inline-flex;align-items:center;min-height:38px}
   .choice-meta,.pkg .meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
   .mini-badge{display:inline-flex;align-items:center;border:1px solid #534923;background:#2d2918;color:var(--accent);border-radius:999px;padding:2px 7px;font-size:.58rem;font-weight:850;letter-spacing:.2px;text-transform:uppercase}
   .mini-badge.muted{background:#171d23;border-color:var(--line);color:var(--muted)}
@@ -238,6 +261,7 @@
     .part-tools{top:0}
     .build-drawer{right:18px;left:auto;bottom:18px;transform:translateY(calc(100% + 24px));width:430px;border:1px solid var(--line);border-radius:16px}
     .build-drawer.open{transform:translateY(0)}
+    .build-fab{display:none}
     .drawer-head{top:-16px}
     .toast{bottom:28px}
   }
@@ -297,7 +321,7 @@
       <div class="field full"><label for="goalBudget">Parts budget</label><select id="goalBudget"><option value="100000">Up to ₹1 lakh</option><option value="250000" selected>Up to ₹2.5 lakh</option><option value="500000">Up to ₹5 lakh</option><option value="9999999">Capability first</option></select></div>
     </div>
     <div class="recommendation" id="goalRecommendation">Choose a goal to see a staged recommendation.</div>
-    <div class="actionrow"><button class="action primary" id="applyGoal" type="button" disabled>Apply recommendation</button></div>
+    <div class="actionrow"><button class="action primary" id="applyGoal" type="button" disabled>Add stage 1</button><button class="action" id="applyGoalLater" type="button" disabled>Add stage 2 later items</button></div>
   </section>
 
   <!-- ============ PACKAGES ============ -->
@@ -345,6 +369,7 @@
   <div class="part-tools">
     <div class="searchrow"><input id="partSearch" type="search" placeholder="Search parts, uses or brands" aria-label="Search parts"><button class="action" id="favoritesOnly" type="button">Saved</button></div>
     <div class="filterrow" id="partFilters"><button class="filterchip active" data-filter="all">All</button><button class="filterchip" data-filter="verified">Direct India products</button><button class="filterchip" data-filter="exterior">Exterior</button><button class="filterchip" data-filter="interior">Interior</button><button class="filterchip" data-filter="easy">DIY-friendly</button><button class="filterchip" data-filter="pro">Professional fit</button></div>
+    <div class="starter-picks" aria-label="Popular starter searches"><button class="iconbtn" type="button" data-pick="popular">Popular options</button><button class="iconbtn" type="button" data-pick="suzuki grille">Suzuki-badge grilles</button><button class="iconbtn" type="button" data-pick="roof">Touring racks</button><button class="iconbtn" type="button" data-pick="protection">Trail protection</button></div>
   </div>
   <div class="compare-panel" id="comparePanel"><strong>Compare selected parts</strong><div class="compare-grid" id="compareGrid"></div></div>
   <div id="mods"></div>
@@ -352,7 +377,7 @@
   <h2>Interior Mods</h2>
   <div id="imods"></div>
   <div class="no-results" id="partNoResults" hidden>No parts match that search or filter. Try All, clear the search, or turn off Saved.</div>
-  <div class="note">Every toggled item counts toward your build total. The 360° car above shows a representative modified build. Tap any photo to enlarge. Product images are AI-generated illustrations — see seller links for actual product photos.</div>
+  <div class="note">Every toggled item counts toward your build total. The 360° car above shows a representative modified build, while the selected parts and exterior choices are the source of truth. Some images are illustrative; seller links show actual product photos and current SKUs.</div>
 
   <div class="note"><b>Legal note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads (MV Act §52), and suspension or tyre-size changes may need RTO endorsement. Check current local rules before road use.</div>
 
@@ -377,12 +402,13 @@
 <button class="build-fab" id="buildFab" type="button">My build · <span id="fabCount">0</span></button>
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 <aside class="build-drawer" id="buildDrawer" aria-hidden="true" aria-label="My Jimny build">
-  <div class="drawer-head"><div><h2>My five-door build</h2><p class="secsub" style="margin:2px 0 0">Saved automatically on this device</p></div><button class="closebtn" id="closeDrawer" type="button" aria-label="Close build summary">×</button></div>
+  <div class="drawer-head"><div><h2>My five-door build</h2><p class="secsub" style="margin:2px 0 0">Working draft autosaves. Save a version when you want a named checkpoint.</p></div><button class="closebtn" id="closeDrawer" type="button" aria-label="Close build summary">×</button></div>
   <div class="field"><label for="buildName">Build name</label><input id="buildName" maxlength="48" value="My Jimny 5-door"></div>
   <div class="form-grid" style="margin-top:10px"><div class="field full"><label for="savedBuilds">Saved build snapshots</label><select id="savedBuilds"><option value="">No saved snapshots</option></select></div></div>
   <div class="drawer-items" id="drawerItems"></div>
   <div class="cost-table" id="costTable"></div>
-  <div class="actionrow"><button class="action primary" id="shareBuild" type="button">Copy share link</button><button class="action" id="saveSnapshot" type="button">Save snapshot</button><button class="action" id="loadSnapshot" type="button">Load snapshot</button><button class="action" id="copyBuild" type="button">Copy parts list</button><button class="action" id="downloadBuild" type="button">Download build image</button><button class="action" id="printBuild" type="button">Print build sheet</button><button class="action" id="clearBuild" type="button">Clear build</button></div>
+  <div class="next-steps" id="nextSteps"></div>
+  <div class="actionrow"><button class="action primary" id="shareBuild" type="button">Copy share link</button><button class="action" id="saveSnapshot" type="button">Save version</button><button class="action" id="loadSnapshot" type="button">Load saved version</button><button class="action" id="undoChange" type="button" disabled>Undo last change</button><button class="action" id="copyBuild" type="button">Copy parts list</button><button class="action" id="downloadBuild" type="button">Download build image</button><button class="action" id="printBuild" type="button">Print build sheet</button><button class="action" id="clearBuild" type="button">Clear build</button></div>
 </aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -741,7 +767,7 @@ function selectDesign(group,id){
   update();
 }
 studio.addEventListener("click",e=>{
-  const b=e.target.closest("[data-group]"); if(b) selectDesign(b.dataset.group,b.dataset.option);
+  const b=e.target.closest("[data-group]"); if(b){rememberUndo();selectDesign(b.dataset.group,b.dataset.option);showToast("Design choice updated","Undo",undoLastChange)}
 });
 
 /* ---------------- packages ---------------- */
@@ -762,6 +788,7 @@ const PACKAGES = [
   {id:"tech", name:"Tech Commuter", tag:"Screens, cams and calm", parts:["headunit","dashcam","ambient","armrest","molle"]},
   {id:"fullsend", name:"Full Send", tag:"Every box ticked", parts:["lift","tires","snorkel","rack","led","bull","sliders","ladder","flares","winch","skid","rtt","awning","pods","boards","molle","drawer"]}
 ];
+const CORE_PACKAGE_IDS = new Set(["monsoon","family","weekend","urban","overland","crawler","camp"]);
 const modById = Object.fromEntries(MODS.map(m=>[m.id,m]));
 const pkgsEl = document.getElementById("pkgs");
 PACKAGES.forEach(p=>{
@@ -769,7 +796,7 @@ PACKAGES.forEach(p=>{
   const hi = p.parts.reduce((s,id)=>s+modById[id].price[1],0);
   const names = p.parts.map(id=>modById[id].name.split(" (")[0]).join(" · ");
   pkgsEl.insertAdjacentHTML("beforeend", `
-  <div class="pkg" data-pkg="${p.id}">
+  <div class="pkg${CORE_PACKAGE_IDS.has(p.id)?"":" more-hidden"}" data-pkg="${p.id}">
     <img class="pkgimg" src="assets/packages/${p.id}.webp" alt="${escHtml(p.name)} build" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${escHtml(p.name)} build">
     <div class="body">
       <h3>${p.name}</h3>
@@ -777,30 +804,45 @@ PACKAGES.forEach(p=>{
       <div class="parts">${p.parts.length} parts: ${names}</div>
       <div class="row">
         <span class="pprice">${fmt(lo)} – ${fmt(hi)}</span>
-        <button class="apply" data-apply="${p.id}">Apply</button>
+        <span class="pkg-actions"><button class="apply" data-apply="${p.id}">Add</button><button class="replace" data-replace="${p.id}">Replace</button></span>
       </div>
       <a class="fitlink" href="#shops-title">Where to buy & fit</a>
     </div>
   </div>`);
 });
-function applyPkg(id){
-  const p = PACKAGES.find(x=>x.id===id);
-  document.querySelectorAll('input[data-id]').forEach(cb=>{
-    cb.checked = p.parts.includes(cb.dataset.id);
-    state[cb.dataset.id] = cb.checked;
-  });
-  if(p.parts.includes("grille")) selectDesign("grille","block");
-  update();
-  document.querySelectorAll(".pkg").forEach(el=>{
-    const on = el.dataset.pkg===id;
-    el.classList.toggle("applied", on);
-    el.querySelector(".apply").textContent = on ? "Applied" : "Apply";
+pkgsEl.insertAdjacentHTML("afterend",'<div class="actionrow"><button class="action" id="showMorePackages" type="button">Show more packages</button></div>');
+function markPackageState(){
+  document.querySelectorAll(".pkg[data-pkg]").forEach(el=>{
+    const pkg = PACKAGES.find(p=>p.id===el.dataset.pkg);
+    const on = pkg && pkg.parts.every(partId=>partId==="grille" ? designState.grille!=="oem" : !!state[partId]);
+    el.classList.toggle("applied", !!on);
+    const add = el.querySelector(".apply");
+    if(add) add.textContent = on ? "Added" : "Add";
   });
 }
+function addPartsToBuild(ids){
+  ids.forEach(id=>{ if(id==="grille"){ selectDesign("grille","block"); return; } if(modById[id] && !modById[id].designOnly){ state[id]=true; const cb=document.querySelector(`input[data-id="${id}"]`); if(cb) cb.checked=true; } });
+}
+function applyPkg(id,mode="add"){
+  const p = PACKAGES.find(x=>x.id===id);
+  if(!p) return;
+  rememberUndo();
+  if(mode==="replace"){
+    Object.keys(state).forEach(k=>state[k]=false);
+    document.querySelectorAll('input[data-id]').forEach(cb=>{cb.checked=false});
+    Object.assign(designState,{finish:"oem",decal:"none",grille:"oem"});
+  }
+  addPartsToBuild(p.parts);
+  update();
+  showToast(`${p.name} ${mode==="replace"?"replaced":"added to"} your build`,"Undo",undoLastChange);
+}
 pkgsEl.addEventListener("click", e=>{
-  const b = e.target.closest("[data-apply]");
-  if(b) applyPkg(b.dataset.apply);
+  const add = e.target.closest("[data-apply]");
+  const replace = e.target.closest("[data-replace]");
+  if(add) applyPkg(add.dataset.apply,"add");
+  if(replace) applyPkg(replace.dataset.replace,"replace");
 });
+document.getElementById("showMorePackages").addEventListener("click",e=>{document.querySelectorAll(".pkg.more-hidden").forEach(el=>el.classList.remove("more-hidden"));e.currentTarget.remove()});
 
 /* ---------------- wraps & grille looks ---------------- */
 const LOOKS = [
@@ -835,7 +877,9 @@ LOOKS.forEach(l=>{
 document.addEventListener("click", e=>{
   const b = e.target.closest("[data-design-group]");
   if(!b) return;
+  rememberUndo();
   selectDesign(b.dataset.designGroup,b.dataset.designOption);
+  showToast("Design choice updated","Undo",undoLastChange);
 });
 
 /* lightbox */
@@ -849,7 +893,8 @@ document.addEventListener("click", e=>{
   if(thumb || e.target.classList.contains("pkgimg")) openLightbox(thumb||e.target);
   else if(e.target.closest(".lightbox-close") || e.target===lb) closeLightbox();
 });
-document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("pkgimg")){e.preventDefault();openLightbox(e.target)}else if(e.key==="Escape")closeLightbox()});
+function trapFocus(e,root){const focusable=[...root.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.offsetParent!==null);if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("pkgimg")){e.preventDefault();openLightbox(e.target)}else if(e.key==="Escape")closeLightbox();else if(e.key==="Tab"&&lb.classList.contains("open"))trapFocus(e,lb)});
 
 /* 360 viewer with build presets */
 const FRAMES = 36, spinImg = document.getElementById("spinImg"), spinBox = document.getElementById("spin360");
@@ -865,7 +910,6 @@ function preload(p){
   preset = old;
 }
 preload("stock");
-setTimeout(()=>{ preload("touring"); preload("overland"); }, 1500);
 const presetLabel = document.createElement("div");
 presetLabel.className = "ai-tag"; presetLabel.style.top = "34px";
 presetLabel.textContent = "Stock build";
@@ -876,7 +920,7 @@ function setPreset(p, label){
   presetLabel.textContent = label;
   spinImg.src = frameSrc(frame);
 }
-let frame = 0, auto = setInterval(()=>{ frame++; spinImg.src = frameSrc(frame); }, 130);
+let frame = 0, auto = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? null : setInterval(()=>{ frame++; spinImg.src = frameSrc(frame); }, 180);
 let dragX = null, dragFrame = 0;
 spinBox.addEventListener("pointerdown", e=>{
   if(e.target.closest("button,a,input,select,textarea,label")) return;
@@ -933,6 +977,7 @@ function sanitizeBuild(data){
 }
 const savedBuild = sanitizeBuild((sharedParam && decodeBuild(sharedParam)) || readJSON("jimnylab-build",{}));
 const state = {};
+MODS.filter(m=>!m.designOnly).forEach(m=>state[m.id]=false);
 (savedBuild.parts||[]).forEach(id=>state[id]=true);
 Object.assign(designState,savedBuild.design||{});
 const totalEl = document.getElementById("total");
@@ -942,12 +987,13 @@ const buildNameEl = document.getElementById("buildName");
 buildNameEl.value = savedBuild.name || "My Jimny 5-door";
 const drawerItems = document.getElementById("drawerItems");
 const costTable = document.getElementById("costTable");
+const nextSteps = document.getElementById("nextSteps");
 const safetyMetrics = document.getElementById("safetyMetrics");
 const safetyWarnings = document.getElementById("safetyWarnings");
 const buildDrawer = document.getElementById("buildDrawer");
 const drawerBackdrop = document.getElementById("drawerBackdrop");
 const toastEl = document.getElementById("toast");
-let toastTimer, activePartFilter="all", favoritesOnly=false, activeGoal="";
+let toastTimer, toastAction=null, activePartFilter="all", favoritesOnly=false, activeGoal="", lastUndoPayload=null;
 
 function selectedDesignOptions(){
   return DESIGN_GROUPS.map(g=>({group:g.id,...g.options.find(o=>o.id===designState[g.id])}));
@@ -956,7 +1002,15 @@ function currentPayload(){
   return {v:1,vehicle:"india-5-door",name:buildNameEl.value.trim()||"My Jimny 5-door",parts:MODS.filter(m=>!m.designOnly&&state[m.id]).map(m=>m.id),design:{...designState},tyre:{width:+tyreWidth.value,ratio:+tyreRatio.value,rim:+tyreRim.value,lift:+liftHeight.value}};
 }
 function persist(){ try{localStorage.setItem("jimnylab-build",JSON.stringify(currentPayload()))}catch{} }
-function showToast(message){ toastEl.textContent=message;toastEl.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove("show"),2200); }
+function rememberUndo(){ lastUndoPayload=currentPayload();document.getElementById("undoChange").disabled=false; }
+function undoLastChange(){ if(!lastUndoPayload)return;loadPayload(lastUndoPayload);lastUndoPayload=null;document.getElementById("undoChange").disabled=true;showToast("Last change undone"); }
+function showToast(message,actionLabel,action){
+  toastAction=typeof action==="function"?action:null;
+  toastEl.classList.toggle("has-action",!!toastAction);
+  toastEl.innerHTML=`${escHtml(message)}${toastAction?` <button type="button" id="toastAction">${escHtml(actionLabel||"Undo")}</button>`:""}`;
+  toastEl.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toastEl.classList.remove("show");toastEl.classList.remove("has-action");toastAction=null},3200);
+}
+toastEl.addEventListener("click",e=>{if(e.target.closest("#toastAction")&&toastAction){const action=toastAction;toastEl.classList.remove("show","has-action");toastAction=null;action()}});
 function openDrawer(){ buildDrawer.classList.add("open");drawerBackdrop.classList.add("open");buildDrawer.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";document.getElementById("closeDrawer").focus(); }
 function closeDrawer(){ buildDrawer.classList.remove("open");drawerBackdrop.classList.remove("open");buildDrawer.setAttribute("aria-hidden","true");document.body.style.overflow=""; }
 
@@ -974,6 +1028,16 @@ function renderDrawer(stats){
   const rows=[...customDesigns.map(o=>({name:o.name,price:o.price})),...stats.items.map(m=>({name:m.name,price:m.price}))];
   drawerItems.innerHTML=rows.length?rows.map(x=>`<div class="drawer-item"><span>${x.name}</span><b>${optionPrice(x)}</b></div>`).join(""):`<div class="drawer-empty"><b>No paid upgrades yet.</b><br>Choose a package, design or individual part to start the build.</div>`;
   costTable.innerHTML=`<div class="cost-row"><span>Parts and design</span><b>${fmt(stats.partsLo)} – ${fmt(stats.partsHi)}</b></div><div class="cost-row"><span>Estimated professional fitment</span><b>${fmt(stats.fitLo)} – ${fmt(stats.fitHi)}</b></div><div class="cost-row total"><span>Estimated project total</span><b>${fmt(stats.partsLo+stats.fitLo)} – ${fmt(stats.partsHi+stats.fitHi)}</b></div><div class="cost-row"><span>Shipping, duty and alignment</span><span>Confirm with seller</span></div>`;
+  renderNextSteps(stats);
+}
+function renderNextSteps(stats){
+  const directItems=stats.items.filter(m=>m.realIndia&&m.in.length).slice(0,4);
+  const proCount=stats.items.filter(m=>metaFor(m).install==="pro").length;
+  const cityHints=stats.items.some(m=>["autostylenn_s_grille","autostylenn_big_suzuki_grille","autostylenn_cursive_grille","headlamps","cladding","hingecovers","spoiler"].includes(m.id))?["Auto Stylenn / Jimny 4x4 Products","Karol Bagh Auto Market"]:["Bimbra 4x4","PRAD 4x4","Azad 4x4"];
+  const sellerLinks=directItems.length?directItems.map(m=>`<a href="${m.in[0][1]}" target="_blank" rel="noopener">${escHtml(m.name)}</a>`).join(""):"<span>Use the India seller buttons on each selected part. For generic parts, confirm the five-door SKU before payment.</span>";
+  const fitters=cityHints.map(name=>SHOPS.find(s=>s.name===name)).filter(Boolean).map(s=>`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.q)}" target="_blank" rel="noopener">${escHtml(s.name)}</a>`).join("");
+  const installCopy=proCount?`${proCount} selected item${proCount>1?"s need":" needs"} professional fitting. Ask about drilling, wiring, warranty and return policy before paying.`:"Current selected physical parts are mostly DIY-friendly. Still dry-fit before removing tape liners or drilling.";
+  nextSteps.innerHTML=`<div class="next-card"><strong>Buy next</strong>${sellerLinks}</div><div class="next-card"><strong>Call before fitting</strong>${fitters||"<span>Search the directory below by city, then call ahead with this parts list.</span>"}<br>${installCopy}</div><div class="next-card"><strong>Install order</strong>Protection and electrics first, wheels and lift after measurement, roof loads last. Re-run the safety check after every stage.</div>`;
 }
 function renderSafety(stats){
   safetyMetrics.innerHTML=`<div class="metric"><b>${stats.weight} kg</b><span>estimated added weight</span></div><div class="metric"><b>${stats.roof} kg</b><span>roof-mounted equipment</span></div><div class="metric"><b>${stats.watts} W</b><span>estimated accessory draw</span></div><div class="metric"><b>${stats.items.length}</b><span>selected physical parts</span></div>`;
@@ -1006,12 +1070,13 @@ function update(){
     totalEl.textContent = "₹0";
     countEl.textContent = "Stock Jimny — toggle mods below";
   }
-  document.getElementById("fabCount").textContent=selectionCount;
+  document.getElementById("buildFab").innerHTML=`<span>My build · ${selectionCount} item${selectionCount===1?"":"s"}</span><span class="fab-total">${selectionCount?`${fmt(lo)} – ${fmt(hi)}`:"₹0"}</span>`;
+  markPackageState();
   renderDrawer(stats);renderSafety(stats);persist();
 }
 document.querySelectorAll('input[data-id]').forEach(cb=>{
   cb.checked=!!state[cb.dataset.id];
-  cb.addEventListener("change", ()=>{ state[cb.dataset.id]=cb.checked;document.querySelectorAll(".pkg").forEach(x=>x.classList.remove("applied"));update(); });
+  cb.addEventListener("change", ()=>{ rememberUndo();state[cb.dataset.id]=cb.checked;update(); });
 });
 DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const active=b.dataset.option===designState[g.id];b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))}));
 
@@ -1038,17 +1103,19 @@ const GOALS=[
   {id:"camp",name:"Camping",desc:"A staged camp setup that respects roof-system dependencies.",parts:["rack","awning","drawer","molle","boards","rtt"]},
   {id:"style",name:"Appearance",desc:"Reversible visual changes before mechanical modifications.",parts:["grille","flares","sparecover","headlamps","hingecovers","spoiler"]}
 ];
-const goalOptions=document.getElementById("goalOptions"), goalRecommendation=document.getElementById("goalRecommendation"), applyGoal=document.getElementById("applyGoal");
+const goalOptions=document.getElementById("goalOptions"), goalRecommendation=document.getElementById("goalRecommendation"), applyGoal=document.getElementById("applyGoal"), applyGoalLater=document.getElementById("applyGoalLater");
 goalOptions.innerHTML=GOALS.map(g=>`<button class="wizard-chip" type="button" data-goal="${g.id}">${g.name}</button>`).join("");
-function goalParts(){
-  const goal=GOALS.find(g=>g.id===activeGoal),budget=+document.getElementById("goalBudget").value;if(!goal)return[];
+function goalPlan(){
+  const goal=GOALS.find(g=>g.id===activeGoal),budget=+document.getElementById("goalBudget").value;if(!goal)return{goal:null,stage1:[],stage2:[],total:0};
   const picked=[];let total=0;for(const id of goal.parts){const m=modById[id];if(!m)continue;if(total+m.price[1]<=budget||picked.length<2){picked.push(id);total+=m.price[1]}}
-  return picked;
+  return {goal,stage1:picked.slice(0,2),stage2:picked.slice(2),total};
 }
-function renderGoal(){const goal=GOALS.find(g=>g.id===activeGoal);if(!goal)return;const parts=goalParts();goalRecommendation.innerHTML=`<b>${goal.desc}</b><br>${parts.map((id,i)=>`${i<2?"Do now":"Add later"}: ${modById[id].name}`).join(" · ")}`;applyGoal.disabled=false}
+function partNames(ids){return ids.length?ids.map(id=>modById[id].name).join(" · "):"Nothing else fits this budget stage."}
+function renderGoal(){const plan=goalPlan();if(!plan.goal)return;goalRecommendation.innerHTML=`<b>${plan.goal.desc}</b><div class="stage-grid"><div class="stage-card"><strong>Stage 1 · add now</strong><span>${partNames(plan.stage1)}</span></div><div class="stage-card"><strong>Stage 2 · add later</strong><span>${partNames(plan.stage2)}</span></div></div>`;applyGoal.disabled=!plan.stage1.length;applyGoalLater.disabled=!plan.stage2.length}
 goalOptions.addEventListener("click",e=>{const b=e.target.closest("[data-goal]");if(!b)return;activeGoal=b.dataset.goal;goalOptions.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));renderGoal()});
 document.getElementById("goalBudget").addEventListener("change",renderGoal);
-applyGoal.addEventListener("click",()=>{const parts=goalParts();document.querySelectorAll("input[data-id]").forEach(cb=>{cb.checked=parts.includes(cb.dataset.id);state[cb.dataset.id]=cb.checked});if(activeGoal==="style")selectDesign("grille","block");update();showToast("Recommendation applied to your build")});
+applyGoal.addEventListener("click",()=>{const plan=goalPlan();rememberUndo();addPartsToBuild(plan.stage1);if(activeGoal==="style")selectDesign("grille","block");update();showToast("Stage 1 added to your build","Undo",undoLastChange)});
+applyGoalLater.addEventListener("click",()=>{const plan=goalPlan();rememberUndo();addPartsToBuild(plan.stage2);update();showToast("Stage 2 items added","Undo",undoLastChange)});
 
 /* search, favourites and compare */
 function applyPartFilters(){
@@ -1061,6 +1128,7 @@ function applyPartFilters(){
 document.getElementById("partSearch").addEventListener("input",applyPartFilters);
 document.getElementById("partFilters").addEventListener("click",e=>{const b=e.target.closest("[data-filter]");if(!b)return;activePartFilter=b.dataset.filter;document.querySelectorAll(".filterchip").forEach(x=>x.classList.toggle("active",x===b));applyPartFilters()});
 document.getElementById("favoritesOnly").addEventListener("click",e=>{favoritesOnly=!favoritesOnly;e.currentTarget.classList.toggle("primary",favoritesOnly);e.currentTarget.textContent=favoritesOnly?"Saved only":"Saved";applyPartFilters()});
+document.querySelector(".starter-picks").addEventListener("click",e=>{const b=e.target.closest("[data-pick]");if(!b)return;document.getElementById("partSearch").value=b.dataset.pick;activePartFilter="all";document.querySelectorAll(".filterchip").forEach(x=>x.classList.toggle("active",x.dataset.filter==="all"));applyPartFilters();document.getElementById("mods").scrollIntoView({behavior:"smooth",block:"start"})});
 function renderCompare(){const panel=document.getElementById("comparePanel"),grid=document.getElementById("compareGrid"),items=[...compareIds].map(id=>modById[id]).filter(Boolean);panel.classList.toggle("open",items.length>0);grid.innerHTML=items.map(m=>{const meta=metaFor(m);return `<div class="compare-item"><b>${m.name}</b>${fmt(m.price[0])} – ${fmt(m.price[1])}<br>${meta.install==="easy"?"DIY-friendly":"Professional fit"}<br>~${meta.weight} kg · fit ${fmt(meta.fit[0])} – ${fmt(meta.fit[1])}</div>`}).join("")}
 document.addEventListener("click",e=>{
   const fav=e.target.closest("[data-favorite]");if(fav){const id=fav.dataset.favorite;favorites.has(id)?favorites.delete(id):favorites.add(id);try{localStorage.setItem("jimnylab-favorites",JSON.stringify([...favorites]))}catch{}fav.classList.toggle("active",favorites.has(id));fav.setAttribute("aria-pressed",String(favorites.has(id)));fav.textContent=favorites.has(id)?"Saved":"Save";applyPartFilters();return}
@@ -1082,7 +1150,7 @@ document.getElementById("guideList").innerHTML=GUIDES.map(([t,p])=>`<details cla
 
 /* build actions */
 async function copyText(text){try{await navigator.clipboard.writeText(text);return true}catch{const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();return ok}}
-document.getElementById("buildFab").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDrawer()}});document.getElementById("closeDrawer").addEventListener("click",closeDrawer);drawerBackdrop.addEventListener("click",closeDrawer);document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
+document.getElementById("buildFab").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDrawer()}});document.getElementById("closeDrawer").addEventListener("click",closeDrawer);drawerBackdrop.addEventListener("click",closeDrawer);document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();else if(e.key==="Tab"&&buildDrawer.classList.contains("open"))trapFocus(e,buildDrawer)});
 buildNameEl.addEventListener("input",persist);
 document.getElementById("shareBuild").addEventListener("click",async()=>{const url=new URL(location.href);url.search="";url.hash="";url.searchParams.set("build",encodeBuild(currentPayload()));await copyText(url.href);showToast("Share link copied")});
 let buildSnapshots=readJSON("jimnylab-snapshots",[]);if(!Array.isArray(buildSnapshots))buildSnapshots=[];
@@ -1096,10 +1164,11 @@ function loadPayload(data){
 }
 document.getElementById("saveSnapshot").addEventListener("click",()=>{const data=currentPayload();buildSnapshots.unshift({id:String(Date.now()),data});buildSnapshots=buildSnapshots.slice(0,12);try{localStorage.setItem("jimnylab-snapshots",JSON.stringify(buildSnapshots))}catch{}renderSnapshots();savedBuildsEl.value=buildSnapshots[0].id;showToast("Build snapshot saved")});
 document.getElementById("loadSnapshot").addEventListener("click",()=>{const found=buildSnapshots.find(x=>x.id===savedBuildsEl.value);if(!found){showToast("Choose a saved build first");return}loadPayload(found.data);showToast("Saved build loaded")});
+document.getElementById("undoChange").addEventListener("click",undoLastChange);
 document.getElementById("copyBuild").addEventListener("click",async()=>{const s=getBuildStats(),lines=[buildNameEl.value,"Maruti Suzuki Jimny 5-door (India)",...s.designs.map(o=>`${o.group}: ${o.name}`),...s.items.map(m=>m.name),`Estimated parts: ${fmt(s.partsLo)} – ${fmt(s.partsHi)}`,`Estimated fitment: ${fmt(s.fitLo)} – ${fmt(s.fitHi)}`];await copyText(lines.join("\n"));showToast("Parts list copied")});
 document.getElementById("downloadBuild").addEventListener("click",()=>{const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d"),stats=getBuildStats();canvas.width=1200;canvas.height=800;ctx.fillStyle="#151b21";ctx.fillRect(0,0,1200,800);const ratio=Math.min(1120/spinImg.naturalWidth,540/spinImg.naturalHeight),w=spinImg.naturalWidth*ratio,h=spinImg.naturalHeight*ratio;ctx.drawImage(spinImg,40,40,w,h);ctx.fillStyle="#ffc82e";ctx.font="700 34px sans-serif";ctx.fillText(buildNameEl.value||"My Jimny 5-door",48,640);ctx.fillStyle="#e8eef4";ctx.font="24px sans-serif";ctx.fillText("Maruti Suzuki Jimny 5-door · India",48,680);ctx.fillStyle="#93a4b3";ctx.font="20px sans-serif";ctx.fillText(`${stats.items.length} parts · ${fmt(stats.partsLo)} – ${fmt(stats.partsHi)} before fitment`,48,720);canvas.toBlob(blob=>{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(buildNameEl.value||"jimny-5-door-build").replace(/[^a-z0-9]+/gi,"-").toLowerCase()+".jpg";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)},"image/jpeg",.9);showToast("Build image created")});
 document.getElementById("printBuild").addEventListener("click",()=>window.print());
-document.getElementById("clearBuild").addEventListener("click",()=>{if(!confirm("Clear all selected parts and design changes?"))return;Object.keys(state).forEach(k=>state[k]=false);document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=false);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem"});DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));update();showToast("Build cleared")});
+document.getElementById("clearBuild").addEventListener("click",()=>{if(!confirm("Clear all selected parts and design changes?"))return;rememberUndo();Object.keys(state).forEach(k=>state[k]=false);document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=false);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem"});DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));update();showToast("Build cleared","Undo",undoLastChange)});
 
 renderSnapshots();updateTyreCalc();update();
 
