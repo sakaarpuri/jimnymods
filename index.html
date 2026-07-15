@@ -43,6 +43,7 @@
   .workbench-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:4px 0 10px}
   .workbench-nav button{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:10px;padding:10px 8px;min-height:44px;font:inherit;font-size:.7rem;font-weight:800;cursor:pointer}
   .workbench-nav button.active{background:var(--accent);border-color:var(--accent);color:#15191d}
+  .workbench-nav button:last-child:nth-child(odd){grid-column:1/-1}
   .location-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0 12px;margin-bottom:14px}
   .location-strip label{grid-column:1/-1;color:var(--muted);font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
   .location-strip select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);padding:8px 10px;font:inherit;font-size:.78rem}
@@ -143,7 +144,7 @@
   .choice-price{display:block;color:var(--muted);font-size:.66rem;margin-top:3px}
 
   /* owner tools */
-  .owner-card{background:#171d23;border:1px solid var(--line);border-radius:18px;padding:15px;margin:12px 0}
+  .owner-card{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:15px 0;margin:12px 0}
   .owner-card h3{font-size:.95rem;margin-bottom:4px}
   .owner-card>p{color:var(--muted);font-size:.78rem;margin-bottom:12px}
   .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -301,7 +302,7 @@
     .build-fab{display:none}
     .drawer-head{top:-16px}
     .toast{bottom:28px}
-    .workbench-nav{display:flex;gap:7px}.workbench-nav button{padding-inline:13px}
+    .workbench-nav{display:flex;gap:7px}.workbench-nav button{padding-inline:13px}.workbench-nav button:last-child:nth-child(odd){grid-column:auto}
     .location-strip{grid-template-columns:minmax(240px,360px) auto;justify-content:start}
     body.desktop-mode .planner-main>[data-mode]{display:none}
     body.desktop-mode .planner-main>[data-mode].mode-active{display:block}
@@ -357,7 +358,8 @@
   <nav class="workbench-nav" aria-label="Choose what to explore">
     <button class="active" type="button" data-mode-select="explore">Explore looks</button>
     <button type="button" data-mode-select="build">Build for a purpose</button>
-    <button type="button" data-mode-select="source">Find parts & fitters</button>
+    <button type="button" data-mode-select="parts">Browse parts</button>
+    <button type="button" data-mode-select="fitters">Find a fitter</button>
     <button type="button" data-mode-select="tools">Plan safely</button>
   </nav>
   <div class="location-strip">
@@ -424,29 +426,29 @@
   <div id="grilles" hidden></div>
 
   <!-- ============ MODS ============ -->
-  <h2 id="parts-title" data-mode="source">Find the right parts</h2>
-  <div class="catalog-intro" data-mode="source"><p>Start with the popular, directly sourced options. Search or browse the full catalogue when you know what you need.</p><button class="action" id="showAllParts" type="button">Browse all parts</button></div>
-  <div class="part-tools" data-mode="source">
+  <h2 id="parts-title" data-mode="parts">Find the right parts</h2>
+  <div class="catalog-intro" data-mode="parts"><p>Start with the popular, directly sourced options. Search or browse the full catalogue when you know what you need.</p><button class="action" id="showAllParts" type="button">Browse all parts</button></div>
+  <div class="part-tools" data-mode="parts">
     <div class="searchrow"><input id="partSearch" type="search" placeholder="Search parts, uses or brands" aria-label="Search parts"><button class="action" id="favoritesOnly" type="button">Saved</button></div>
     <div class="filterrow" id="partFilters"><button class="filterchip active" data-filter="all">All</button><button class="filterchip" data-filter="verified">Direct India products</button><button class="filterchip" data-filter="exterior">Exterior</button><button class="filterchip" data-filter="interior">Interior</button><button class="filterchip" data-filter="easy">DIY-friendly</button><button class="filterchip" data-filter="pro">Professional fit</button></div>
     <div class="starter-picks" aria-label="Popular starter searches"><button class="iconbtn" type="button" data-pick="popular">Popular options</button><button class="iconbtn" type="button" data-pick="suzuki grille">Suzuki-badge grilles</button><button class="iconbtn" type="button" data-pick="roof">Touring racks</button><button class="iconbtn" type="button" data-pick="protection">Trail protection</button></div>
   </div>
-  <div class="compare-panel" id="comparePanel" data-mode="source"><strong>Compare selected parts</strong><div class="compare-grid" id="compareGrid"></div></div>
-  <div id="mods" data-mode="source"></div>
+  <div class="compare-panel" id="comparePanel" data-mode="parts"><strong>Compare selected parts</strong><div class="compare-grid" id="compareGrid"></div></div>
+  <div id="mods" data-mode="parts"></div>
 
-  <h2 data-mode="source">Interior parts</h2>
-  <div id="imods" data-mode="source"></div>
-  <div class="no-results" id="partNoResults" data-mode="source" hidden>No parts match that search or filter. Try All, clear the search, or turn off Saved.</div>
-  <div class="note" data-mode="source">Every toggled item counts toward your build total. The 360° car is a representative modified build; selected parts and exterior choices are the source of truth. Some images are illustrative—seller links show actual product photos and current SKUs.</div>
+  <h2 data-mode="parts">Interior parts</h2>
+  <div id="imods" data-mode="parts"></div>
+  <div class="no-results" id="partNoResults" data-mode="parts" hidden>No parts match that search or filter. Try All, clear the search, or turn off Saved.</div>
+  <div class="note" data-mode="parts">Every toggled item counts toward your build total. The 360° car is a representative modified build; selected parts and exterior choices are the source of truth. Some images are illustrative—seller links show actual product photos and current SKUs.</div>
 
   <div class="note" data-mode="tools"><b>Road-use note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads, and suspension or tyre-size changes may need RTO endorsement. Check current local rules before road use.</div>
 
   <!-- ============ SHOPS ============ -->
-  <h2 id="shops-title" data-mode="source">Find a fitter in India</h2>
-  <div class="directory-tools" data-mode="source"><input id="shopSearch" type="search" placeholder="Search city or shop" aria-label="Search fitters"><select id="shopType" aria-label="Filter fitter type"><option value="all">All listing types</option><option value="verified">Verified / specialist</option><option value="market">Accessory markets</option></select></div>
-  <div id="shops" data-mode="source"></div>
-  <div class="no-results" id="shopNoResults" data-mode="source" hidden>No fitter listing matches that search. Try a nearby city, choose all listing types, or use one of the accessory markets.</div>
-  <div class="note" data-mode="source"><b>Directory note:</b> ThatSUVLab is an independent information resource only. Every listing is an independent business with no affiliation to this site. Always call ahead to confirm Jimny-specific stock, fitting slots and warranty impact before paying or leaving your vehicle. “Unverified” entries are community-known names we have not confirmed.</div>
+  <h2 id="shops-title" data-mode="fitters">Find a fitter in India</h2>
+  <div class="directory-tools" data-mode="fitters"><input id="shopSearch" type="search" placeholder="Search city or shop" aria-label="Search fitters"><select id="shopType" aria-label="Filter fitter type"><option value="all">All listing types</option><option value="verified">Verified / specialist</option><option value="market">Accessory markets</option></select></div>
+  <div id="shops" data-mode="fitters"></div>
+  <div class="no-results" id="shopNoResults" data-mode="fitters" hidden>No fitter listing matches that search. Try a nearby city, choose all listing types, or use one of the accessory markets.</div>
+  <div class="note" data-mode="fitters"><b>Directory note:</b> ThatSUVLab is an independent information resource only. Every listing is an independent business with no affiliation to this site. Always call ahead to confirm Jimny-specific stock, fitting slots and warranty impact before paying or leaving your vehicle. “Unverified” entries are community-known names we have not confirmed.</div>
 
   <!-- ============ OWNER GUIDES ============ -->
   <h2 id="guides" data-mode="tools">Owner guides</h2>
@@ -1285,22 +1287,22 @@ const GUIDES=[
 document.getElementById("guideList").innerHTML=GUIDES.map(([t,p])=>`<details class="guide"><summary>${t}</summary><p>${p}</p></details>`).join("");
 
 /* ---------------- workbench navigation and trust notes ---------------- */
-const MODE_TARGETS={explore:"explore",build:"goalWizard",source:"parts-title",tools:"owner-tools"};
+const MODE_TARGETS={explore:"explore",build:"goalWizard",parts:"parts-title",fitters:"shops-title",tools:"owner-tools"};
 function setWorkbenchMode(mode,{scroll=false}={}){
   const next=MODE_TARGETS[mode]||"explore";
   document.body.classList.add("desktop-mode");
   document.querySelectorAll("[data-mode]").forEach(el=>el.classList.toggle("mode-active",el.dataset.mode===mode));
   document.querySelectorAll("[data-mode-select]").forEach(button=>button.classList.toggle("active",button.dataset.modeSelect===mode));
-  if(scroll&&window.matchMedia("(min-width: 900px)").matches) document.getElementById(next)?.scrollIntoView({behavior:"smooth",block:"start"});
+  if(scroll) document.getElementById(next)?.scrollIntoView({behavior:"smooth",block:"start"});
 }
 document.querySelector(".workbench-nav").addEventListener("click",e=>{const button=e.target.closest("[data-mode-select]");if(!button)return;setWorkbenchMode(button.dataset.modeSelect,{scroll:true})});
-document.addEventListener("click",e=>{if(e.target.closest("[data-open-source]")){setWorkbenchMode("source",{scroll:true});document.getElementById("partSearch").focus()}});
+document.addEventListener("click",e=>{if(e.target.closest("[data-open-source]")){setWorkbenchMode("fitters",{scroll:true});document.getElementById("shopSearch").focus()}});
 document.addEventListener("click",e=>{
-  if(e.target.closest("[data-package-fitter]")){document.getElementById("shopSearch").value=homeCity.value;filterShops();setWorkbenchMode("source");document.getElementById("shops-title").scrollIntoView({behavior:"smooth",block:"start"})}
+  if(e.target.closest("[data-package-fitter]")){document.getElementById("shopSearch").value=homeCity.value;filterShops();setWorkbenchMode("fitters");document.getElementById("shops-title").scrollIntoView({behavior:"smooth",block:"start"})}
   if(e.target.closest("[data-fitting-tips]")){setWorkbenchMode("tools");const guides=document.querySelectorAll("#guideList details");guides[guides.length-1]?.setAttribute("open","");document.getElementById("guides").scrollIntoView({behavior:"smooth",block:"start"})}
 });
 homeCity.addEventListener("change",()=>{localStorage.setItem("thatsuvlab-city",homeCity.value);document.getElementById("shopSearch").value=homeCity.value;filterShops();renderSourceQuick(getBuildStats())});
-document.getElementById("findCityFitters").addEventListener("click",()=>{document.getElementById("shopSearch").value=homeCity.value;filterShops();setWorkbenchMode("source");document.getElementById("shops-title").scrollIntoView({behavior:"smooth",block:"start"})});
+document.getElementById("findCityFitters").addEventListener("click",()=>{document.getElementById("shopSearch").value=homeCity.value;filterShops();setWorkbenchMode("fitters");document.getElementById("shops-title").scrollIntoView({behavior:"smooth",block:"start"})});
 const footerNotes={
   checking:"Resource standard: a “Direct India product” links to a product page available in India; marketplace searches and fitter listings are clearly labelled. Prices are indicative and need confirmation before payment. We recommend checking fitment, stock, drilling, wiring and warranty with the seller or fitter.",
   privacy:"Your working build, saved versions and favourites are stored in this browser using local storage. They are not sent to ThatSUVLab. A share link contains only the build choices in its URL; do not share it if the build name contains personal information."
@@ -1329,7 +1331,7 @@ document.getElementById("downloadBuild").addEventListener("click",()=>{const can
 document.getElementById("printBuild").addEventListener("click",()=>window.print());
 document.getElementById("clearBuild").addEventListener("click",()=>{if(!confirm("Clear all selected parts and design changes?"))return;rememberUndo();Object.keys(state).forEach(k=>state[k]=false);document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=false);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem"});DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));update();showToast("Build cleared","Undo",undoLastChange)});
 
-renderSnapshots();applyPartFilters();if(Object.entries(designState).some(([group,id])=>id!==defaultDesignFor(group)))openStudio();setWorkbenchMode(location.hash==="#goalWizard"?"build":location.hash==="#parts-title"?"source":location.hash==="#owner-tools"||location.hash==="#guides"?"tools":"explore");updateTyreCalc();update();
+renderSnapshots();applyPartFilters();if(Object.entries(designState).some(([group,id])=>id!==defaultDesignFor(group)))openStudio();setWorkbenchMode(location.hash==="#goalWizard"?"build":location.hash==="#parts-title"?"parts":location.hash==="#shops-title"?"fitters":location.hash==="#owner-tools"||location.hash==="#guides"?"tools":"explore");updateTyreCalc();update();
 
 </script>
 </body>
