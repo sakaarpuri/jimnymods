@@ -63,7 +63,7 @@
   h2::after{content:"";flex:1;height:1px;background:var(--line)}
 
   /* Mod cards */
-  .mod{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+  .mod{background:#151b20;border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:10px}
   .mod-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .mod-head h3{font-size:.98rem}
   .mod-head .price{color:var(--muted);font-size:.8rem;margin-top:2px}
@@ -83,7 +83,7 @@
   .switch input:checked + .slider::before{transform:translateX(22px);background:#101418}
 
   /* Shops */
-  .shop{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+  .shop{background:#151b20;border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:10px}
   .shop h3{font-size:.95rem}
   .shop .city{color:var(--accent);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
   .shop p{color:var(--muted);font-size:.83rem;margin:6px 0 10px}
@@ -269,6 +269,8 @@
   .pkg.applied .apply{background:#2e5c39;color:#bfe8c8}
   .pkg.more-hidden{display:none}
   .pkg .fitlink{font-size:.72rem;display:inline-flex;align-items:center;min-height:38px}
+  .pkg-resources{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+  .pkg-resources a,.pkg-resources button{border:0;background:transparent;color:var(--accent2);font:inherit;font-size:.67rem;font-weight:750;padding:5px 0;margin-right:8px;cursor:pointer;text-decoration:underline}
   .choice-meta,.pkg .meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
   .mini-badge{display:inline-flex;align-items:center;border:1px solid #534923;background:#2d2918;color:var(--accent);border-radius:999px;padding:2px 7px;font-size:.58rem;font-weight:850;letter-spacing:.2px;text-transform:uppercase}
   .mini-badge.muted{background:#171d23;border-color:var(--line);color:var(--muted)}
@@ -306,6 +308,8 @@
     body.desktop-mode .planner-main>.mode-active.pkgrow{display:grid}
     body.desktop-mode .planner-main>.mode-active.source-quick{display:block}
     body.desktop-mode .planner-main>.mode-active.catalog-intro{display:flex}
+    body.desktop-mode #mods.mode-active,body.desktop-mode #imods.mode-active,body.desktop-mode #shops.mode-active{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    #mods .mod,#imods .mod,#shops .shop{margin-bottom:0}
   }
 </style>
 </head>
@@ -529,15 +533,15 @@ const MODS = [
    desc:"Vertical-slot retro grille — the most popular face-lift for the Jimny worldwide.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+front+grille"]],
    intl:[["DAMD Japan","https://www.damd.co.jp"]]},
-  {id:"autostylenn_s_grille", hot:true, realIndia:true, name:"Auto Stylenn ABS Grille With S Logo", price:[6000,6000], usd:"India listing", img:"assets/parts/grille.webp",
+  {id:"autostylenn_s_grille", hot:true, realIndia:true, name:"Auto Stylenn ABS Grille With S Logo", price:[6000,6000], usd:"India listing", img:"assets/parts/grille-s-emblem-product.webp",
    desc:"Direct India catalogue listing for a Jimny ABS front grille with Suzuki S-logo option in matte black, gloss black or grey.",
    in:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"]],
    intl:[]},
-  {id:"autostylenn_big_suzuki_grille", hot:true, realIndia:true, name:"Auto Stylenn ABS Grille With SUZUKI Logo", price:[6500,6500], usd:"India listing", img:"assets/parts/grille.webp",
+  {id:"autostylenn_big_suzuki_grille", hot:true, realIndia:true, name:"Auto Stylenn ABS Grille With SUZUKI Logo", price:[6500,6500], usd:"India listing", img:"assets/parts/grille-suzuki-block-product.webp",
    desc:"Direct product page for the bold SUZUKI wordmark ABS grille. A strong option for owners specifically wanting the Suzuki badge visible.",
    in:[["Jimny4x4Products","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]],
    intl:[]},
-  {id:"autostylenn_cursive_grille", realIndia:true, name:"Auto Stylenn Suzuki Cursive Logo Grille", price:[6500,6500], usd:"India listing", img:"assets/parts/grille.webp",
+  {id:"autostylenn_cursive_grille", realIndia:true, name:"Auto Stylenn Suzuki Cursive Logo Grille", price:[6500,6500], usd:"India listing", img:"assets/parts/grille-suzuki-script-product.webp",
    desc:"India catalogue listing for a Jimny ABS grille with cursive Suzuki branding. Good for a softer retro look than the block-letter grille.",
    in:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"]],
    intl:[]},
@@ -737,8 +741,11 @@ const compareIds = new Set();
 /* ---------------- render mods ---------------- */
 const fmt = n => n===0 ? "₹0" : "₹" + (n>=100000 ? (n/100000).toFixed(1).replace(/\.0$/,"")+"L" : n>=1000 ? (n/1000).toFixed(n%1000?1:0).replace(/\.0$/,"")+"k" : Math.round(n));
 const escHtml = value => String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-MODS.forEach(m=>{
-  if(m.designOnly) return;
+const POPULAR_MOD_IDS=["autostylenn_big_suzuki_grille","msga_roofbasket","bimbra_snorkel","tires","mudflaps","mats","dashcam","armrest"];
+function renderModCards(items){
+  document.getElementById("mods").innerHTML="";
+  document.getElementById("imods").innerHTML="";
+  items.forEach(m=>{
   const meta=metaFor(m);
   const links = [
     ...m.in.map(([t,u])=>`<a class="btn in" target="_blank" rel="noopener" href="${u}">India · ${t}</a>`),
@@ -753,15 +760,16 @@ MODS.forEach(m=>{
           <h3>${m.name}${m.hot?' <span class="hotbadge">Popular</span>':''}${m.realIndia?' <span class="hotbadge">Direct India product</span>':''}</h3>
           <div class="price">${fmt(m.price[0])} – ${fmt(m.price[1])}${m.realIndia?" · direct India listing":` · intl ~${m.usd}`}</div>
         </div>
-        <label class="switch" aria-label="Add ${m.name} to build"><input type="checkbox" data-id="${m.id}"><span class="slider"></span></label>
+        <label class="switch" aria-label="Add ${m.name} to build"><input type="checkbox" data-id="${m.id}"${state[m.id]?" checked":""}><span class="slider"></span></label>
       </div>
     </div>
     <p class="desc">${m.desc}</p>
     <div class="factrow">${m.realIndia?'<span class="fact">direct India product page</span>':'<span class="fact">5-door scope · verify SKU</span>'}<span class="fact">${meta.install==="easy"?"DIY-friendly":"Professional fit"}</span><span class="fact">~${meta.weight} kg</span><span class="fact">Listing checked ${meta.verified}</span></div>
     <div class="links">${links}</div>
-    <div class="mod-actions"><button class="iconbtn${favorites.has(m.id)?" active":""}" type="button" data-favorite="${m.id}" aria-pressed="${favorites.has(m.id)}">${favorites.has(m.id)?"Saved":"Save"}</button><button class="iconbtn" type="button" data-compare="${m.id}" aria-pressed="false">Compare</button></div>
+    <div class="mod-actions"><button class="iconbtn${favorites.has(m.id)?" active":""}" type="button" data-favorite="${m.id}" aria-pressed="${favorites.has(m.id)}">${favorites.has(m.id)?"Saved":"Save"}</button><button class="iconbtn${compareIds.has(m.id)?" active":""}" type="button" data-compare="${m.id}" aria-pressed="${compareIds.has(m.id)}">${compareIds.has(m.id)?"Comparing":"Compare"}</button></div>
   </article>`);
-});
+  });
+}
 
 /* ---------------- exterior design studio ---------------- */
 const DESIGN_GROUPS = [
@@ -872,6 +880,12 @@ const PACKAGE_IMAGE_GROUPS={
 function packageImage(id){return Object.entries(PACKAGE_IMAGE_GROUPS).find(([,ids])=>ids.includes(id))?.[0]||`assets/packages/${id}.webp`}
 function packageLookLabels(p){ return Object.entries(p.design||{}).map(([group,id])=>designOption(group,id)?.label).filter(Boolean); }
 function packageLookMarkup(p){ return packageLookLabels(p).map(label=>`<span class="lookchip">${escHtml(label)}</span>`).join(""); }
+function packageResourceMarkup(p){
+  const part=p.parts.map(id=>modById[id]).find(m=>m?.realIndia&&m.in?.length)||p.parts.map(id=>modById[id]).find(m=>m?.in?.length);
+  const design=Object.entries(p.design||{}).map(([group,id])=>designOption(group,id)).find(option=>option?.sources?.length);
+  const source=part?.in?.[0]||design?.sources?.[0];
+  return `<div class="pkg-resources">${source?`<a href="${source[1]}" target="_blank" rel="noopener">Buy examples</a>`:""}<button type="button" data-package-fitter>Find a fitter</button><button type="button" data-fitting-tips>Fitting checklist</button></div>`;
+}
 document.getElementById("lookInspoGrid").innerHTML=["urban","overland","retro","stealth"].map(id=>{
   const p=PACKAGES.find(pkg=>pkg.id===id);
   return `<article class="look-tile"><img src="${packageImage(p.id)}" alt="${escHtml(p.name)} exterior look" loading="lazy"><span class="shade"></span><div class="copy"><b>${escHtml(p.name)}</b><div class="lookline">${packageLookMarkup(p)}</div><button type="button" data-look-apply="${p.id}">Apply look</button></div></article>`;
@@ -892,7 +906,7 @@ PACKAGES.forEach(p=>{
         <span class="pprice">${fmt(lo)} – ${fmt(hi)}</span>
         <span class="pkg-actions"><button class="apply" data-apply="${p.id}">Add build</button><button class="look-apply" data-look-apply="${p.id}">Apply look</button><button class="replace" data-replace="${p.id}">Replace</button></span>
       </div>
-      <a class="fitlink" href="#shops-title">Where to buy & fit</a>
+      ${packageResourceMarkup(p)}
     </div>
   </div>`);
 });
@@ -1155,7 +1169,8 @@ function renderSourceQuick(stats){
   const copy=selected.length
     ? `Your current look has ${selected.length} sourceable choice${selected.length===1?"":"s"}. Start with the finish, graphics or grille links below, then find a fitter for the final quote.`
     : "Pick a finish, decal or grille and its best starting resources will appear here. You can source a look without adding any mechanical parts.";
-  sourceQuick.innerHTML=`<h3>Source this look</h3><p>${copy}</p><div class="source-links">${links.join("")}<button type="button" data-open-source>Find parts & fitters</button></div>`;
+  const fitterLabel=homeCity.value?`Find fitters in ${escHtml(homeCity.value)}`:"Find a fitter";
+  sourceQuick.innerHTML=`<h3>Source this look</h3><p>${copy}</p><div class="source-links">${links.join("")}<button type="button" data-open-source>${fitterLabel}</button></div>`;
 }
 function renderSafety(stats){
   safetyMetrics.innerHTML=`<div class="metric"><b>${stats.weight} kg</b><span>estimated added weight</span></div><div class="metric"><b>${stats.roof} kg</b><span>roof-mounted equipment</span></div><div class="metric"><b>${stats.watts} W</b><span>estimated accessory draw</span></div><div class="metric"><b>${stats.items.length}</b><span>selected physical parts</span></div>`;
@@ -1192,10 +1207,7 @@ function update(){
   markPackageState();
   renderDrawer(stats);renderSafety(stats);renderSourceQuick(stats);persist();
 }
-document.querySelectorAll('input[data-id]').forEach(cb=>{
-  cb.checked=!!state[cb.dataset.id];
-  cb.addEventListener("change", ()=>{ rememberUndo();state[cb.dataset.id]=cb.checked;update(); });
-});
+document.addEventListener("change",e=>{const cb=e.target.closest('input[data-id]');if(!cb)return;rememberUndo();state[cb.dataset.id]=cb.checked;update()});
 DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const active=b.dataset.option===designState[g.id];b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))}));
 
 /* tyre and lift calculator */
@@ -1240,11 +1252,12 @@ function applyPartFilters(){
   const q=document.getElementById("partSearch").value.trim().toLowerCase();
   const terms=q.split(/\s+/).filter(Boolean);
   const isBrowseAll=!terms.length&&activePartFilter==="all"&&!favoritesOnly;
-  let shown=0, eligible=0;
-  document.querySelectorAll(".mod").forEach(card=>{const id=card.dataset.modId,text=card.textContent.toLowerCase(),category=card.dataset.category,install=card.dataset.install,verified=card.dataset.verified==="true";const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===install||activePartFilter==="verified"&&verified;const searchOk=!terms.length||terms.every(term=>text.includes(term));const matches=filterOk&&searchOk&&(!favoritesOnly||favorites.has(id));if(matches)eligible++;const show=matches&&(!isBrowseAll||catalogExpanded||eligible<=8);card.classList.toggle("hidden",!show);if(show)shown++});
-  document.getElementById("partNoResults").hidden = shown>0;
+  const matching=MODS.filter(m=>!m.designOnly).filter(m=>{const meta=metaFor(m),category=m.interior?"interior":"exterior",text=[m.id,m.name,m.desc,m.usd,m.hot?"popular":"",m.realIndia?"direct india product":"",category,meta.install,...m.in.flat()].join(" ").toLowerCase();const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===meta.install||activePartFilter==="verified"&&m.realIndia;return filterOk&&terms.every(term=>text.includes(term))&&(!favoritesOnly||favorites.has(m.id))});
+  const shown=isBrowseAll&&!catalogExpanded?POPULAR_MOD_IDS.map(id=>matching.find(m=>m.id===id)).filter(Boolean):matching;
+  renderModCards(shown);
+  document.getElementById("partNoResults").hidden = shown.length>0;
   const more=document.getElementById("showAllParts");
-  more.hidden=!isBrowseAll||catalogExpanded||eligible<=8;
+  more.hidden=!isBrowseAll||catalogExpanded||matching.length<=8;
   if(catalogExpanded) more.textContent="Full catalogue shown";
 }
 document.getElementById("partSearch").addEventListener("input",applyPartFilters);
@@ -1282,7 +1295,11 @@ function setWorkbenchMode(mode,{scroll=false}={}){
 }
 document.querySelector(".workbench-nav").addEventListener("click",e=>{const button=e.target.closest("[data-mode-select]");if(!button)return;setWorkbenchMode(button.dataset.modeSelect,{scroll:true})});
 document.addEventListener("click",e=>{if(e.target.closest("[data-open-source]")){setWorkbenchMode("source",{scroll:true});document.getElementById("partSearch").focus()}});
-homeCity.addEventListener("change",()=>{localStorage.setItem("thatsuvlab-city",homeCity.value);document.getElementById("shopSearch").value=homeCity.value;filterShops()});
+document.addEventListener("click",e=>{
+  if(e.target.closest("[data-package-fitter]")){document.getElementById("shopSearch").value=homeCity.value;filterShops();setWorkbenchMode("source");document.getElementById("shops-title").scrollIntoView({behavior:"smooth",block:"start"})}
+  if(e.target.closest("[data-fitting-tips]")){setWorkbenchMode("tools");const guides=document.querySelectorAll("#guideList details");guides[guides.length-1]?.setAttribute("open","");document.getElementById("guides").scrollIntoView({behavior:"smooth",block:"start"})}
+});
+homeCity.addEventListener("change",()=>{localStorage.setItem("thatsuvlab-city",homeCity.value);document.getElementById("shopSearch").value=homeCity.value;filterShops();renderSourceQuick(getBuildStats())});
 document.getElementById("findCityFitters").addEventListener("click",()=>{document.getElementById("shopSearch").value=homeCity.value;filterShops();setWorkbenchMode("source");document.getElementById("shops-title").scrollIntoView({behavior:"smooth",block:"start"})});
 const footerNotes={
   checking:"Resource standard: a “Direct India product” links to a product page available in India; marketplace searches and fitter listings are clearly labelled. Prices are indicative and need confirmation before payment. We recommend checking fitment, stock, drilling, wiring and warranty with the seller or fitter.",
