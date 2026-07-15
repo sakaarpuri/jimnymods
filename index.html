@@ -26,19 +26,26 @@
   .workbench{display:block}
   .planner-rail,.planner-main{min-width:0}
 
-  header{max-width:1180px;margin:0 auto;padding:18px 14px 10px;text-align:left}
-  .brandline{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  header h1{font-size:1.45rem;letter-spacing:.5px}
+  header{max-width:1180px;margin:0 auto;padding:18px 14px 12px;text-align:left}
+  .brandline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .brand-lockup{display:flex;align-items:center;gap:10px;min-width:0}
+  .brandmark{width:42px;height:42px;border-radius:10px;background:var(--accent);color:#15191d;display:grid;place-items:center;font-size:.69rem;font-weight:950;letter-spacing:-.02em;transform:rotate(-2deg);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+  header h1{font-size:1.48rem;letter-spacing:-.035em;line-height:1}
   header h1 span{color:var(--accent)}
-  header p{color:var(--muted);font-size:.85rem;margin-top:4px}
+  .brand-copy small{display:block;color:#6f8292;font-size:.63rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-top:5px}
+  .site-promise{color:var(--muted);font-size:.84rem;margin:14px 0 0;max-width:620px;line-height:1.5}
+  .site-promise strong{display:block;color:var(--text);font-size:1.14rem;letter-spacing:-.02em;margin-bottom:2px}
   .vehicle-badge{font-size:.68rem;font-weight:800;letter-spacing:.45px;text-transform:uppercase;color:var(--accent);background:#302b18;border:1px solid #5d5122;border-radius:999px;padding:5px 9px;white-space:nowrap}
   .quicknav{display:flex;gap:7px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
   .quicknav::-webkit-scrollbar{display:none}
   .quicknav a{flex:none;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:10px 12px;min-height:42px;font-size:.72rem;font-weight:700}
   .quicknav a:hover,.quicknav a:focus-visible{color:var(--text);border-color:#566675}
-  .workbench-nav{display:flex;gap:7px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
-  .workbench-nav button{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:10px 13px;min-height:42px;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}
+  .workbench-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:4px 0 10px}
+  .workbench-nav button{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:10px;padding:10px 8px;min-height:44px;font:inherit;font-size:.7rem;font-weight:800;cursor:pointer}
   .workbench-nav button.active{background:var(--accent);border-color:var(--accent);color:#15191d}
+  .location-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0 12px;margin-bottom:14px}
+  .location-strip label{grid-column:1/-1;color:var(--muted);font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+  .location-strip select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);padding:8px 10px;font:inherit;font-size:.78rem}
   .source-quick{background:#222a22;border:1px solid #38513b;border-radius:14px;padding:13px;margin:12px 0 18px}
   .source-quick h3{font-size:.88rem}.source-quick p{color:#b7cbb9;font-size:.76rem;margin:4px 0 10px}.source-links{display:flex;flex-wrap:wrap;gap:8px}
   .source-links a,.source-links button{display:inline-flex;align-items:center;min-height:38px;border-radius:8px;padding:8px 10px;border:1px solid #527058;background:#18241a;color:#c5e5ca;font:inherit;font-size:.7rem;font-weight:750;text-decoration:none;cursor:pointer}
@@ -286,6 +293,8 @@
     .build-fab{display:none}
     .drawer-head{top:-16px}
     .toast{bottom:28px}
+    .workbench-nav{display:flex;gap:7px}.workbench-nav button{padding-inline:13px}
+    .location-strip{grid-template-columns:minmax(240px,360px) auto;justify-content:start}
     body.desktop-mode .planner-main>[data-mode]{display:none}
     body.desktop-mode .planner-main>[data-mode].mode-active{display:block}
     body.desktop-mode .planner-main>.mode-active.pkgrow{display:grid}
@@ -297,11 +306,8 @@
 <body>
 
 <header>
-  <div class="brandline"><h1>ThatSUV<span>Lab</span></h1><span class="vehicle-badge">Jimny · India</span></div>
-  <p>Explore the look, parts and fitters for a Maruti Suzuki Jimny build before you buy.</p>
-  <nav class="quicknav" aria-label="Page sections">
-    <a href="#explore">Looks</a><a href="#goalWizard">Build</a><a href="#parts-title">Source</a><a href="#owner-tools">Tools</a><a href="#guides">Guides</a>
-  </nav>
+  <div class="brandline"><div class="brand-lockup"><span class="brandmark" aria-hidden="true">TSL</span><span class="brand-copy"><h1>ThatSUV<span>Lab</span></h1><small>Independent build desk</small></span></div><span class="vehicle-badge">Jimny · India</span></div>
+  <p class="site-promise"><strong>See it. Source it. Build it.</strong>Explore real Jimny looks, compare sensible upgrades and find India-based sellers and fitters.</p>
 </header>
 
 <div class="wrap" id="build">
@@ -344,6 +350,11 @@
     <button type="button" data-mode-select="source">Find parts & fitters</button>
     <button type="button" data-mode-select="tools">Plan safely</button>
   </nav>
+  <div class="location-strip">
+    <label for="homeCity">Where will you buy or fit?</label>
+    <select id="homeCity"><option value="">Choose a city</option></select>
+    <button class="action" id="findCityFitters" type="button">Find nearby fitters</button>
+  </div>
 
   <!-- ============ LOOK INSPIRATION ============ -->
   <section class="look-inspo" id="explore" data-mode="explore" aria-labelledby="look-inspo-title">
@@ -1035,6 +1046,9 @@ SHOPS.forEach(s=>{
     </div>
   </article>`);
 });
+const homeCity=document.getElementById("homeCity");
+[...new Set(SHOPS.map(s=>s.city))].sort().forEach(city=>homeCity.insertAdjacentHTML("beforeend",`<option value="${escHtml(city)}">${escHtml(city)}</option>`));
+homeCity.value=localStorage.getItem("thatsuvlab-city")||"";
 
 
 /* ---------------- state & interactions ---------------- */
@@ -1246,8 +1260,9 @@ function setWorkbenchMode(mode,{scroll=false}={}){
   if(scroll&&window.matchMedia("(min-width: 900px)").matches) document.getElementById(next)?.scrollIntoView({behavior:"smooth",block:"start"});
 }
 document.querySelector(".workbench-nav").addEventListener("click",e=>{const button=e.target.closest("[data-mode-select]");if(!button)return;setWorkbenchMode(button.dataset.modeSelect,{scroll:true})});
-document.querySelector(".quicknav").addEventListener("click",e=>{const link=e.target.closest("a[href]");if(!link)return;const hash=link.getAttribute("href"),mode=hash==="#explore"?"explore":hash==="#goalWizard"?"build":hash==="#parts-title"?"source":hash==="#owner-tools"||hash==="#guides"?"tools":null;if(mode)setWorkbenchMode(mode)});
 document.addEventListener("click",e=>{if(e.target.closest("[data-open-source]")){setWorkbenchMode("source",{scroll:true});document.getElementById("partSearch").focus()}});
+homeCity.addEventListener("change",()=>{localStorage.setItem("thatsuvlab-city",homeCity.value);document.getElementById("shopSearch").value=homeCity.value;filterShops()});
+document.getElementById("findCityFitters").addEventListener("click",()=>{document.getElementById("shopSearch").value=homeCity.value;filterShops();setWorkbenchMode("source");document.getElementById("shops-title").scrollIntoView({behavior:"smooth",block:"start"})});
 const footerNotes={
   checking:"Resource standard: a “Direct India product” links to a product page available in India; marketplace searches and fitter listings are clearly labelled. Prices are indicative and need confirmation before payment. We recommend checking fitment, stock, drilling, wiring and warranty with the seller or fitter.",
   privacy:"Your working build, saved versions and favourites are stored in this browser using local storage. They are not sent to ThatSUVLab. A share link contains only the build choices in its URL; do not share it if the build name contains personal information."
