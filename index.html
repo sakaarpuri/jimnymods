@@ -122,11 +122,16 @@
   .sw.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,200,46,.25)}
 
   /* exterior studio */
-  .studio{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:14px;margin-top:2px}
-  .studio-group + .studio-group{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
-  .studio-title{display:flex;justify-content:space-between;gap:10px;align-items:end;margin-bottom:10px}
+  .studio{display:grid;gap:8px;margin-top:2px}
+  .studio-group{border:1px solid var(--line);background:var(--panel);border-radius:12px;overflow:hidden}
+  .studio-title{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:13px;cursor:pointer;list-style:none}
+  .studio-title::-webkit-details-marker{display:none}
+  .studio-title::after{content:"+";color:var(--accent);font-size:1rem;font-weight:900;margin-left:4px}
+  .studio-group[open] .studio-title::after{content:"−"}
   .studio-title h3{font-size:.92rem}
-  .studio-title span{color:var(--muted);font-size:.7rem;text-align:right}
+  .studio-title span{color:var(--muted);font-size:.68rem;text-align:right;margin-left:auto}
+  .studio-title .studio-selected{color:var(--accent);font-weight:800}
+  .studio-group .choice-grid{padding:0 12px 12px}
   .choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .choice{appearance:none;text-align:left;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px;cursor:pointer;transition:transform .2s,border-color .2s,background .2s;min-height:92px}
   .choice:active{transform:scale(.98)}
@@ -178,6 +183,7 @@
   .look-tile .copy{position:relative;padding:10px;width:100%}
   .look-tile b{display:block;font-size:.76rem}
   .look-tile button{margin-top:7px;border:0;background:var(--accent);color:#15191d;border-radius:8px;padding:8px 10px;min-height:38px;font:inherit;font-size:.68rem;font-weight:850;cursor:pointer}
+  .look-start{margin:0 0 18px}.look-start .action{min-width:180px}
 
   /* part discovery */
   .part-tools{position:sticky;top:55px;z-index:15;background:rgba(16,20,24,.96);padding:8px 0 10px;margin-bottom:10px}
@@ -362,6 +368,7 @@
     <p>Start with a finished five-door idea, then choose the exact finish, decal, grille and parts you want to source.</p>
     <div class="look-inspo-grid" id="lookInspoGrid"></div>
   </section>
+  <div class="actionrow look-start" data-mode="explore"><button class="action" id="customizeLook" type="button">Build a custom look</button></div>
 
   <!-- ============ GOAL WIZARD ============ -->
   <h2 data-mode="build">Start with your use</h2>
@@ -382,10 +389,10 @@
   <div class="pkgrow" id="pkgs" data-mode="build"></div>
 
   <!-- ============ EXTERIOR STUDIO ============ -->
-  <h2 data-mode="explore">Make the look yours</h2>
-  <p class="secsub" data-mode="explore">Choose a finish, graphic and grille. Tap the selected choice again to return to stock.</p>
-  <div class="studio" id="studio" data-mode="explore"></div>
-  <section class="source-quick" id="sourceQuick" data-mode="explore" aria-live="polite"></section>
+  <h2 data-mode="explore" data-studio-reveal hidden>Make the look yours</h2>
+  <p class="secsub" data-mode="explore" data-studio-reveal hidden>Open one step at a time. Tap the selected choice again to return that step to stock.</p>
+  <div class="studio" id="studio" data-mode="explore" data-studio-reveal hidden></div>
+  <section class="source-quick" id="sourceQuick" data-mode="explore" data-studio-reveal aria-live="polite" hidden></section>
 
   <!-- ============ OWNER TOOLS ============ -->
   <h2 id="owner-tools" data-mode="tools">Owner tools</h2>
@@ -760,26 +767,26 @@ MODS.forEach(m=>{
 const DESIGN_GROUPS = [
   {id:"finish", title:"Paint protection & finish", hint:"one surface treatment", options:[
     {id:"oem", name:"OEM gloss paint", label:"OEM gloss", img:"assets/360/stock/f01.jpg", price:[0,0]},
-    {id:"satin", name:"Satin colour PPF", label:"Satin PPF", img:"assets/packages/urban.webp", price:[55000,95000], sources:[["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"],["Avery Dennison India","https://graphics.averydennison.com/en/home.html"]]},
-    {id:"matte", name:"Matte colour PPF", label:"Matte PPF", img:"assets/packages/weekend.webp", price:[70000,120000], sources:[["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"],["Avery Dennison India","https://graphics.averydennison.com/en/home.html"]]},
-    {id:"raptor", name:"Textured lower panels", label:"Textured panels", img:"assets/looks/camo.webp", price:[35000,75000], sources:[["BigDaddy Customs","https://www.bigdaddycustoms.com"],["Amazon.in textured wrap search","https://www.amazon.in/s?k=textured+car+wrap"]]},
-    {id:"twotone", name:"Contrast roof & pillars", label:"Two-tone roof", img:"assets/looks/street.webp", price:[18000,35000], sources:[["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"],["BigDaddy Customs","https://www.bigdaddycustoms.com"]]},
-    {id:"blackout", name:"Blackout trim package", label:"Blackout trim", img:"assets/packages/stealth.webp", price:[12000,28000], sources:[["Amazon.in blackout vinyl search","https://www.amazon.in/s?k=car+blackout+vinyl"],["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"]]}
+    {id:"satin", name:"Satin colour PPF", label:"Satin PPF", img:"assets/packages/urban-v2.webp", price:[55000,95000], sources:[["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"],["Avery Dennison India","https://graphics.averydennison.com/en/home.html"]]},
+    {id:"matte", name:"Matte colour PPF", label:"Matte PPF", img:"assets/packages/stealth-v2.webp", price:[70000,120000], sources:[["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"],["Avery Dennison India","https://graphics.averydennison.com/en/home.html"]]},
+    {id:"raptor", name:"Textured lower panels", label:"Textured panels", img:"assets/packages/overland-v2.webp", price:[35000,75000], sources:[["BigDaddy Customs","https://www.bigdaddycustoms.com"],["Amazon.in textured wrap search","https://www.amazon.in/s?k=textured+car+wrap"]]},
+    {id:"twotone", name:"Contrast roof & pillars", label:"Two-tone roof", img:"assets/packages/retro-v2.webp", price:[18000,35000], sources:[["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"],["BigDaddy Customs","https://www.bigdaddycustoms.com"]]},
+    {id:"blackout", name:"Blackout trim package", label:"Blackout trim", img:"assets/packages/stealth-v2.webp", price:[12000,28000], sources:[["Amazon.in blackout vinyl search","https://www.amazon.in/s?k=car+blackout+vinyl"],["3M India wrap films","https://www.3mindia.in/3M/en_IN/graphics-signage-in/"]]}
   ]},
   {id:"decal", title:"Decal system", hint:"pre-cut vinyl graphics", options:[
     {id:"none", name:"No graphics", label:"No graphics", img:"assets/360/stock/f11.jpg", price:[0,0]},
-    {id:"heritage", name:"Heritage rally stripes", label:"Heritage stripes", img:"assets/looks/heritage.webp", price:[4500,12000], sources:[["Amazon.in Jimny decals","https://www.amazon.in/s?k=jimny+decals+graphics"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+decals+wrap+studio+near+me"]]},
-    {id:"topo", name:"Topographic contour kit", label:"Topo contours", img:"assets/looks/topo.webp", price:[5000,15000], sources:[["Amazon.in Jimny topo decals","https://www.amazon.in/s?k=jimny+topo+decals"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+topographic+decal+wrap+studio"]]},
-    {id:"mountain", name:"Mountain horizon kit", label:"Mountain horizon", img:"assets/looks/mountains.webp", price:[3500,10000], sources:[["Amazon.in Jimny decals","https://www.amazon.in/s?k=jimny+mountain+decals"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+graphics+wrap+studio+near+me"]]},
-    {id:"safari", name:"Safari door bands", label:"Safari bands", img:"assets/packages/safari.webp", price:[6000,16000], sources:[["Amazon.in Jimny side graphics","https://www.amazon.in/s?k=jimny+side+graphics"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+side+decal+wrap+studio"]]},
-    {id:"geo", name:"Geometric quarter panels", label:"Geometric panels", img:"assets/packages/creator.webp", price:[5000,14000], sources:[["Amazon.in Jimny graphics","https://www.amazon.in/s?k=jimny+graphics+kit"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+quarter+panel+decal+studio"]]}
+    {id:"heritage", name:"Heritage rally stripes", label:"Heritage stripes", img:"assets/packages/retro-v2.webp", price:[4500,12000], sources:[["Amazon.in Jimny decals","https://www.amazon.in/s?k=jimny+decals+graphics"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+decals+wrap+studio+near+me"]]},
+    {id:"topo", name:"Topographic contour kit", label:"Topo contours", img:"assets/packages/overland-v2.webp", price:[5000,15000], sources:[["Amazon.in Jimny topo decals","https://www.amazon.in/s?k=jimny+topo+decals"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+topographic+decal+wrap+studio"]]},
+    {id:"mountain", name:"Mountain horizon kit", label:"Mountain horizon", img:"assets/packages/overland-v2.webp", price:[3500,10000], sources:[["Amazon.in Jimny decals","https://www.amazon.in/s?k=jimny+mountain+decals"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+graphics+wrap+studio+near+me"]]},
+    {id:"safari", name:"Safari door bands", label:"Safari bands", img:"assets/packages/retro-v2.webp", price:[6000,16000], sources:[["Amazon.in Jimny side graphics","https://www.amazon.in/s?k=jimny+side+graphics"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+side+decal+wrap+studio"]]},
+    {id:"geo", name:"Geometric quarter panels", label:"Geometric panels", img:"assets/packages/urban-v2.webp", price:[5000,14000], sources:[["Amazon.in Jimny graphics","https://www.amazon.in/s?k=jimny+graphics+kit"],["Local wrap studio search","https://www.google.com/maps/search/Jimny+quarter+panel+decal+studio"]]}
   ]},
   {id:"grille", title:"Grille & branding", hint:"logo and logo-delete styles", options:[
     {id:"oem", name:"OEM grille · Suzuki S emblem", label:"OEM S emblem", img:"assets/360/stock/f01.jpg", price:[0,0], badge:"Suzuki badge", wordmark:"S", wordClass:"emblem", meta:["Factory look","with badge"]},
-    {id:"block", name:"Heritage grille · SUZUKI badge", label:"Heritage SUZUKI", img:"assets/looks/gclassic.webp", price:[6000,9000], badge:"Suzuki wordmark", wordmark:"SUZUKI", meta:["Popular","with badge"], sources:[["Jimny4x4Products SUZUKI grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]]},
-    {id:"rhino", name:"Black hex grille · SUZUKI badge", label:"Black hex SUZUKI", img:"assets/looks/gmesh.webp", price:[9000,18000], badge:"Suzuki wordmark", wordmark:"SUZUKI", meta:["Rhino-style","with badge"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"]]},
-    {id:"script", name:"Retro grille · Suzuki script badge", label:"Suzuki script", img:"assets/looks/gchrome.webp", price:[6000,9500], badge:"Suzuki script", wordmark:"Suzuki", wordClass:"script", meta:["Retro","with badge"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"]]},
-    {id:"chrome", name:"Chrome heritage · SUZUKI badge", label:"Chrome SUZUKI", img:"assets/looks/gchrome.webp", price:[8500,16000], badge:"Suzuki wordmark", wordmark:"SUZUKI", meta:["Bright trim","with badge"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"]]},
+    {id:"block", name:"Heritage grille · SUZUKI badge", label:"Heritage SUZUKI", img:"assets/parts/grille-suzuki-block-product.webp", price:[6000,9000], badge:"Suzuki wordmark", meta:["Popular","seller photo"], sources:[["Jimny4x4Products SUZUKI grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]]},
+    {id:"rhino", name:"Black hex grille · SUZUKI badge", label:"Black hex SUZUKI", img:"assets/parts/grille-suzuki-block-product.webp", price:[6500,9000], badge:"Suzuki wordmark", meta:["Popular","seller photo"], sources:[["Jimny4x4Products SUZUKI grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]]},
+    {id:"script", name:"Retro grille · Suzuki script badge", label:"Suzuki script", img:"assets/parts/grille-suzuki-script-product.webp", price:[6000,9500], badge:"Suzuki script", meta:["Retro","seller photo"], sources:[["Jimny4x4Products cursive grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-cursive-logo-matt-black-gloss-black-grey/"]]},
+    {id:"chrome", name:"Gloss black grille · SUZUKI badge", label:"Gloss black SUZUKI", img:"assets/parts/grille-suzuki-block-product.webp", price:[6500,9000], badge:"Suzuki wordmark", meta:["Gloss option","seller photo"], sources:[["Jimny4x4Products SUZUKI grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]]},
     {id:"delete", name:"OEM-style · logo delete", label:"Logo delete", img:"assets/looks/gmesh.webp", price:[4500,8000], badge:"No logo", meta:["Clean face","logo-free"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"],["Amazon.in Jimny grille","https://www.amazon.in/s?k=jimny+front+grille"]]},
     {id:"classic", name:"Five-slot grille · no logo", label:"Five-slot clean", img:"assets/looks/gclassic.webp", price:[6000,12000], badge:"No logo", meta:["Retro slots","logo-free"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"],["Amazon.in Jimny grille","https://www.amazon.in/s?k=jimny+front+grille"]]},
     {id:"mesh", name:"Mesh sport grille · no logo", label:"Mesh clean", img:"assets/looks/gmesh.webp", price:[7000,14000], badge:"No logo", meta:["Sport mesh","logo-free"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"],["Amazon.in Jimny grille","https://www.amazon.in/s?k=jimny+mesh+grille"]]}
@@ -804,12 +811,12 @@ function optionBadges(option){
 }
 DESIGN_GROUPS.forEach(g=>{
   const choices = g.options.map(o=>{
-    const preview = `<span class="photo-wrap"><img class="choice-photo" src="${o.img}" alt="" loading="lazy">${g.id==="grille"?grilleOverlay(o):""}</span>`;
+    const preview = `<span class="photo-wrap"><img class="choice-photo" src="${o.img}" alt="${g.id==="grille"?`${escHtml(o.name)} product preview`:""}" loading="lazy"></span>`;
     return `<button class="choice${designState[g.id]===o.id?" active":""}" type="button" data-group="${g.id}" data-option="${o.id}" aria-pressed="${designState[g.id]===o.id}">
       ${preview}<span class="choice-name">${o.name}</span><span class="choice-price">${optionPrice(o)}</span>${optionBadges(o)}
     </button>`;
   }).join("");
-  studio.insertAdjacentHTML("beforeend",`<section class="studio-group"><div class="studio-title"><h3>${g.title}</h3><span>${g.hint}</span></div><div class="choice-grid">${choices}</div></section>`);
+  studio.insertAdjacentHTML("beforeend",`<details class="studio-group"${g.id==="finish"?" open":""}><summary class="studio-title"><h3>${g.title}</h3><span class="studio-selected" data-studio-current="${g.id}">${designOption(g.id,designState[g.id]).label}</span><span>${g.hint}</span></summary><div class="choice-grid">${choices}</div></details>`);
 });
 function selectDesign(group,id){
   designState[group] = id;
@@ -818,6 +825,7 @@ function selectDesign(group,id){
     b.classList.toggle("active",active); b.setAttribute("aria-pressed",String(active));
   });
   document.querySelectorAll(`[data-design-group="${group}"]`).forEach(b=>{b.textContent=b.dataset.designOption===id?"Selected":"Choose"});
+  const current=document.querySelector(`[data-studio-current="${group}"]`);if(current)current.textContent=designOption(group,id)?.label||id;
   update();
 }
 function chooseDesign(group,id,toggle=false){
@@ -828,6 +836,11 @@ function chooseDesign(group,id,toggle=false){
 studio.addEventListener("click",e=>{
   const b=e.target.closest("[data-group]"); if(b){rememberUndo();const picked=chooseDesign(b.dataset.group,b.dataset.option,true);showToast(picked===defaultDesignFor(b.dataset.group)?"Design choice cleared":"Design choice updated","Undo",undoLastChange)}
 });
+function openStudio({scroll=false}={}){
+  document.querySelectorAll("[data-studio-reveal]").forEach(el=>el.hidden=false);
+  if(scroll)document.getElementById("studio").scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.getElementById("customizeLook").addEventListener("click",()=>openStudio({scroll:true}));
 
 /* ---------------- packages ---------------- */
 const PACKAGES = [
@@ -850,11 +863,18 @@ const PACKAGES = [
 const CORE_PACKAGE_IDS = new Set(["monsoon","family","weekend","urban","overland","crawler","camp"]);
 const modById = Object.fromEntries(MODS.map(m=>[m.id,m]));
 const pkgsEl = document.getElementById("pkgs");
+const PACKAGE_IMAGE_GROUPS={
+  "assets/packages/overland-v2.webp":["overland","desert","crawler","fullsend","alpine","safari"],
+  "assets/packages/urban-v2.webp":["urban","creator","tech","monsoon","family"],
+  "assets/packages/retro-v2.webp":["retro","camp"],
+  "assets/packages/stealth-v2.webp":["stealth","weekend"]
+};
+function packageImage(id){return Object.entries(PACKAGE_IMAGE_GROUPS).find(([,ids])=>ids.includes(id))?.[0]||`assets/packages/${id}.webp`}
 function packageLookLabels(p){ return Object.entries(p.design||{}).map(([group,id])=>designOption(group,id)?.label).filter(Boolean); }
 function packageLookMarkup(p){ return packageLookLabels(p).map(label=>`<span class="lookchip">${escHtml(label)}</span>`).join(""); }
 document.getElementById("lookInspoGrid").innerHTML=["urban","overland","retro","stealth"].map(id=>{
   const p=PACKAGES.find(pkg=>pkg.id===id);
-  return `<article class="look-tile"><img src="assets/packages/${p.id}.webp" alt="${escHtml(p.name)} exterior look" loading="lazy"><span class="shade"></span><div class="copy"><b>${escHtml(p.name)}</b><div class="lookline">${packageLookMarkup(p)}</div><button type="button" data-look-apply="${p.id}">Apply look</button></div></article>`;
+  return `<article class="look-tile"><img src="${packageImage(p.id)}" alt="${escHtml(p.name)} exterior look" loading="lazy"><span class="shade"></span><div class="copy"><b>${escHtml(p.name)}</b><div class="lookline">${packageLookMarkup(p)}</div><button type="button" data-look-apply="${p.id}">Apply look</button></div></article>`;
 }).join("");
 PACKAGES.forEach(p=>{
   const lo = p.parts.reduce((s,id)=>s+modById[id].price[0],0);
@@ -862,7 +882,7 @@ PACKAGES.forEach(p=>{
   const names = p.parts.map(id=>modById[id].name.split(" (")[0]).join(" · ");
   pkgsEl.insertAdjacentHTML("beforeend", `
   <div class="pkg${CORE_PACKAGE_IDS.has(p.id)?"":" more-hidden"}" data-pkg="${p.id}">
-    <img class="pkgimg" src="assets/packages/${p.id}.webp" alt="${escHtml(p.name)} build" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${escHtml(p.name)} build">
+    <img class="pkgimg" src="${packageImage(p.id)}" alt="${escHtml(p.name)} build" loading="lazy" role="button" tabindex="0" aria-label="View larger image of ${escHtml(p.name)} build">
     <div class="body">
       <h3>${p.name}</h3>
       <div class="tag">${p.tag}</div>
@@ -915,6 +935,7 @@ function applyPkgLook(id){
   if(!p) return;
   rememberUndo();
   applyPackageDesign(p);
+  openStudio({scroll:document.querySelector('[data-mode-select="explore"]')?.classList.contains("active")});
   update();
   showToast(`${p.name} look applied`,"Undo",undoLastChange);
 }
@@ -1291,7 +1312,7 @@ document.getElementById("downloadBuild").addEventListener("click",()=>{const can
 document.getElementById("printBuild").addEventListener("click",()=>window.print());
 document.getElementById("clearBuild").addEventListener("click",()=>{if(!confirm("Clear all selected parts and design changes?"))return;rememberUndo();Object.keys(state).forEach(k=>state[k]=false);document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=false);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem"});DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));update();showToast("Build cleared","Undo",undoLastChange)});
 
-renderSnapshots();applyPartFilters();setWorkbenchMode(location.hash==="#goalWizard"?"build":location.hash==="#parts-title"?"source":location.hash==="#owner-tools"||location.hash==="#guides"?"tools":"explore");updateTyreCalc();update();
+renderSnapshots();applyPartFilters();if(Object.entries(designState).some(([group,id])=>id!==defaultDesignFor(group)))openStudio();setWorkbenchMode(location.hash==="#goalWizard"?"build":location.hash==="#parts-title"?"source":location.hash==="#owner-tools"||location.hash==="#guides"?"tools":"explore");updateTyreCalc();update();
 
 </script>
 </body>
