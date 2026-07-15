@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>JimnyLab — Plan Your Maruti Suzuki Jimny 5-Door Build</title>
-<meta name="description" content="Plan a Maruti Suzuki Jimny 5-door build for India with fitment checks, tyre calculations, safety warnings, price estimates, parts and fitting shops.">
+<title>ThatSUVLab — Plan Your Maruti Suzuki Jimny Build</title>
+<meta name="description" content="Explore, plan and source a Maruti Suzuki Jimny build in India with real parts, fitters, fitment checks and price estimates.">
 <link rel="canonical" href="https://jimnylab.netlify.app/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="JimnyLab — Plan Your Maruti Suzuki Jimny 5-Door Build">
-<meta property="og:description" content="Plan a Maruti Suzuki Jimny 5-door build for India with packages, exact exterior choices, India product links, fitters and safety checks.">
+<meta property="og:title" content="ThatSUVLab — Plan Your Maruti Suzuki Jimny Build">
+<meta property="og:description" content="Explore looks, choose parts and find India resources for a Maruti Suzuki Jimny build.">
 <meta property="og:image" content="https://jimnylab.netlify.app/assets/360/stock/f01.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
@@ -36,6 +36,14 @@
   .quicknav::-webkit-scrollbar{display:none}
   .quicknav a{flex:none;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:10px 12px;min-height:42px;font-size:.72rem;font-weight:700}
   .quicknav a:hover,.quicknav a:focus-visible{color:var(--text);border-color:#566675}
+  .workbench-nav{display:flex;gap:7px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
+  .workbench-nav button{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:10px 13px;min-height:42px;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}
+  .workbench-nav button.active{background:var(--accent);border-color:var(--accent);color:#15191d}
+  .source-quick{background:#222a22;border:1px solid #38513b;border-radius:14px;padding:13px;margin:12px 0 18px}
+  .source-quick h3{font-size:.88rem}.source-quick p{color:#b7cbb9;font-size:.76rem;margin:4px 0 10px}.source-links{display:flex;flex-wrap:wrap;gap:8px}
+  .source-links a,.source-links button{display:inline-flex;align-items:center;min-height:38px;border-radius:8px;padding:8px 10px;border:1px solid #527058;background:#18241a;color:#c5e5ca;font:inherit;font-size:.7rem;font-weight:750;text-decoration:none;cursor:pointer}
+  .catalog-intro{display:flex;justify-content:space-between;gap:10px;align-items:end;margin:-6px 0 10px}.catalog-intro p{color:var(--muted);font-size:.76rem;max-width:55ch}.catalog-intro button{flex:none}
+  .footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px}.footer-links button{border:0;background:transparent;color:var(--accent2);font:inherit;font-size:.72rem;cursor:pointer;text-decoration:underline}.footer-note{max-width:720px;margin:14px auto 0;text-align:left;background:#171d23;border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--muted);font-size:.72rem;line-height:1.55}.footer-note[hidden]{display:none}
 
   /* Visualizer */
   .viz{position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 85%,transparent);padding:8px 0 4px}
@@ -278,16 +286,21 @@
     .build-fab{display:none}
     .drawer-head{top:-16px}
     .toast{bottom:28px}
+    body.desktop-mode .planner-main>[data-mode]{display:none}
+    body.desktop-mode .planner-main>[data-mode].mode-active{display:block}
+    body.desktop-mode .planner-main>.mode-active.pkgrow{display:grid}
+    body.desktop-mode .planner-main>.mode-active.source-quick{display:block}
+    body.desktop-mode .planner-main>.mode-active.catalog-intro{display:flex}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brandline"><h1>Jimny<span>Lab</span></h1><span class="vehicle-badge">India 5-door only</span></div>
-  <p>Plan, price and check a Maruti Suzuki Jimny 5-door build before buying parts.</p>
+  <div class="brandline"><h1>ThatSUV<span>Lab</span></h1><span class="vehicle-badge">Jimny · India</span></div>
+  <p>Explore the look, parts and fitters for a Maruti Suzuki Jimny build before you buy.</p>
   <nav class="quicknav" aria-label="Page sections">
-    <a href="#build">Build</a><a href="#owner-tools">Owner tools</a><a href="#parts-title">Parts</a><a href="#shops-title">Fitters</a><a href="#guides">Guides</a>
+    <a href="#explore">Looks</a><a href="#goalWizard">Build</a><a href="#parts-title">Source</a><a href="#owner-tools">Tools</a><a href="#guides">Guides</a>
   </nav>
 </header>
 
@@ -321,22 +334,29 @@
     </div>
   </div>
 
-  <div class="note"><b>Vehicle profile:</b> Maruti Suzuki Jimny 5-door sold in India, Zeta or Alpha, manual or automatic. Three-door and older-generation compatibility is intentionally out of scope.</div>
+  <div class="note"><b>Vehicle profile:</b> India-spec Maruti Suzuki Jimny, Zeta or Alpha, manual or automatic. Confirm an accessory's exact model-year, camera and fitting compatibility before payment.</div>
 </aside>
 <main class="planner-main">
 
+  <nav class="workbench-nav" aria-label="Choose what to explore">
+    <button class="active" type="button" data-mode-select="explore">Explore looks</button>
+    <button type="button" data-mode-select="build">Build for a purpose</button>
+    <button type="button" data-mode-select="source">Find parts & fitters</button>
+    <button type="button" data-mode-select="tools">Plan safely</button>
+  </nav>
+
   <!-- ============ LOOK INSPIRATION ============ -->
-  <section class="look-inspo" aria-labelledby="look-inspo-title">
+  <section class="look-inspo" id="explore" data-mode="explore" aria-labelledby="look-inspo-title">
     <h3 id="look-inspo-title">Pick a look first</h3>
     <p>Start with a finished five-door idea, then choose the exact finish, decal, grille and parts you want to source.</p>
     <div class="look-inspo-grid" id="lookInspoGrid"></div>
   </section>
 
   <!-- ============ GOAL WIZARD ============ -->
-  <h2>Start with your use</h2>
-  <section class="owner-card" id="goalWizard">
+  <h2 data-mode="build">Start with your use</h2>
+  <section class="owner-card" id="goalWizard" data-mode="build">
     <h3>What should this Jimny do well?</h3>
-    <p>Choose a goal and budget. JimnyLab recommends a staged five-door build you can still edit.</p>
+    <p>Choose a goal and budget. ThatSUVLab recommends a staged build you can still edit.</p>
     <div class="wizard-options" id="goalOptions" aria-label="Build goal"></div>
     <div class="form-grid" style="margin-top:10px">
       <div class="field full"><label for="goalBudget">Parts budget</label><select id="goalBudget"><option value="100000">Up to ₹1 lakh</option><option value="250000" selected>Up to ₹2.5 lakh</option><option value="500000">Up to ₹5 lakh</option><option value="9999999">Capability first</option></select></div>
@@ -346,18 +366,19 @@
   </section>
 
   <!-- ============ PACKAGES ============ -->
-  <h2>Build Packages</h2>
-  <p class="secsub">Pick a vibe — one tap selects all its parts. Or build your own piece by piece below.</p>
-  <div class="pkgrow" id="pkgs"></div>
+  <h2 data-mode="build">Build Packages</h2>
+  <p class="secsub" data-mode="build">Pick a use case, then make its exterior look yours. Add the full build or only the look.</p>
+  <div class="pkgrow" id="pkgs" data-mode="build"></div>
 
   <!-- ============ EXTERIOR STUDIO ============ -->
-  <h2>Exterior Design Studio</h2>
-  <p class="secsub">Choose one option in each group. Your exact finish, graphics and grille are saved in the build total.</p>
-  <div class="studio" id="studio"></div>
+  <h2 data-mode="explore">Make the look yours</h2>
+  <p class="secsub" data-mode="explore">Choose a finish, graphic and grille. Tap the selected choice again to return to stock.</p>
+  <div class="studio" id="studio" data-mode="explore"></div>
+  <section class="source-quick" id="sourceQuick" data-mode="explore" aria-live="polite"></section>
 
   <!-- ============ OWNER TOOLS ============ -->
-  <h2 id="owner-tools">Five-door owner tools</h2>
-  <section class="owner-card">
+  <h2 id="owner-tools" data-mode="tools">Owner tools</h2>
+  <section class="owner-card" data-mode="tools">
     <h3>Tyre and lift calculator</h3>
     <p>Compares your proposed setup with the Indian five-door factory size, 195/80 R15, listed in the <a href="https://www.nexaexperience.com/content/dam/msil/nexa/in/en/assets/cars/jimny/documents/NEXA-Jimny-Brochure.pdf" target="_blank" rel="noopener">official brochure</a>. Results are estimates, not a fitment guarantee.</p>
     <div class="form-grid three">
@@ -369,7 +390,7 @@
     <div class="resultbox" id="tyreResults" aria-live="polite"></div>
   </section>
 
-  <section class="owner-card">
+  <section class="owner-card" data-mode="tools">
     <h3>Build safety check</h3>
     <p>Updates as you add parts. It tracks estimated accessory weight, roof load, electrical load and known dependencies.</p>
     <div class="resultgrid" id="safetyMetrics"></div>
@@ -377,46 +398,44 @@
   </section>
 
   <!-- ============ WRAPS & GRILLES ============ -->
-  <h2>Wrap & Decal Gallery</h2>
-  <p class="secsub">Full wraps and graphic kits on the 5-door — tap a look to enlarge, add it to your build with one tap.</p>
-  <div class="pkgrow" id="wraps"></div>
-
-  <h2>Grille Gallery</h2>
-  <p class="secsub">Brand-forward and logo-delete takes on the Jimny's face. Confirm clip and camera compatibility before ordering.</p>
-  <div class="pkgrow" id="grilles"></div>
+  <div id="wraps" hidden></div>
+  <div id="grilles" hidden></div>
 
   <!-- ============ MODS ============ -->
-  <h2 id="parts-title">Parts for the five-door</h2>
-  <div class="part-tools">
+  <h2 id="parts-title" data-mode="source">Find the right parts</h2>
+  <div class="catalog-intro" data-mode="source"><p>Start with the popular, directly sourced options. Search or browse the full catalogue when you know what you need.</p><button class="action" id="showAllParts" type="button">Browse all parts</button></div>
+  <div class="part-tools" data-mode="source">
     <div class="searchrow"><input id="partSearch" type="search" placeholder="Search parts, uses or brands" aria-label="Search parts"><button class="action" id="favoritesOnly" type="button">Saved</button></div>
     <div class="filterrow" id="partFilters"><button class="filterchip active" data-filter="all">All</button><button class="filterchip" data-filter="verified">Direct India products</button><button class="filterchip" data-filter="exterior">Exterior</button><button class="filterchip" data-filter="interior">Interior</button><button class="filterchip" data-filter="easy">DIY-friendly</button><button class="filterchip" data-filter="pro">Professional fit</button></div>
     <div class="starter-picks" aria-label="Popular starter searches"><button class="iconbtn" type="button" data-pick="popular">Popular options</button><button class="iconbtn" type="button" data-pick="suzuki grille">Suzuki-badge grilles</button><button class="iconbtn" type="button" data-pick="roof">Touring racks</button><button class="iconbtn" type="button" data-pick="protection">Trail protection</button></div>
   </div>
-  <div class="compare-panel" id="comparePanel"><strong>Compare selected parts</strong><div class="compare-grid" id="compareGrid"></div></div>
-  <div id="mods"></div>
+  <div class="compare-panel" id="comparePanel" data-mode="source"><strong>Compare selected parts</strong><div class="compare-grid" id="compareGrid"></div></div>
+  <div id="mods" data-mode="source"></div>
 
-  <h2>Interior Mods</h2>
-  <div id="imods"></div>
-  <div class="no-results" id="partNoResults" hidden>No parts match that search or filter. Try All, clear the search, or turn off Saved.</div>
-  <div class="note">Every toggled item counts toward your build total. The 360° car above shows a representative modified build, while the selected parts and exterior choices are the source of truth. Some images are illustrative; seller links show actual product photos and current SKUs.</div>
+  <h2 data-mode="source">Interior parts</h2>
+  <div id="imods" data-mode="source"></div>
+  <div class="no-results" id="partNoResults" data-mode="source" hidden>No parts match that search or filter. Try All, clear the search, or turn off Saved.</div>
+  <div class="note" data-mode="source">Every toggled item counts toward your build total. The 360° car is a representative modified build; selected parts and exterior choices are the source of truth. Some images are illustrative—seller links show actual product photos and current SKUs.</div>
 
-  <div class="note"><b>Legal note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads (MV Act §52), and suspension or tyre-size changes may need RTO endorsement. Check current local rules before road use.</div>
+  <div class="note" data-mode="tools"><b>Road-use note:</b> In India, aftermarket bull bars / crash guards are restricted on public roads, and suspension or tyre-size changes may need RTO endorsement. Check current local rules before road use.</div>
 
   <!-- ============ SHOPS ============ -->
-  <h2 id="shops-title">Fitting shops in India</h2>
-  <div class="directory-tools"><input id="shopSearch" type="search" placeholder="Search city or shop" aria-label="Search fitters"><select id="shopType" aria-label="Filter fitter type"><option value="all">All listing types</option><option value="verified">Verified / specialist</option><option value="market">Accessory markets</option></select></div>
-  <div id="shops"></div>
-  <div class="no-results" id="shopNoResults" hidden>No fitter listing matches that search. Try a nearby city, choose all listing types, or use one of the accessory markets.</div>
-  <div class="note"><b>Directory note:</b> JimnyLab is an information resource only. Every listing is an independent business with no affiliation to this site. Always call ahead to confirm the address, Jimny-specific stock, fitting slots and warranty impact before paying or leaving your vehicle. Entries marked "Unverified" are community-known names we have not confirmed.</div>
+  <h2 id="shops-title" data-mode="source">Find a fitter in India</h2>
+  <div class="directory-tools" data-mode="source"><input id="shopSearch" type="search" placeholder="Search city or shop" aria-label="Search fitters"><select id="shopType" aria-label="Filter fitter type"><option value="all">All listing types</option><option value="verified">Verified / specialist</option><option value="market">Accessory markets</option></select></div>
+  <div id="shops" data-mode="source"></div>
+  <div class="no-results" id="shopNoResults" data-mode="source" hidden>No fitter listing matches that search. Try a nearby city, choose all listing types, or use one of the accessory markets.</div>
+  <div class="note" data-mode="source"><b>Directory note:</b> ThatSUVLab is an independent information resource only. Every listing is an independent business with no affiliation to this site. Always call ahead to confirm Jimny-specific stock, fitting slots and warranty impact before paying or leaving your vehicle. “Unverified” entries are community-known names we have not confirmed.</div>
 
   <!-- ============ OWNER GUIDES ============ -->
-  <h2 id="guides">Five-door owner guides</h2>
-  <section class="owner-card" id="guideList"></section>
+  <h2 id="guides" data-mode="tools">Owner guides</h2>
+  <section class="owner-card" id="guideList" data-mode="tools"></section>
 </main>
 </div>
 
   <footer>
-    <p>JimnyLab is an independent enthusiast information resource — not a seller, installer or agent for any listed business, and not responsible for their prices, policies or work. Prices are indicative estimates (July 2026); actual prices set by sellers. All trademarks belong to their owners. Suzuki Jimny is a trademark of Suzuki Motor Corporation.</p>
+    <p>ThatSUVLab is an independent enthusiast information resource—not a seller, installer or agent for any listed business, and not responsible for their prices, policies or work. Prices are indicative estimates (July 2026); actual prices are set by sellers. All trademarks belong to their owners. Suzuki Jimny is a trademark of Suzuki Motor Corporation.</p>
+    <div class="footer-links"><button type="button" data-footer-note="checking">How resources are checked</button><button type="button" data-footer-note="privacy">Privacy & saved builds</button></div>
+    <div class="footer-note" id="footerNote" hidden></div>
   </footer>
 </div>
 
@@ -694,7 +713,7 @@ const MOD_META = {
 };
 function metaFor(m){ return {weight:2,roof:0,watts:0,install:"easy",fit:[0,1500],requires:[],verified:"July 2026",...(MOD_META[m.id]||{})}; }
 function readJSON(key,fallback){ try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback} }
-const favorites = new Set(readJSON("jimnylab-favorites",[]));
+const favorites = new Set(readJSON("thatsuvlab-favorites",readJSON("jimnylab-favorites",[])));
 const compareIds = new Set();
 
 /* ---------------- render mods ---------------- */
@@ -846,7 +865,7 @@ PACKAGES.forEach(p=>{
     </div>
   </div>`);
 });
-pkgsEl.insertAdjacentHTML("afterend",'<div class="actionrow"><button class="action" id="showMorePackages" type="button">Show more packages</button></div>');
+pkgsEl.insertAdjacentHTML("afterend",'<div class="actionrow" data-mode="build"><button class="action" id="showMorePackages" type="button">Show more packages</button></div>');
 function markPackageState(){
   document.querySelectorAll(".pkg[data-pkg]").forEach(el=>{
     const pkg = PACKAGES.find(p=>p.id===el.dataset.pkg);
@@ -1029,7 +1048,7 @@ function sanitizeBuild(data){
   const tyre=source.tyre||{}, allowed={width:[195,215,225,235],ratio:[70,75,80],rim:[15,16],lift:[0,38,50]};
   return {v:1,vehicle:"india-5-door",name:String(source.name||"My Jimny 5-door").replace(/[<>]/g,"").slice(0,48),parts:Array.isArray(source.parts)?[...new Set(source.parts.filter(id=>validParts.has(id)))]:[],design:cleanDesign,tyre:{width:allowed.width.includes(+tyre.width)?+tyre.width:215,ratio:allowed.ratio.includes(+tyre.ratio)?+tyre.ratio:75,rim:allowed.rim.includes(+tyre.rim)?+tyre.rim:15,lift:allowed.lift.includes(+tyre.lift)?+tyre.lift:0}};
 }
-const savedBuild = sanitizeBuild((sharedParam && decodeBuild(sharedParam)) || readJSON("jimnylab-build",{}));
+const savedBuild = sanitizeBuild((sharedParam && decodeBuild(sharedParam)) || readJSON("thatsuvlab-build",readJSON("jimnylab-build",{})));
 const state = {};
 MODS.filter(m=>!m.designOnly).forEach(m=>state[m.id]=false);
 (savedBuild.parts||[]).forEach(id=>state[id]=true);
@@ -1042,12 +1061,13 @@ buildNameEl.value = savedBuild.name || "My Jimny 5-door";
 const drawerItems = document.getElementById("drawerItems");
 const costTable = document.getElementById("costTable");
 const nextSteps = document.getElementById("nextSteps");
+const sourceQuick = document.getElementById("sourceQuick");
 const safetyMetrics = document.getElementById("safetyMetrics");
 const safetyWarnings = document.getElementById("safetyWarnings");
 const buildDrawer = document.getElementById("buildDrawer");
 const drawerBackdrop = document.getElementById("drawerBackdrop");
 const toastEl = document.getElementById("toast");
-let toastTimer, toastAction=null, activePartFilter="all", favoritesOnly=false, activeGoal="", lastUndoPayload=null;
+let toastTimer, toastAction=null, activePartFilter="all", favoritesOnly=false, activeGoal="", lastUndoPayload=null, catalogExpanded=false;
 
 function selectedDesignOptions(){
   return DESIGN_GROUPS.map(g=>({group:g.id,...g.options.find(o=>o.id===designState[g.id])}));
@@ -1055,7 +1075,7 @@ function selectedDesignOptions(){
 function currentPayload(){
   return {v:1,vehicle:"india-5-door",name:buildNameEl.value.trim()||"My Jimny 5-door",parts:MODS.filter(m=>!m.designOnly&&state[m.id]).map(m=>m.id),design:{...designState},tyre:{width:+tyreWidth.value,ratio:+tyreRatio.value,rim:+tyreRim.value,lift:+liftHeight.value}};
 }
-function persist(){ try{localStorage.setItem("jimnylab-build",JSON.stringify(currentPayload()))}catch{} }
+function persist(){ try{localStorage.setItem("thatsuvlab-build",JSON.stringify(currentPayload()))}catch{} }
 function rememberUndo(){ lastUndoPayload=currentPayload();document.getElementById("undoChange").disabled=false; }
 function undoLastChange(){ if(!lastUndoPayload)return;loadPayload(lastUndoPayload);lastUndoPayload=null;document.getElementById("undoChange").disabled=true;showToast("Last change undone"); }
 function showToast(message,actionLabel,action){
@@ -1094,6 +1114,14 @@ function renderNextSteps(stats){
   const installCopy=proCount?`${proCount} selected item${proCount>1?"s need":" needs"} professional fitting. Ask about drilling, wiring, warranty and return policy before paying.`:"Current selected physical parts are mostly DIY-friendly. Still dry-fit before removing tape liners or drilling.";
   nextSteps.innerHTML=`<div class="next-card"><strong>Buy next</strong>${sellerLinks}</div><div class="next-card"><strong>Call before fitting</strong>${fitters||"<span>Search the directory below by city, then call ahead with this parts list.</span>"}<br>${installCopy}</div><div class="next-card"><strong>Install order</strong>Protection and electrics first, wheels and lift after measurement, roof loads last. Re-run the safety check after every stage.</div>`;
 }
+function renderSourceQuick(stats){
+  const selected=stats.designs.filter(o=>o.price[1]>0);
+  const links=selected.flatMap(o=>(o.sources||[]).slice(0,1).map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener">Source ${escHtml(o.label)}</a>`));
+  const copy=selected.length
+    ? `Your current look has ${selected.length} sourceable choice${selected.length===1?"":"s"}. Start with the finish, graphics or grille links below, then find a fitter for the final quote.`
+    : "Pick a finish, decal or grille and its best starting resources will appear here. You can source a look without adding any mechanical parts.";
+  sourceQuick.innerHTML=`<h3>Source this look</h3><p>${copy}</p><div class="source-links">${links.join("")}<button type="button" data-open-source>Find parts & fitters</button></div>`;
+}
 function renderSafety(stats){
   safetyMetrics.innerHTML=`<div class="metric"><b>${stats.weight} kg</b><span>estimated added weight</span></div><div class="metric"><b>${stats.roof} kg</b><span>roof-mounted equipment</span></div><div class="metric"><b>${stats.watts} W</b><span>estimated accessory draw</span></div><div class="metric"><b>${stats.items.length}</b><span>selected physical parts</span></div>`;
   const warnings=[];
@@ -1127,7 +1155,7 @@ function update(){
   }
   document.getElementById("buildFab").innerHTML=`<span>My build · ${selectionCount} item${selectionCount===1?"":"s"}</span><span class="fab-total">${selectionCount?`${fmt(lo)} – ${fmt(hi)}`:"₹0"}</span>`;
   markPackageState();
-  renderDrawer(stats);renderSafety(stats);persist();
+  renderDrawer(stats);renderSafety(stats);renderSourceQuick(stats);persist();
 }
 document.querySelectorAll('input[data-id]').forEach(cb=>{
   cb.checked=!!state[cb.dataset.id];
@@ -1176,17 +1204,22 @@ applyGoalLater.addEventListener("click",()=>{const plan=goalPlan();rememberUndo(
 function applyPartFilters(){
   const q=document.getElementById("partSearch").value.trim().toLowerCase();
   const terms=q.split(/\s+/).filter(Boolean);
-  let shown=0;
-  document.querySelectorAll(".mod").forEach(card=>{const id=card.dataset.modId,text=card.textContent.toLowerCase(),category=card.dataset.category,install=card.dataset.install,verified=card.dataset.verified==="true";const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===install||activePartFilter==="verified"&&verified;const searchOk=!terms.length||terms.every(term=>text.includes(term));const show=filterOk&&searchOk&&(!favoritesOnly||favorites.has(id));card.classList.toggle("hidden",!show);if(show)shown++});
+  const isBrowseAll=!terms.length&&activePartFilter==="all"&&!favoritesOnly;
+  let shown=0, eligible=0;
+  document.querySelectorAll(".mod").forEach(card=>{const id=card.dataset.modId,text=card.textContent.toLowerCase(),category=card.dataset.category,install=card.dataset.install,verified=card.dataset.verified==="true";const filterOk=activePartFilter==="all"||activePartFilter===category||activePartFilter===install||activePartFilter==="verified"&&verified;const searchOk=!terms.length||terms.every(term=>text.includes(term));const matches=filterOk&&searchOk&&(!favoritesOnly||favorites.has(id));if(matches)eligible++;const show=matches&&(!isBrowseAll||catalogExpanded||eligible<=8);card.classList.toggle("hidden",!show);if(show)shown++});
   document.getElementById("partNoResults").hidden = shown>0;
+  const more=document.getElementById("showAllParts");
+  more.hidden=!isBrowseAll||catalogExpanded||eligible<=8;
+  if(catalogExpanded) more.textContent="Full catalogue shown";
 }
 document.getElementById("partSearch").addEventListener("input",applyPartFilters);
 document.getElementById("partFilters").addEventListener("click",e=>{const b=e.target.closest("[data-filter]");if(!b)return;activePartFilter=b.dataset.filter;document.querySelectorAll(".filterchip").forEach(x=>x.classList.toggle("active",x===b));applyPartFilters()});
 document.getElementById("favoritesOnly").addEventListener("click",e=>{favoritesOnly=!favoritesOnly;e.currentTarget.classList.toggle("primary",favoritesOnly);e.currentTarget.textContent=favoritesOnly?"Saved only":"Saved";applyPartFilters()});
 document.querySelector(".starter-picks").addEventListener("click",e=>{const b=e.target.closest("[data-pick]");if(!b)return;document.getElementById("partSearch").value=b.dataset.pick;activePartFilter="all";document.querySelectorAll(".filterchip").forEach(x=>x.classList.toggle("active",x.dataset.filter==="all"));applyPartFilters();document.getElementById("mods").scrollIntoView({behavior:"smooth",block:"start"})});
+document.getElementById("showAllParts").addEventListener("click",()=>{catalogExpanded=true;applyPartFilters();showToast("Full parts catalogue shown")});
 function renderCompare(){const panel=document.getElementById("comparePanel"),grid=document.getElementById("compareGrid"),items=[...compareIds].map(id=>modById[id]).filter(Boolean);panel.classList.toggle("open",items.length>0);grid.innerHTML=items.map(m=>{const meta=metaFor(m);return `<div class="compare-item"><b>${m.name}</b>${fmt(m.price[0])} – ${fmt(m.price[1])}<br>${meta.install==="easy"?"DIY-friendly":"Professional fit"}<br>~${meta.weight} kg · fit ${fmt(meta.fit[0])} – ${fmt(meta.fit[1])}</div>`}).join("")}
 document.addEventListener("click",e=>{
-  const fav=e.target.closest("[data-favorite]");if(fav){const id=fav.dataset.favorite;favorites.has(id)?favorites.delete(id):favorites.add(id);try{localStorage.setItem("jimnylab-favorites",JSON.stringify([...favorites]))}catch{}fav.classList.toggle("active",favorites.has(id));fav.setAttribute("aria-pressed",String(favorites.has(id)));fav.textContent=favorites.has(id)?"Saved":"Save";applyPartFilters();return}
+  const fav=e.target.closest("[data-favorite]");if(fav){const id=fav.dataset.favorite;favorites.has(id)?favorites.delete(id):favorites.add(id);try{localStorage.setItem("thatsuvlab-favorites",JSON.stringify([...favorites]))}catch{}fav.classList.toggle("active",favorites.has(id));fav.setAttribute("aria-pressed",String(favorites.has(id)));fav.textContent=favorites.has(id)?"Saved":"Save";applyPartFilters();return}
   const cmp=e.target.closest("[data-compare]");if(cmp){const id=cmp.dataset.compare;if(compareIds.has(id))compareIds.delete(id);else if(compareIds.size<2)compareIds.add(id);else{showToast("Compare up to two parts at a time");return}cmp.classList.toggle("active",compareIds.has(id));cmp.setAttribute("aria-pressed",String(compareIds.has(id)));cmp.textContent=compareIds.has(id)?"Comparing":"Compare";renderCompare()}
 });
 
@@ -1203,12 +1236,30 @@ const GUIDES=[
 ];
 document.getElementById("guideList").innerHTML=GUIDES.map(([t,p])=>`<details class="guide"><summary>${t}</summary><p>${p}</p></details>`).join("");
 
+/* ---------------- workbench navigation and trust notes ---------------- */
+const MODE_TARGETS={explore:"explore",build:"goalWizard",source:"parts-title",tools:"owner-tools"};
+function setWorkbenchMode(mode,{scroll=false}={}){
+  const next=MODE_TARGETS[mode]||"explore";
+  document.body.classList.add("desktop-mode");
+  document.querySelectorAll("[data-mode]").forEach(el=>el.classList.toggle("mode-active",el.dataset.mode===mode));
+  document.querySelectorAll("[data-mode-select]").forEach(button=>button.classList.toggle("active",button.dataset.modeSelect===mode));
+  if(scroll&&window.matchMedia("(min-width: 900px)").matches) document.getElementById(next)?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.querySelector(".workbench-nav").addEventListener("click",e=>{const button=e.target.closest("[data-mode-select]");if(!button)return;setWorkbenchMode(button.dataset.modeSelect,{scroll:true})});
+document.querySelector(".quicknav").addEventListener("click",e=>{const link=e.target.closest("a[href]");if(!link)return;const hash=link.getAttribute("href"),mode=hash==="#explore"?"explore":hash==="#goalWizard"?"build":hash==="#parts-title"?"source":hash==="#owner-tools"||hash==="#guides"?"tools":null;if(mode)setWorkbenchMode(mode)});
+document.addEventListener("click",e=>{if(e.target.closest("[data-open-source]")){setWorkbenchMode("source",{scroll:true});document.getElementById("partSearch").focus()}});
+const footerNotes={
+  checking:"Resource standard: a “Direct India product” links to a product page available in India; marketplace searches and fitter listings are clearly labelled. Prices are indicative and need confirmation before payment. We recommend checking fitment, stock, drilling, wiring and warranty with the seller or fitter.",
+  privacy:"Your working build, saved versions and favourites are stored in this browser using local storage. They are not sent to ThatSUVLab. A share link contains only the build choices in its URL; do not share it if the build name contains personal information."
+};
+document.querySelector(".footer-links").addEventListener("click",e=>{const button=e.target.closest("[data-footer-note]");if(!button)return;const note=document.getElementById("footerNote"),text=footerNotes[button.dataset.footerNote];note.hidden=!text||note.textContent===text;note.textContent=note.hidden?"":text});
+
 /* build actions */
 async function copyText(text){try{await navigator.clipboard.writeText(text);return true}catch{const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();return ok}}
 document.getElementById("buildFab").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("click",openDrawer);document.getElementById("openBuildSummary").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDrawer()}});document.getElementById("closeDrawer").addEventListener("click",closeDrawer);drawerBackdrop.addEventListener("click",closeDrawer);document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();else if(e.key==="Tab"&&buildDrawer.classList.contains("open"))trapFocus(e,buildDrawer)});
 buildNameEl.addEventListener("input",persist);
 document.getElementById("shareBuild").addEventListener("click",async()=>{const url=new URL(location.href);url.search="";url.hash="";url.searchParams.set("build",encodeBuild(currentPayload()));await copyText(url.href);showToast("Share link copied")});
-let buildSnapshots=readJSON("jimnylab-snapshots",[]);if(!Array.isArray(buildSnapshots))buildSnapshots=[];
+let buildSnapshots=readJSON("thatsuvlab-snapshots",readJSON("jimnylab-snapshots",[]));if(!Array.isArray(buildSnapshots))buildSnapshots=[];
 const savedBuildsEl=document.getElementById("savedBuilds");
 function renderSnapshots(){savedBuildsEl.innerHTML=buildSnapshots.length?`<option value="">Choose a saved build</option>${buildSnapshots.map(x=>`<option value="${escHtml(x.id)}">${escHtml(sanitizeBuild(x.data).name)}</option>`).join("")}`:`<option value="">No saved snapshots</option>`}
 function loadPayload(data){
@@ -1217,7 +1268,7 @@ function loadPayload(data){
   document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=!!state[cb.dataset.id]);DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));
   if(data.tyre){tyreWidth.value=data.tyre.width;tyreRatio.value=data.tyre.ratio;tyreRim.value=data.tyre.rim;liftHeight.value=data.tyre.lift}updateTyreCalc();update();
 }
-document.getElementById("saveSnapshot").addEventListener("click",()=>{const data=currentPayload();buildSnapshots.unshift({id:String(Date.now()),data});buildSnapshots=buildSnapshots.slice(0,12);try{localStorage.setItem("jimnylab-snapshots",JSON.stringify(buildSnapshots))}catch{}renderSnapshots();savedBuildsEl.value=buildSnapshots[0].id;showToast("Build snapshot saved")});
+document.getElementById("saveSnapshot").addEventListener("click",()=>{const data=currentPayload();buildSnapshots.unshift({id:String(Date.now()),data});buildSnapshots=buildSnapshots.slice(0,12);try{localStorage.setItem("thatsuvlab-snapshots",JSON.stringify(buildSnapshots))}catch{}renderSnapshots();savedBuildsEl.value=buildSnapshots[0].id;showToast("Build snapshot saved")});
 document.getElementById("loadSnapshot").addEventListener("click",()=>{const found=buildSnapshots.find(x=>x.id===savedBuildsEl.value);if(!found){showToast("Choose a saved build first");return}loadPayload(found.data);showToast("Saved build loaded")});
 document.getElementById("undoChange").addEventListener("click",undoLastChange);
 document.getElementById("copyBuild").addEventListener("click",async()=>{const s=getBuildStats(),lines=[buildNameEl.value,"Maruti Suzuki Jimny 5-door (India)",...s.designs.map(o=>`${o.group}: ${o.name}`),...s.items.map(m=>m.name),`Estimated parts: ${fmt(s.partsLo)} – ${fmt(s.partsHi)}`,`Estimated fitment: ${fmt(s.fitLo)} – ${fmt(s.fitHi)}`];await copyText(lines.join("\n"));showToast("Parts list copied")});
@@ -1225,7 +1276,7 @@ document.getElementById("downloadBuild").addEventListener("click",()=>{const can
 document.getElementById("printBuild").addEventListener("click",()=>window.print());
 document.getElementById("clearBuild").addEventListener("click",()=>{if(!confirm("Clear all selected parts and design changes?"))return;rememberUndo();Object.keys(state).forEach(k=>state[k]=false);document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=false);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem"});DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));update();showToast("Build cleared","Undo",undoLastChange)});
 
-renderSnapshots();updateTyreCalc();update();
+renderSnapshots();applyPartFilters();setWorkbenchMode(location.hash==="#goalWizard"?"build":location.hash==="#parts-title"?"source":location.hash==="#owner-tools"||location.hash==="#guides"?"tools":"explore");updateTyreCalc();update();
 
 </script>
 </body>
