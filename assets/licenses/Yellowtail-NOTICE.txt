@@ -1,0 +1,7 @@
+Yellowtail Regular
+Copyright (c) 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI).
+Used under the Apache License, Version 2.0.
+Source: https://github.com/google/fonts/tree/main/apache/yellowtail
+
+Converted into mesh outlines for the approximate cursive grille badge.
+The complete Apache licence accompanies this notice as Yellowtail-Apache-2.0.txt.

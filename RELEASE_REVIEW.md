@@ -137,3 +137,13 @@ Rebuilt the original model's body shell, glazing, wheel wells, wheels, lamps, gr
 Mobile has scroll-first compact previews, expanded touch rotation/pinch zoom, portrait-safe framing, 44px camera/paint/mode controls and keyboard-safe expanded view. Fixed broken inch-size labels, saved-city fitter restoration and grille/export summary mismatch. Verified all 40 part connections, 30 mode/width combinations without overflow, touch scroll and rotation, sourcing, nine Delhi NCR results, budget stage/undo, save/load, share and image download. Final browser run had no warnings/errors. Full local evidence: `.gstack/qa-reports/qa-report-jimny-mobile-2026-10-20.md`.
 
 No new third-party vehicle assets were imported. Physical-device Safari/Android performance and seller image permissions remain unverified. Prior pricing/source caveats above still apply.
+
+## October 20, 2026: original Blender asset
+
+Replaced the main procedural shell with an original Blender-authored mesh, using only free tools and reusable references. The native `modeling/jimny-lwb.blend` and reproducible `modeling/build_jimny.py` are included. A 2,387,508-byte meshopt-compressed GLB supplies separate shell, roof, cabin, stock/AT wheels, stock bumper, spare and eight selectable grille assemblies. Reference photographs are not embedded as textures. Model download URLs are content-fingerprinted.
+
+The CC0 Poly Haven studio HDR is served locally for reflections. Font and decoder licences are included. `modeling/ASSET_SOURCES.md` records sources, licences, download limitations and free-model search findings. No paid vehicle asset, subscription or generation API was used.
+
+Verified: the native project reopens in Blender; five asset regression tests pass; all 40 catalogue items retain their scene connection; all eight grille choices show exactly one corresponding assembly; six finishes produce distinct rendered images; stock/AT wheels and bumper switches work; touch orbit/pinch and scroll-first phone previews work; 25 mode/width combinations show no horizontal overflow; internal sourcing, nine Delhi NCR listings, saved-version restoration and complete-vehicle image export work. An intentionally blocked model download correctly shows a labelled simplified fallback while build controls remain usable. Normal browser runs have no warnings/errors.
+
+This is an original approximation of the five-door Jimny, not manufacturer CAD or exact seller-specific accessory geometry. Real iOS/Android hardware performance and external seller data/rights remain outside this verification. Local evidence and test notes: `.gstack/qa-reports/blender-jimny-2026-10-20.md`.

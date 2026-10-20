@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 // Original, dimensionally approximate Jimny planning geometry. No third-party vehicle asset.
 const mount=document.getElementById('viewer3d');
@@ -15,7 +18,7 @@ if(renderer){
   const scene=new THREE.Scene();scene.background=new THREE.Color('#efefed');
   const camera=new THREE.PerspectiveCamera(35,1,.1,60);camera.position.set(4.1,2.65,4.9);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
-  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.VSMShadowMap;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
   renderer.domElement.setAttribute('aria-label',canvasLabel);renderer.domElement.setAttribute('role','img');renderer.domElement.tabIndex=0;
   mount.appendChild(renderer.domElement);
@@ -23,7 +26,7 @@ if(renderer){
   const envMap=pmrem.fromScene(env,.04);scene.environment=envMap.texture;scene.environmentIntensity=.7;env.dispose();pmrem.dispose();
   const hemi=new THREE.HemisphereLight('#fffcf3','#73836c',1.35);scene.add(hemi);
   const sun=new THREE.DirectionalLight('#fff9e8',2.2);sun.position.set(3,7,5);sun.castShadow=true;
-  sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:20});sun.shadow.bias=-.0008;sun.shadow.normalBias=.025;scene.add(sun);
+  sun.shadow.mapSize.set(1024,1024);sun.shadow.radius=3;sun.shadow.blurSamples=4;Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:20});sun.shadow.bias=-.0008;sun.shadow.normalBias=.025;scene.add(sun);
   const rimLight=new THREE.DirectionalLight('#f0f6ff',2);rimLight.position.set(-5,3,-4);scene.add(rimLight);
   const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.9,0);controls.enableDamping=true;controls.dampingFactor=.09;controls.enablePan=false;controls.minDistance=3.3;controls.maxDistance=11;controls.maxPolarAngle=Math.PI*.49;controls.minPolarAngle=.15;
   function updateInputMode(){
@@ -43,6 +46,8 @@ if(renderer){
   const roofMaterial=finishMaterial.clone();
   const mats={paint:finishMaterial,roof:roofMaterial,trim:new THREE.MeshStandardMaterial({color:'#232a2a',roughness:.7}),rubber:new THREE.MeshStandardMaterial({color:'#1b2020',roughness:.98}),glass:new THREE.MeshStandardMaterial({color:'#213c45',roughness:.12,metalness:.55,transparent:true,opacity:.91}),metal:new THREE.MeshStandardMaterial({color:'#adb4b0',metalness:.8,roughness:.3}),darkmetal:new THREE.MeshStandardMaterial({color:'#39403b',metalness:.6,roughness:.5}),white:new THREE.MeshStandardMaterial({color:'#fff7de',emissive:'#fff3c4',emissiveIntensity:.25,roughness:.2}),red:new THREE.MeshStandardMaterial({color:'#b72d27',emissive:'#951d19',emissiveIntensity:.2}),orange:new THREE.MeshStandardMaterial({color:'#d88132',roughness:.5}),seat:new THREE.MeshStandardMaterial({color:'#343a36',roughness:.94}),accent:new THREE.MeshStandardMaterial({color:'#cb593a',roughness:.7}),canvas:new THREE.MeshStandardMaterial({color:'#a39a79',roughness:1})};
   const baseRig=new THREE.Group();bodyRig.add(baseRig);
+  const detailRig=new THREE.Group();bodyRig.add(detailRig);
+  let detailed=null,assetError=false,studioEnvironmentReady=false;
   // Small, original surface maps, shared across rebuilds. No downloaded vehicle textures.
   function surfaceMap(kind){
     const canvas=document.createElement('canvas');canvas.width=canvas.height=256;const ctx=canvas.getContext('2d');ctx.fillStyle='#888';ctx.fillRect(0,0,256,256);
@@ -89,6 +94,7 @@ if(renderer){
     for(const direction of [-1,1])box(parent,wide?.15:.09,.18,.055,side*(wide?.84:.80),.42,z+direction*.404,mats.trim);
   }
   function buildBase(){
+    if(detailed)return;
     // Metre-scale body, 2.590m wheelbase. Side shells are actually cut around each tyre.
     const lower=[[-1.78,.54],[-1.78,1.13],[.69,1.15],[1.79,1.10],[1.84,.88],[1.84,.52],[1.69,.52]];
     for(let i=0;i<=30;i++){const a=i*Math.PI/30;lower.push([1.295+Math.cos(a)*.392,.335+Math.sin(a)*.392]);}
@@ -179,7 +185,7 @@ if(renderer){
     cylinder(parent,.056,.056,.027,outer,y,z,alloy?mats.darkmetal:mats.metal,'x',32);
     cylinder(parent,.025,.025,.031,outer,y,z,mats.trim,'x',24);
   }
-  function buildWheels(parts){clear(wheels);const r=parts.has('tires')?.368:.335;const wide=parts.has('tires')?.765:.715;for(const x of [-wide,wide])for(const z of [-1.295,1.295])makeWheel(wheels,x,r,z,r,parts.has('tires'));return r;}
+  function buildWheels(parts){clear(wheels);const r=parts.has('tires')?.368:.335;if(detailed){detailed.stockWheels.visible=!parts.has('tires');detailed.atWheels.visible=parts.has('tires');return r;}const wide=parts.has('tires')?.765:.715;for(const x of [-wide,wide])for(const z of [-1.295,1.295])makeWheel(wheels,x,r,z,r,parts.has('tires'));return r;}
   function roofRack(parent,basket=false){
     const group=new THREE.Group();parent.add(group);
     const front=.61,rear=-1.62;
@@ -197,6 +203,7 @@ if(renderer){
     for(const points of polygons){const shape=new THREE.Shape(points.map(([a,b])=>new THREE.Vector2(a*size,b*size)));mesh(new THREE.ExtrudeGeometry(shape,{depth:.008,bevelEnabled:true,bevelSegments:1,steps:1,bevelSize:.001,bevelThickness:.001}),mats.chrome,parent,x,y,z);}
   }
   function buildGrille(parent,id){
+    if(detailed){Object.entries(detailed.grilles).forEach(([key,group])=>group.visible=key===id);return;}
     box(parent,1.49,.286,.038,0,.977,1.855,mats.trim);
     if(id==='mesh'||id==='delete'||id==='rhino'){
       for(let y=.866;y<1.09;y+=.028)box(parent,.88,.009,.012,0,y,1.882,mats.darkmetal);
@@ -212,16 +219,17 @@ if(renderer){
   }
   function addDecals(parent,id){
     if(id==='none')return;
+    const sideX=detailed?.756:.773;
     [-1,1].forEach(side=>{
       if(id==='heritage'||id==='safari'){
         const colours=id==='heritage'?['#b24d25','#d58d43','#e6c58f']:['#d7c18f','#655e47','#3d4836'];
-        colours.forEach((color,i)=>{const material=new THREE.MeshStandardMaterial({color,roughness:.7});const obj=box(parent,.006,.045,2.70,side*.773,.87+i*.052,-.36,material);obj.userData.disposableMaterial=true;});
+        colours.forEach((color,i)=>{const material=new THREE.MeshStandardMaterial({color,roughness:.7});const obj=box(parent,.006,.045,2.70,side*sideX,.87+i*.052,-.36,material);obj.userData.disposableMaterial=true;});
       }else if(id==='geo'||id==='mountain'){
         const shape=new THREE.Shape();shape.moveTo(-1.45,0);shape.lineTo(-.85,.20);shape.lineTo(-.45,.06);shape.lineTo(.05,.24);shape.lineTo(.65,0);shape.closePath();
-        const obj=mesh(new THREE.ShapeGeometry(shape),mats.darkmetal,parent,side*.774,.67,-.25);obj.rotation.y=side*Math.PI/2;
-        for(let z=-1.4;z<.4;z+=.19){const stripe=box(parent,.007,.05,.11,side*.776,.77,z,mats.trim);stripe.rotation.x=-.45;}
+        const obj=mesh(new THREE.ShapeGeometry(shape),mats.darkmetal,parent,side*(sideX+.001),.67,-.25);obj.rotation.y=side*Math.PI/2;
+        for(let z=-1.4;z<.4;z+=.19){const stripe=box(parent,.007,.05,.11,side*(sideX+.003),.77,z,mats.trim);stripe.rotation.x=-.45;}
       }else if(id==='topo'){
-        for(let i=0;i<6;i++){const points=[];for(let z=-1.52;z<.8;z+=.13)points.push([side*.775,.72+i*.035+Math.sin(z*4+i)*.017,z]);tube(parent,points,.003,mats.darkmetal);}
+        for(let i=0;i<6;i++){const points=[];for(let z=-1.52;z<.8;z+=.13)points.push([side*(sideX+.002),.72+i*.035+Math.sin(z*4+i)*.017,z]);tube(parent,points,.003,mats.darkmetal);}
       }
     });
   }
@@ -229,7 +237,7 @@ if(renderer){
     clear(accessoryRig);visiblePartIds=[];
     const show=(ids,fn)=>{const found=ids.filter(id=>parts.has(id));if(found.length){fn();visiblePartIds.push(...found);}};
     buildGrille(accessoryRig,design.grille||'oem');addDecals(accessoryRig,design.decal||'none');
-    if(design.finish==='raptor')[-1,1].forEach(side=>box(accessoryRig,.018,.16,1.77,side*.777,.65,-.08,mats.textured));
+    if(design.finish==='raptor')[-1,1].forEach(side=>box(accessoryRig,.018,.16,1.77,side*(detailed?.751:.777),.65,-.08,mats.textured));
     const hasRack=['rack','msga_roofbasket','prad_roofrack'].some(id=>parts.has(id));
     show(['rack','msga_roofbasket','prad_roofrack'],()=>roofRack(accessoryRig,parts.has('msga_roofbasket')));
     show(['snorkel','bimbra_snorkel'],()=>{tube(accessoryRig,[[-.79,1.04,1.24],[-.84,1.08,.82],[-.84,1.25,.66],[-.79,1.67,.59]],.041,mats.trim);const head=box(accessoryRig,.13,.095,.16,-.79,1.705,.62,mats.trim);head.rotation.x=.15;for(let x=-.832;x<-.74;x+=.025)box(accessoryRig,.008,.058,.008,x,1.71,.706,mats.darkmetal);box(accessoryRig,.018,.045,.07,-.78,1.5,.61,mats.darkmetal);});
@@ -253,18 +261,18 @@ if(renderer){
     show(['bonnetguard'],()=>box(accessoryRig,1.40,.035,.16,0,1.16,1.76,mats.trim));
     show(['spoiler'],()=>box(accessoryRig,1.58,.065,.26,0,1.75,-1.68,mats.trim));
     show(['visors'],()=>[-1,1].forEach(side=>[.135,-.70].forEach(z=>box(accessoryRig,.06,.035,.73,side*.736,1.61,z,mats.trim))));
-    show(['hingecovers'],()=>[-1,1].forEach(side=>[.63,-.32].forEach(z=>[.72,1.04].forEach(y=>box(accessoryRig,.035,.065,.10,side*.807,y,z,mats.metal)))));
-    show(['cladding'],()=>[-1,1].forEach(side=>box(accessoryRig,.035,.15,1.77,side*.787,.65,-.08,mats.textured)));
+    show(['hingecovers'],()=>[-1,1].forEach(side=>[.63,-.32].forEach(z=>[.72,1.04].forEach(y=>box(accessoryRig,.035,.065,.10,side*(detailed?.780:.807),y,z,mats.metal)))));
+    show(['cladding'],()=>[-1,1].forEach(side=>box(accessoryRig,.035,.15,1.77,side*(detailed?.759:.787),.65,-.08,mats.textured)));
     show(['skid'],()=>box(accessoryRig,1.22,.045,1.22,0,.38,.85,mats.metal));
-    show(['headlamps'],()=>[-.6,.6].forEach(x=>{const ring=mesh(new THREE.TorusGeometry(.115,.014,6,28),mats.white,accessoryRig,x,.95,1.915);ring.rotation.z=.3;}));
+    show(['headlamps'],()=>(detailed?[-.574,.574]:[-.6,.6]).forEach(x=>{const ring=mesh(new THREE.TorusGeometry(.115,.014,6,28),mats.white,accessoryRig,x,detailed?.977:.95,1.915);ring.rotation.z=.3;}));
     show(['dashcam'],()=>box(accessoryRig,.10,.055,.055,-.25,1.55,.62,mats.trim));
     show(['headunit'],()=>box(accessoryRig,.25,.15,.015,0,1.18,.355,mats.glass));
     show(['molle'],()=>[-1,1].forEach(side=>{box(accessoryRig,.012,.30,.42,side*.710,1.40,-1.37,mats.trim);for(let z=-1.52;z<-1.20;z+=.08)for(let y=1.30;y<1.53;y+=.08)box(accessoryRig,.015,.025,.045,side*.722,y,z,mats.metal);}));
-    show(['drawer'],()=>box(accessoryRig,1.2,.22,.58,0,.98,-1.34,mats.darkmetal));
+    show(['drawer'],()=>box(accessoryRig,1.2,.22,.58,0,detailed?.80:.98,-1.34,mats.darkmetal));
     show(['shelf'],()=>box(accessoryRig,1.3,.035,.58,0,1.18,-1.30,mats.trim));
-    show(['armrest'],()=>box(accessoryRig,.20,.14,.35,0,.98,.20,mats.seat));
-    show(['mats'],()=>[-.36,.36].forEach(x=>box(accessoryRig,.36,.018,.48,x,.71,.42,mats.trim)));
-    show(['seats'],()=>[-.38,.38].forEach(x=>box(accessoryRig,.42,.35,.025,x,1.10,.015,mats.canvas)));
+    show(['armrest'],()=>{box(accessoryRig,.20,.14,.35,0,.98,.20,mats.seat);if(detailed)box(accessoryRig,.13,.12,.22,0,.88,.20,mats.trim);});
+    show(['mats'],()=>[-.36,.36].forEach(x=>box(accessoryRig,.36,.018,.48,x,detailed?.685:.71,.42,mats.trim)));
+    show(['seats'],()=>[-.38,.38].forEach(x=>box(accessoryRig,.42,.35,.025,x,detailed?1.04:1.10,detailed?-.07:.015,mats.canvas)));
     show(['steering'],()=>{const ring=mesh(new THREE.TorusGeometry(.13,.021,8,32),mats.canvas,accessoryRig,.38,1.16,.29);ring.rotation.x=-.32;box(accessoryRig,.07,.035,.015,.38,1.16,.285,mats.darkmetal);});
     show(['ambient'],()=>{box(accessoryRig,1.22,.013,.013,0,1.13,.355,mats.white);});
     visiblePartIds.push(...['tires','lift','autostylenn_big_suzuki_grille','autostylenn_cursive_grille','autostylenn_s_grille'].filter(id=>parts.has(id)));
@@ -272,22 +280,23 @@ if(renderer){
   function sync(payload=current){
     current={...current,...payload};if(payload.colour)colour=payload.colour;
     const parts=new Set(stock?[]:current.parts||[]);const design=stock?{finish:'oem',decal:'none',grille:'oem'}:current.design||{};
+    if(detailed){detailed.bumper.visible=!['bull','autostylenn_bumper_v1'].some(id=>parts.has(id));Object.values(detailed.grilles).forEach(group=>group.traverse(obj=>{if(obj.userData.brightGrilleMaterial)obj.material=design.finish==='blackout'?mats.trim:obj.userData.brightGrilleMaterial;}));}
     // SKU grille products and the design selection control the same physical grille.
     if(!stock){if(parts.has('autostylenn_big_suzuki_grille'))design.grille='block';else if(parts.has('autostylenn_cursive_grille'))design.grille='script';else if(parts.has('autostylenn_s_grille'))design.grille='oem';}
     effectiveDesign={...design};
     finishMaterial.color.set(colour);finishMaterial.roughness=design.finish==='matte'?.87:design.finish==='satin'?.48:.24;finishMaterial.metalness=.32;
     finishMaterial.clearcoat=design.finish==='matte'?0:design.finish==='satin'?.35:1;finishMaterial.clearcoatRoughness=design.finish==='satin'?.4:.13;finishMaterial.bumpScale=.00035;
     roofMaterial.copy(finishMaterial);if(design.finish==='twotone')roofMaterial.color.set('#242c29');
-    [finishMaterial,roofMaterial].forEach(mat=>{mat.transparent=cameraView==='cabin';mat.opacity=cameraView==='cabin'?.16:1;mat.depthWrite=cameraView!=='cabin';});mats.glass.opacity=cameraView==='cabin'?.15:.77;
+    [finishMaterial,roofMaterial].forEach(mat=>{mat.transparent=cameraView==='cabin';mat.opacity=cameraView==='cabin'?.16:1;mat.depthWrite=cameraView!=='cabin';});mats.glass.opacity=cameraView==='cabin'?.12:detailed?.45:.77;
     clear(baseRig);buildBase();const r=buildWheels(parts);bodyRig.position.y=(parts.has('lift')?.055:0)+(r-.335);
     buildAccessories(parts,design);dirty=true;
     const visibleCount=visiblePartIds.length;
-    status.textContent=stock?'Stock preview':visibleCount?`${visibleCount} selected part${visibleCount===1?'':'s'} in 3D`:mount.dataset.touchMode==='scroll'?'Live 3D · expand to rotate':'Live 3D · drag to rotate';
+    status.textContent=assetError?'Simplified preview · detailed model unavailable':!detailed?'Loading detailed Jimny…':stock?'Stock preview':visibleCount?`${visibleCount} selected part${visibleCount===1?'':'s'} in 3D`:mount.dataset.touchMode==='scroll'?'Live 3D · expand to rotate':'Live 3D · drag to rotate';
     renderer.domElement.setAttribute('aria-label',canvasLabel+` ${visibleCount} visible modifications.`);
     mount.dataset.parts=visiblePartIds.join(',');mount.dataset.finish=design.finish||'oem';mount.dataset.grille=design.grille||'oem';mount.dataset.decal=design.decal||'none';
     updateInputMode();
   }
-  function setNight(value){night=value;scene.background.set(night?'#202b2e':'#efefed');floor.material.color.set(night?'#141d20':'#3d483f');hemi.intensity=night?.4:1.35;sun.intensity=night?.35:2.2;rimLight.intensity=night?1.2:2;mats.white.emissiveIntensity=night?4:.25;beams.forEach(light=>light.intensity=night?12:0);dirty=true;}
+  function setNight(value){night=value;scene.background.set(night?'#202b2e':'#efefed');floor.material.color.set(night?'#141d20':'#3d483f');hemi.intensity=night?.17:studioEnvironmentReady?.5:1.35;sun.intensity=night?.12:studioEnvironmentReady?1.6:2.2;rimLight.intensity=night?.5:studioEnvironmentReady?.8:2;scene.environmentIntensity=night?.3:studioEnvironmentReady?.9:.7;mats.white.emissiveIntensity=night?4:.25;beams.forEach(light=>light.intensity=night?12:0);dirty=true;}
   function view(name){cameraView=name;const poses={front:[0,1.6,6.7],side:[6.6,1.8,0],rear:[-4,2.4,-5.5],orbit:[4.1,2.65,4.9],cabin:[3.9,3.4,3.3]};camera.position.set(...(poses[name]||poses.orbit));controls.target.set(0,.9,0);controls.update();sync();if(name==='cabin')status.textContent='Cabin cutaway · approximate interior';document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b.dataset.camera===name));dirty=true;}
   function fitViewport(aspect){camera.aspect=aspect;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(35/2))*Math.max(1,1.25/aspect)));camera.updateProjectionMatrix();}
   const observer=new ResizeObserver(()=>{const {width,height}=mount.getBoundingClientRect();if(!width||!height)return;renderer.setSize(width,height,false);fitViewport(width/height);dirty=true;});observer.observe(mount);
@@ -301,13 +310,41 @@ if(renderer){
   window.addEventListener('jimny-preview-colour',event=>sync({colour:event.detail}));
   document.querySelectorAll('[data-camera]').forEach(button=>button.addEventListener('click',()=>{view(button.dataset.camera);document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b===button));}));
   function snapshot(){
-    const size=renderer.getSize(new THREE.Vector2()),ratio=renderer.getPixelRatio(),aspect=camera.aspect;
-    renderer.setPixelRatio(1);renderer.setSize(1600,1200,false);fitViewport(4/3);renderer.render(scene,camera);
+    const size=renderer.getSize(new THREE.Vector2()),ratio=renderer.getPixelRatio(),aspect=camera.aspect,position=camera.position.clone(),quaternion=camera.quaternion.clone();
+    renderer.setPixelRatio(1);renderer.setSize(1600,1200,false);fitViewport(4/3);
+    // A close inspection zoom should not crop wheels/racks from the saved build sheet.
+    const bounds=new THREE.Box3();car.updateMatrixWorld(true);car.traverse(obj=>{if(!obj.isMesh)return;for(let parent=obj;parent&&parent!==car;parent=parent.parent)if(!parent.visible)return;obj.geometry.computeBoundingBox();bounds.union(obj.geometry.boundingBox.clone().applyMatrix4(obj.matrixWorld));});
+    const center=bounds.getCenter(new THREE.Vector3()),direction=position.clone().sub(controls.target).normalize(),right=new THREE.Vector3().crossVectors(camera.up,direction).normalize(),up=new THREE.Vector3().crossVectors(direction,right),tanY=Math.tan(THREE.MathUtils.degToRad(camera.fov/2)),tanX=tanY*camera.aspect;
+    let distance=0;for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){const offset=new THREE.Vector3(x,y,z).sub(center),depth=offset.dot(direction);distance=Math.max(distance,Math.abs(offset.dot(right))/tanX+depth,Math.abs(offset.dot(up))/tanY+depth);}
+    camera.position.copy(center).addScaledVector(direction,distance*1.12);camera.lookAt(center);renderer.render(scene,camera);
     const data=renderer.domElement.toDataURL('image/png');
-    renderer.setPixelRatio(ratio);renderer.setSize(size.x,size.y,false);fitViewport(aspect);renderer.render(scene,camera);return data;
+    renderer.setPixelRatio(ratio);renderer.setSize(size.x,size.y,false);camera.position.copy(position);camera.quaternion.copy(quaternion);fitViewport(aspect);renderer.render(scene,camera);return data;
   }
-  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:'2026.10.20',parts:[...visiblePartIds],colour,stock,night,view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
+  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-1':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
   sync(window.getJimnyBuildState?.()||current);
   mount.classList.add('ready');
+  const modelURL=typeof __JIMNY_MODEL_URL__==='string'?__JIMNY_MODEL_URL__:'assets/models/jimny-lwb-blender.glb';
+  new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(modelURL).then(gltf=>{
+    const names=['BodyShell','RoofShell','OEMGrille','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille','StockBumper','StockWheels','AllTerrainWheels','Cabin','SpareWheel'];
+    const objects=Object.fromEntries(names.map(name=>[name,gltf.scene.getObjectByName(name)]));
+    if(names.some(name=>!objects[name]))throw new Error('Incomplete Jimny model');
+    gltf.scene.traverse(obj=>{if(!obj.isMesh)return;obj.castShadow=true;obj.receiveShadow=true;
+      const material=obj.material;
+      if(material.name==='BodyPaint')obj.material=finishMaterial;
+      else if(material.name==='RoofPaint')obj.material=roofMaterial;
+      else if(material.name==='WindowGlass'){obj.material=mats.glass;obj.castShadow=false;}
+      else if(material.name==='TyreRubber')obj.material=mats.rubber;
+      else if(material.name==='LampEmitter')obj.material=mats.white;
+      else if(material.transparent){material.depthWrite=false;obj.castShadow=false;}
+    });
+    for(const name of names)(['StockWheels','AllTerrainWheels'].includes(name)?car:detailRig).add(objects[name]);
+    detailed={grilles:{oem:objects.OEMGrille,block:objects.BlockGrille,rhino:objects.RhinoGrille,script:objects.ScriptGrille,chrome:objects.GlossGrille,delete:objects.DeleteGrille,classic:objects.ClassicGrille,mesh:objects.MeshGrille},bumper:objects.StockBumper,stockWheels:objects.StockWheels,atWheels:objects.AllTerrainWheels};
+    Object.values(detailed.grilles).forEach(group=>group.traverse(obj=>{if(obj.isMesh&&['BrightChrome','GrilleLettering'].includes(obj.material.name))obj.userData.brightGrilleMaterial=obj.material;}));
+    mats.glass.color.set('#7d9198');mats.glass.metalness=.10;mats.glass.roughness=.085;mats.glass.depthWrite=false;
+    mount.dataset.model='blender';sync();
+  }).catch(()=>{assetError=true;mount.dataset.model='fallback';sync();});
+  new HDRLoader().loadAsync('assets/environments/studio-small-09-1k.hdr').then(texture=>{
+    const generator=new THREE.PMREMGenerator(renderer),studio=generator.fromEquirectangular(texture);scene.environment=studio.texture;texture.dispose();generator.dispose();envMap.dispose();studioEnvironmentReady=true;setNight(night);
+  }).catch(()=>{/* The locally generated room environment remains a complete offline fallback. */});
   renderer.setAnimationLoop(()=>{if(!visible||document.hidden)return;controls.update();if(dirty){renderer.render(scene,camera);dirty=false;}});
 }

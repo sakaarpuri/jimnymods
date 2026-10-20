@@ -6,3 +6,5 @@
 .netlify
 node_modules/
 dist/
+modeling/*.blend1
+modeling/*-preview.png

@@ -4,7 +4,7 @@ Ideas and resources for modifying your Jimny, with a live 3D build studio, look 
 
 ## What works
 
-- Original procedural Three.js vehicle geometry. Parts, paint, finishes, graphics and grilles change the scene in real time.
+- Original Blender-authored Jimny vehicle asset, exported as a compressed glTF model. Parts, paint, finishes, graphics and eight separate grilles change the scene in real time. A simpler procedural model remains available if the detailed asset fails to load.
 - Detailed body shell with open wheel wells, tapered glazing, door seams and hinges, moulded arches, rounded tyre profiles, twin-spoke wheels, brake discs, reflector/lens headlamps and a raised Suzuki-style emblem. Rack, snorkel, bumper and lighting mounts are modelled separately.
 - Clear-coated gloss, satin, matte and textured lower-panel materials. The last preserves the painted upper body rather than making the whole vehicle rough.
 - Orbit, zoom, five camera views including a cabin cutaway, stock comparison, night lighting and an expanded studio.
@@ -19,7 +19,11 @@ Ideas and resources for modifying your Jimny, with a live 3D build studio, look 
 
 Requires Node 22. Run `npm ci` then `npm run build`. The release is generated in `dist/`; deploy only that directory. Netlify is configured by `netlify.toml`. For local work, `npm run dev` serves the repository at http://localhost:8080; rebuild after editing the 3D source.
 
-Main files: `index.html` contains catalogue data and planner state, `design.css` defines the current design, and `src/viewer3d.js` contains the original 3D geometry and rendering. `assets/viewer3d.js` is the bundled viewer. Fonts and Three.js are served locally, with licences included under `assets/fonts` and `assets/licenses`.
+Run `npm test` after a build to check the compressed asset, replaceable assemblies, PBR materials, native Blender source and model cache fingerprint. Tests use Node 22.15 or newer because the native Blender project is Zstandard-compressed. Build-image exports automatically fit the whole visible vehicle, even after a close-up inspection zoom.
+
+Main files: `index.html` contains catalogue data and planner state, `design.css` defines the current design, and `src/viewer3d.js` connects the Blender asset, live accessories and rendering. `assets/viewer3d.js` is the bundled viewer. Fonts, Three.js, model decoder and the CC0 studio environment are served locally, with licences included under `assets/fonts` and `assets/licenses`.
+
+The editable model is `modeling/jimny-lwb.blend`, and `modeling/build_jimny.py` reproduces it without paid assets or services. Its mesh, material batching and compression are created using Blender 5.2.2 LTS. See `modeling/ASSET_SOURCES.md` for rebuild instructions, source references and licences. Blender is only needed to edit/rebuild the asset, not to build or use the website.
 
 Release HTML fingerprints the viewer and stylesheet URLs so returning visitors receive matching code and styles. The model's metre-scale proportions use the [official Suzuki dimensional reference](https://www.globalsuzuki.com/globalnews/2023/0112.html), including the 2,590mm wheelbase. It remains original planning geometry, not an imported manufacturer asset.
 

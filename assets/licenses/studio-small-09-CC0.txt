@@ -1,0 +1,7 @@
+Studio Small 09, Poly Haven
+Source: https://polyhaven.com/a/studio_small_09
+Asset licence: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+https://polyhaven.com/license
+
+The bundled 1k HDR file supplies lighting and reflections, and is served locally.
