@@ -361,13 +361,15 @@
 
   <p class="paint-label">Body colour <span>Preview only</span></p>
   <div class="swatches" id="swatches">
-    <button type="button" class="sw active" data-f="" style="background:#e8d23a" aria-label="Kinetic Yellow"></button>
-    <button type="button" class="sw" data-f="hue-rotate(-62deg) saturate(1.25) brightness(.92)" style="background:#e2574c" aria-label="Coral Red"></button>
+    <button type="button" class="sw active" data-f="" style="background:#d9b744" aria-label="Kinetic Yellow"></button>
+    <button type="button" class="sw" style="background:#e8e8e2" aria-label="Pearl Arctic White"></button>
+    <button type="button" class="sw" style="background:#121c27" aria-label="Bluish Black"></button>
+    <button type="button" class="sw" style="background:#8d1c25" aria-label="Sizzling Red"></button>
     <button type="button" class="sw" data-f="hue-rotate(-30deg) saturate(1.15)" style="background:#e07b28" aria-label="Burnt Orange"></button>
-    <button type="button" class="sw" data-f="hue-rotate(55deg) saturate(.95)" style="background:#5d8a3c" aria-label="Jungle Green"></button>
+    <button type="button" class="sw" data-f="hue-rotate(55deg) saturate(.95)" style="background:#586a45" aria-label="Jungle Green"></button>
     <button type="button" class="sw" data-f="hue-rotate(125deg) saturate(.9)" style="background:#2e8b8b" aria-label="Ocean Teal"></button>
-    <button type="button" class="sw" data-f="hue-rotate(175deg) saturate(1.15) brightness(.92)" style="background:#5a6fd6" aria-label="Nexa Blue"></button>
-    <button type="button" class="sw" data-f="saturate(0) brightness(.96)" style="background:#8a9099" aria-label="Granite Gray"></button>
+    <button type="button" class="sw" data-f="hue-rotate(175deg) saturate(1.15) brightness(.92)" style="background:#364b72" aria-label="Nexa Blue"></button>
+    <button type="button" class="sw" data-f="saturate(0) brightness(.96)" style="background:#727973" aria-label="Granite Gray"></button>
   </div>
 
   <!-- ============ VISUALIZER ============ -->
@@ -1126,7 +1128,7 @@ expandViewer.addEventListener('click',()=>setViewerExpanded(!spinBox.classList.c
 document.addEventListener('keydown',e=>{if(!spinBox.classList.contains('expanded'))return;if(e.key==='Escape')setViewerExpanded(false);else if(e.key==='Tab')trapFocus(e,spinBox);});
 
 /* Body paint changes the model material, with no hue shift on the scene. */
-const PAINTS={'Kinetic Yellow':'#d9b744','Coral Red':'#b94132','Burnt Orange':'#bb682e','Jungle Green':'#586a45','Ocean Teal':'#397f7e','Nexa Blue':'#364b72','Granite Gray':'#727973'};
+const PAINTS={'Kinetic Yellow':'#d9b744','Pearl Arctic White':'#e8e8e2','Bluish Black':'#121c27','Sizzling Red':'#8d1c25','Coral Red':'#b94132','Burnt Orange':'#bb682e','Jungle Green':'#586a45','Ocean Teal':'#397f7e','Nexa Blue':'#364b72','Granite Gray':'#727973'};
 document.getElementById("swatches").addEventListener("click", e=>{
   const sw = e.target.closest(".sw"); if(!sw) return;
   document.querySelectorAll(".sw").forEach(s=>s.classList.remove("active"));

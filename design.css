@@ -264,3 +264,22 @@ body.viewer-expanded{overflow:hidden}.planner-rail:has(.expanded){position:stati
  body[data-mode='parts'] .spin360.expanded,body[data-mode='build'] .spin360.expanded{height:auto}
  body[data-mode='sources'] .planner-rail,body[data-mode='fitters'] .planner-rail,body[data-mode='tools'] .planner-rail{display:none}
 }
+/* Keep the model clear of touch controls in the compact phone preview. */
+@media(min-width:900px){
+ .spin360:not(.expanded){aspect-ratio:auto;height:320px;background:#efefed}
+ .spin360:not(.expanded) #viewer3d{bottom:48px}
+ .spin360:not(.expanded) .view-toggle{bottom:4px;left:8px;right:8px;justify-content:center;border-radius:6px;background:transparent;border:0;border-top:1px solid #d6d9d3}
+ .spin360:not(.expanded) .view-toggle button{color:var(--text);min-width:72px;border-radius:5px}
+ .spin360:not(.expanded) .view-toggle button.active{background:#263e33;color:white}
+ .spin360:not(.expanded) #viewerStatus{top:10px;bottom:auto;left:8px;transform:none;max-width:calc(100% - 150px);font-size:9px;text-align:left;padding:3px 5px;background:#efefeddd}
+}
+@media(max-width:899px){
+ .spin360:not(.expanded){aspect-ratio:auto;height:clamp(265px,calc(68vw + 26px),350px);background:#efefed}
+ .spin360:not(.expanded) #viewer3d{bottom:58px}
+ .spin360:not(.expanded) .view-toggle{bottom:4px;left:8px;right:8px;justify-content:center;border-radius:6px;background:transparent;border:0;border-top:1px solid #d6d9d3}
+ .spin360:not(.expanded) .view-toggle button{color:var(--text);min-width:72px;border-radius:5px}
+ .spin360:not(.expanded) .view-toggle button.active{background:#263e33;color:white}
+ .spin360:not(.expanded) #viewerStatus{top:10px;bottom:auto;left:8px;transform:none;max-width:calc(100% - 150px);font-size:9px;text-align:left;padding:3px 5px;background:#efefeddd}
+ body[data-mode='parts'] .spin360:not(.expanded),body[data-mode='build'] .spin360:not(.expanded){height:218px}
+ body[data-mode='parts'] #parts-title,body[data-mode='build'] #goalWizard{scroll-margin-top:300px}
+}
