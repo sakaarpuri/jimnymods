@@ -1462,7 +1462,7 @@ document.addEventListener('click',e=>{
   const removePart=e.target.closest('[data-remove-part]'),removeDesign=e.target.closest('[data-remove-design]');
   if(removePart||removeDesign){rememberUndo();if(removePart){state[removePart.dataset.removePart]=false;document.querySelectorAll(`input[data-id="${removePart.dataset.removePart}"]`).forEach(cb=>cb.checked=false);}else{designState[removeDesign.dataset.removeDesign]=defaultDesignFor(removeDesign.dataset.removeDesign);}update();showToast('Removed from your build','Undo',undoLastChange);if(buildDrawer.classList.contains('open'))document.getElementById('closeDrawer').focus();}
 });
-renderSnapshots();applyPartFilters();renderOnlineStores();filterShops();
+renderSnapshots();applyPartFilters();renderOnlineStores();document.getElementById('shopSearch').value=homeCity.value;filterShops();
 const savedPresetLook=Object.entries(designState).some(([group,id])=>id!==defaultDesignFor(group))&&PACKAGES.some(pkg=>Object.entries(pkg.design||{}).every(([group,id])=>designState[group]===id));
 if(savedPresetLook)usePresetLook();
 setWorkbenchMode(Object.entries(MODE_TARGETS).find(([,id])=>location.hash==='#'+id)?.[0]||'explore',{history:false});updateTyreCalc();update();
