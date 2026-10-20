@@ -1193,7 +1193,9 @@ const toastEl = document.getElementById("toast");
 let toastTimer, toastAction=null, activePartFilter="popular", favoritesOnly=false, activeGoal="", lastUndoPayload=null, catalogExpanded=false;
 
 function selectedDesignOptions(){
-  return DESIGN_GROUPS.map(g=>({group:g.id,...g.options.find(o=>o.id===designState[g.id])}));
+  const grilleProducts={autostylenn_s_grille:'oem',autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script'};
+  const selectedGrille=Object.keys(grilleProducts).find(id=>state[id]);
+  return DESIGN_GROUPS.map(g=>{const product=g.id==='grille'&&selectedGrille;const option=g.options.find(o=>o.id===(product?grilleProducts[selectedGrille]:designState[g.id]));return {group:g.id,...option,...(product?{price:[0,0],includedInPart:selectedGrille}: {})};});
 }
 function currentPayload(){
   return {v:1,vehicle:"india-jimny",name:buildNameEl.value.trim()||"My Jimny",colour:selectedPaint,parts:MODS.filter(m=>!m.designOnly&&state[m.id]).map(m=>m.id),design:{...designState},tyre:{width:+tyreWidth.value,ratio:+tyreRatio.value,rim:+tyreRim.value,lift:+liftHeight.value}};
