@@ -33,7 +33,7 @@ if(renderer){
   }
   new MutationObserver(updateInputMode).observe(mount.parentElement,{attributes:true,attributeFilter:['class']});
   window.matchMedia('(max-width:899px)').addEventListener('change',updateInputMode);updateInputMode();
-  const floor=new THREE.Mesh(new THREE.CircleGeometry(100,64),new THREE.MeshStandardMaterial({color:'#e8e9e0',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.003;floor.receiveShadow=true;scene.add(floor);
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({color:'#3d483f',opacity:.22}));floor.rotation.x=-Math.PI/2;floor.position.y=-.003;floor.receiveShadow=true;scene.add(floor);
   const car=new THREE.Group();scene.add(car);
   const bodyRig=new THREE.Group();car.add(bodyRig);
   const wheels=new THREE.Group();car.add(wheels);
@@ -287,7 +287,7 @@ if(renderer){
     mount.dataset.parts=visiblePartIds.join(',');mount.dataset.finish=design.finish||'oem';mount.dataset.grille=design.grille||'oem';mount.dataset.decal=design.decal||'none';
     updateInputMode();
   }
-  function setNight(value){night=value;scene.background.set(night?'#202b2e':'#efefed');floor.material.color.set(night?'#283338':'#e8e9e0');hemi.intensity=night?.4:1.35;sun.intensity=night?.35:2.2;rimLight.intensity=night?1.2:2;mats.white.emissiveIntensity=night?4:.25;beams.forEach(light=>light.intensity=night?12:0);dirty=true;}
+  function setNight(value){night=value;scene.background.set(night?'#202b2e':'#efefed');floor.material.color.set(night?'#141d20':'#3d483f');hemi.intensity=night?.4:1.35;sun.intensity=night?.35:2.2;rimLight.intensity=night?1.2:2;mats.white.emissiveIntensity=night?4:.25;beams.forEach(light=>light.intensity=night?12:0);dirty=true;}
   function view(name){cameraView=name;const poses={front:[0,1.6,6.7],side:[6.6,1.8,0],rear:[-4,2.4,-5.5],orbit:[4.1,2.65,4.9],cabin:[3.9,3.4,3.3]};camera.position.set(...(poses[name]||poses.orbit));controls.target.set(0,.9,0);controls.update();sync();if(name==='cabin')status.textContent='Cabin cutaway · approximate interior';document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b.dataset.camera===name));dirty=true;}
   function fitViewport(aspect){camera.aspect=aspect;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(35/2))*Math.max(1,1.25/aspect)));camera.updateProjectionMatrix();}
   const observer=new ResizeObserver(()=>{const {width,height}=mount.getBoundingClientRect();if(!width||!height)return;renderer.setSize(width,height,false);fitViewport(width/height);dirty=true;});observer.observe(mount);
