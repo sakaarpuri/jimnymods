@@ -355,7 +355,7 @@
     <div id="viewer3d"><span class="viewer-loading">Preparing your 3D Jimny…</span></div>
     <div class="hint" id="viewerStatus" role="status">Preparing live 3D…</div>
     <div class="view-toggle"><button type="button" id="viewBuild" class="active">Build</button><button type="button" id="viewStock">Stock</button><button type="button" id="viewNight">Night</button></div>
-    <button type="button" class="viewer-fullscreen" id="expandViewer" aria-label="Expand 3D studio">⤢</button>
+    <button type="button" class="viewer-fullscreen" id="expandViewer" aria-label="Expand 3D studio" aria-expanded="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></svg><span>Rotate / zoom</span></button>
   </div>
   <div class="camera-controls" aria-label="3D camera views"><button class="active" type="button" data-camera="orbit">Perspective</button><button type="button" data-camera="front">Front</button><button type="button" data-camera="side">Side</button><button type="button" data-camera="rear">Rear</button><button type="button" data-camera="cabin">Cabin</button></div>
 
@@ -1120,8 +1120,10 @@ function setPreset(){/* Build state is dispatched once, after all selections upd
 document.getElementById('viewStock').addEventListener('click',()=>{window.dispatchEvent(new CustomEvent('jimny-preview-mode',{detail:'stock'}));document.getElementById('viewStock').classList.add('active');document.getElementById('viewBuild').classList.remove('active');});
 document.getElementById('viewBuild').addEventListener('click',()=>{window.dispatchEvent(new CustomEvent('jimny-preview-mode',{detail:'build'}));document.getElementById('viewBuild').classList.add('active');document.getElementById('viewStock').classList.remove('active');});
 document.getElementById('viewNight').addEventListener('click',e=>{const on=e.currentTarget.classList.toggle('active');e.currentTarget.setAttribute('aria-pressed',String(on));window.dispatchEvent(new CustomEvent('jimny-preview-night',{detail:on}));});
-document.getElementById('expandViewer').addEventListener('click',()=>{const expanded=spinBox.classList.toggle('expanded');document.body.classList.toggle('viewer-expanded',expanded);document.getElementById('expandViewer').setAttribute('aria-label',expanded?'Close expanded 3D studio':'Expand 3D studio');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){spinBox.classList.remove('expanded');document.body.classList.remove('viewer-expanded');}});
+const expandViewer=document.getElementById('expandViewer');
+function setViewerExpanded(expanded){spinBox.classList.toggle('expanded',expanded);document.body.classList.toggle('viewer-expanded',expanded);expandViewer.setAttribute('aria-label',expanded?'Close expanded 3D studio':'Expand 3D studio');expandViewer.setAttribute('aria-expanded',String(expanded));expandViewer.querySelector('span').textContent=expanded?'Close':'Rotate / zoom';if(expanded){spinBox.setAttribute('role','dialog');spinBox.setAttribute('aria-modal','true');spinBox.setAttribute('aria-label','Interactive 3D Jimny studio');}else{spinBox.removeAttribute('role');spinBox.removeAttribute('aria-modal');spinBox.removeAttribute('aria-label');}expandViewer.focus({preventScroll:true});}
+expandViewer.addEventListener('click',()=>setViewerExpanded(!spinBox.classList.contains('expanded')));
+document.addEventListener('keydown',e=>{if(!spinBox.classList.contains('expanded'))return;if(e.key==='Escape')setViewerExpanded(false);else if(e.key==='Tab')trapFocus(e,spinBox);});
 
 /* Body paint changes the model material, with no hue shift on the scene. */
 const PAINTS={'Kinetic Yellow':'#d9b744','Coral Red':'#b94132','Burnt Orange':'#bb682e','Jungle Green':'#586a45','Ocean Teal':'#397f7e','Nexa Blue':'#364b72','Granite Gray':'#727973'};
