@@ -249,24 +249,24 @@ if(renderer){
     show(['awning'],()=>{const y=hasRack?1.92:1.78;cylinder(accessoryRig,.061,.061,2.25,.82,y,-.50,mats.canvas,'z');for(const z of [-1.35,.35])box(accessoryRig,.11,.03,.055,.78,y-.05,z,mats.darkmetal);});
     show(['boards'],()=>{const y=hasRack?1.90:1.80;[-.32,.32].forEach(x=>{box(accessoryRig,.24,.035,1.0,x,y,-.4,mats.accent);for(let z=-.8;z<0;z+=.10)for(const offset of [-.075,0,.075])cylinder(accessoryRig,.012,.014,.022,x+offset,y+.027,z,mats.accent,'y',6);});});
     show(['mudflaps'],()=>[-1,1].forEach(side=>[-1.58,1.01].forEach(z=>box(accessoryRig,.28,.30,.025,side*.77,.36,z,mats.rubber))));
-    show(['sparecover'],()=>cylinder(accessoryRig,.34,.34,.10,.12,.99,-2.18,mats.trim,'z'));
+    show(['sparecover'],()=>cylinder(accessoryRig,.34,.34,.12,.12,1.00,-2.045,mats.trim,'z'));
     show(['bonnetguard'],()=>box(accessoryRig,1.40,.035,.16,0,1.16,1.76,mats.trim));
     show(['spoiler'],()=>box(accessoryRig,1.58,.065,.26,0,1.75,-1.68,mats.trim));
-    show(['visors'],()=>[-1,1].forEach(side=>[.45,-.38].forEach(z=>box(accessoryRig,.07,.045,.70,side*.85,1.65,z,mats.trim))));
-    show(['hingecovers'],()=>[-1,1].forEach(side=>[.87,-.02].forEach(z=>[.76,1.03].forEach(y=>box(accessoryRig,.035,.065,.10,side*.84,y,z,mats.metal)))));
-    show(['cladding'],()=>[-1,1].forEach(side=>box(accessoryRig,.035,.15,2.0,side*.84,.65,-.2,mats.trim)));
+    show(['visors'],()=>[-1,1].forEach(side=>[.135,-.70].forEach(z=>box(accessoryRig,.06,.035,.73,side*.736,1.61,z,mats.trim))));
+    show(['hingecovers'],()=>[-1,1].forEach(side=>[.63,-.32].forEach(z=>[.72,1.04].forEach(y=>box(accessoryRig,.035,.065,.10,side*.807,y,z,mats.metal)))));
+    show(['cladding'],()=>[-1,1].forEach(side=>box(accessoryRig,.035,.15,1.77,side*.787,.65,-.08,mats.textured)));
     show(['skid'],()=>box(accessoryRig,1.22,.045,1.22,0,.38,.85,mats.metal));
     show(['headlamps'],()=>[-.6,.6].forEach(x=>{const ring=mesh(new THREE.TorusGeometry(.115,.014,6,28),mats.white,accessoryRig,x,.95,1.915);ring.rotation.z=.3;}));
-    show(['dashcam'],()=>box(accessoryRig,.10,.055,.055,-.25,1.56,.91,mats.trim));
-    show(['headunit'],()=>box(accessoryRig,.25,.15,.015,0,1.18,.66,mats.glass));
-    show(['molle'],()=>[-1,1].forEach(side=>{box(accessoryRig,.012,.30,.45,side*.84,1.43,-1.14,mats.trim);for(let z=-1.32;z<-1;z+=.08)for(let y=1.33;y<1.56;y+=.08)box(accessoryRig,.015,.025,.045,side*.851,y,z,mats.metal);}));
+    show(['dashcam'],()=>box(accessoryRig,.10,.055,.055,-.25,1.55,.62,mats.trim));
+    show(['headunit'],()=>box(accessoryRig,.25,.15,.015,0,1.18,.355,mats.glass));
+    show(['molle'],()=>[-1,1].forEach(side=>{box(accessoryRig,.012,.30,.42,side*.710,1.40,-1.37,mats.trim);for(let z=-1.52;z<-1.20;z+=.08)for(let y=1.30;y<1.53;y+=.08)box(accessoryRig,.015,.025,.045,side*.722,y,z,mats.metal);}));
     show(['drawer'],()=>box(accessoryRig,1.2,.22,.58,0,.98,-1.34,mats.darkmetal));
     show(['shelf'],()=>box(accessoryRig,1.3,.035,.58,0,1.18,-1.30,mats.trim));
     show(['armrest'],()=>box(accessoryRig,.20,.14,.35,0,.98,.20,mats.seat));
     show(['mats'],()=>[-.36,.36].forEach(x=>box(accessoryRig,.36,.018,.48,x,.71,.42,mats.trim)));
     show(['seats'],()=>[-.38,.38].forEach(x=>box(accessoryRig,.42,.35,.025,x,1.10,.015,mats.canvas)));
-    show(['steering'],()=>{const ring=mesh(new THREE.TorusGeometry(.13,.019,6,24),mats.darkmetal,accessoryRig,-.38,1.18,.67);ring.rotation.x=-.4;});
-    show(['ambient'],()=>{box(accessoryRig,1.22,.013,.013,0,1.13,.65,mats.white);});
+    show(['steering'],()=>{const ring=mesh(new THREE.TorusGeometry(.13,.021,8,32),mats.canvas,accessoryRig,.38,1.16,.29);ring.rotation.x=-.32;box(accessoryRig,.07,.035,.015,.38,1.16,.285,mats.darkmetal);});
+    show(['ambient'],()=>{box(accessoryRig,1.22,.013,.013,0,1.13,.355,mats.white);});
     visiblePartIds.push(...['tires','lift','autostylenn_big_suzuki_grille','autostylenn_cursive_grille','autostylenn_s_grille'].filter(id=>parts.has(id)));
   }
   function sync(payload=current){
