@@ -129,3 +129,11 @@ Top ten remaining risks: approximate model proportions; generic accessory geomet
 Top ten improvements delivered: original live 3D; per-part mesh updates; paint/material/decal/grille changes; stock and camera controls; readable visual system; mobile single-mode navigation; sticky mobile preview; relevant internal sourcing; individually editable saved builds; high-resolution export.
 
 The release now signals a coherent product with useful working interactions rather than a long catalogue demo. The strongest next investment is asset and data quality: accurate licensed vehicle/accessory models, permissioned real builds and refreshed sourcing evidence. Those are content and partnership requirements, not something visual polish alone can establish.
+
+## October 20, 2026: detailed 3D studio follow-up
+
+Rebuilt the original model's body shell, glazing, wheel wells, wheels, lamps, grille emblem and accessory mountings. Paint finishes use clear-coat/roughness differences; textured lower panels preserve glossy upper paint. This remains approximate original geometry, not manufacturer CAD or exact seller meshes.
+
+Mobile has scroll-first compact previews, expanded touch rotation/pinch zoom, portrait-safe framing, 44px camera/paint/mode controls and keyboard-safe expanded view. Fixed broken inch-size labels, saved-city fitter restoration and grille/export summary mismatch. Verified all 40 part connections, 30 mode/width combinations without overflow, touch scroll and rotation, sourcing, nine Delhi NCR results, budget stage/undo, save/load, share and image download. Final browser run had no warnings/errors. Full local evidence: `.gstack/qa-reports/qa-report-jimny-mobile-2026-10-20.md`.
+
+No new third-party vehicle assets were imported. Physical-device Safari/Android performance and seller image permissions remain unverified. Prior pricing/source caveats above still apply.
