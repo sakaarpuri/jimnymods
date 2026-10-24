@@ -48,6 +48,8 @@ if(renderer){
   const camera=new THREE.PerspectiveCamera(28,1,.1,250);camera.position.set(4.25,1.62,5.35);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.VSMShadowMap;
+  // ACES filmic rolls highlights off instead of clipping them. Measured against the
+  // paint swatches it kept hue and saturation closest; AgX greyed yellows and reds.
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
   renderer.domElement.setAttribute('aria-label',canvasLabel);renderer.domElement.setAttribute('role','img');renderer.domElement.tabIndex=0;
   mount.appendChild(renderer.domElement);
@@ -239,7 +241,8 @@ if(renderer){
   const glowCanvas=document.createElement('canvas');glowCanvas.width=glowCanvas.height=64;
   const glowContext=glowCanvas.getContext('2d'),glowGradient=glowContext.createRadialGradient(32,32,0,32,32,32);
   glowGradient.addColorStop(0,'rgba(255,251,222,1)');glowGradient.addColorStop(.18,'rgba(255,251,222,.6)');glowGradient.addColorStop(1,'rgba(255,251,222,0)');glowContext.fillStyle=glowGradient;glowContext.fillRect(0,0,64,64);
-  const glowMaterial=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(glowCanvas),transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending});
+  const glowTexture=new THREE.CanvasTexture(glowCanvas);glowTexture.colorSpace=THREE.SRGBColorSpace;
+  const glowMaterial=new THREE.SpriteMaterial({map:glowTexture,transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending});
   for(const x of [-.550,.550]){const glow=new THREE.Sprite(glowMaterial);glow.position.set(x,.977,1.94);glow.scale.set(.19,.19,1);headlightGlow.add(glow);}headlightGlow.visible=false;
   const mesh=(geometry,material,parent,x=0,y=0,z=0)=>{const obj=new THREE.Mesh(geometry,material);obj.position.set(x,y,z);obj.castShadow=true;obj.receiveShadow=true;parent.add(obj);return obj;};
   const box=(parent,w,h,d,x,y,z,mat=mats.trim)=>mesh(Math.min(w,h,d)>.065?new RoundedBoxGeometry(w,h,d,2,Math.min(w,h,d)*.14):new THREE.BoxGeometry(w,h,d),mat,parent,x,y,z);
