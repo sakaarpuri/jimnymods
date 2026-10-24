@@ -1,0 +1,116 @@
+/* Jimnygami: supplied wordmark, paper space and a single folded acid accent.
+   The original PNG is unaltered; this viewport crops surrounding whitespace. */
+@font-face{font-family:Outfit;src:url('fonts/outfit.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap}
+:root{--brand-acid:#d4d9d6;--brand-ink:#1b2927;--brand-paper:#f5f7f0;--font-display:Outfit,'DM Sans',sans-serif;--accent:#43543c;--accent2:#334c3f}
+html[data-ui-theme=daylight]{--bg:#f5f7f0;--panel:#fff;--panel2:#e9eee3;--text:#1b2927;--muted:#53635d;--line:#ccd4c8}
+html[data-ui-theme=daylight] .rally-workshop{--bg:#f5f7f0;--panel:#fff;--panel2:#e9eee3;--text:#1b2927;--muted:#53635d;--line:#ccd4c8;--accent:#43543c;--accent2:#334c3f}
+html[data-ui-theme=daylight] .rally-workshop header{background:#e9eee3;color:#1b2927}
+html[data-ui-theme=daylight] .rally-workshop .brand-copy small{color:#43544a}
+html[data-ui-theme=daylight] .rally-workshop :is(.garage-looks-launch,.garage-chips a,.garage-chips button,.source-links a,.text-button){color:#43543c}
+html[data-ui-theme=rally],html[data-ui-theme=rally] body.rally-workshop{--bg:#192421;--panel:#23312c;--panel2:#2e3d35;--text:#f2f5ea;--muted:#bec9bf;--line:#526259;--accent:#d4d9d6;--accent2:#d4d9d6}
+.logo-art{display:inline-block;position:relative;overflow:hidden;width:218px;aspect-ratio:1570/360;flex-shrink:0;background:#fff;border-radius:3px;vertical-align:middle}
+.logo-art>img{position:absolute!important;left:-6.3694%;top:-69.4444%;width:112.9937%!important;height:auto!important;max-width:none!important;margin:0;display:block}
+.brand-copy{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.brand-copy small{font-family:Outfit,sans-serif;letter-spacing:.14em;font-weight:650;font-size:max(9px,var(--fs-copy,0px))!important;margin:0;color:var(--muted)}
+.brand-lockup{gap:0}.brandline .brandmark{display:none}.footer-brand .logo-art{width:240px}
+.hero-intro h1,.garage-heading h1,h1,h2{font-family:var(--font-display);font-weight:700;letter-spacing:-.045em}
+.garage-heading h1{font-family:var(--font-display)!important;text-transform:none!important;letter-spacing:-.04em!important}
+.garage-heading h1::after{width:24px;height:24px;margin-left:12px;transform:none;vertical-align:middle;background:var(--brand-acid);clip-path:polygon(0 0,100% 24%,0 100%)}
+.hero-intro h1 em{color:inherit}.hero-cta span{color:inherit}
+.garage-categories button,.workbench-nav button,.workbench-nav a{font-family:Outfit,sans-serif;letter-spacing:.01em!important;text-transform:none!important}
+body.rally-workshop .workbench-nav button.active::after{background:var(--brand-acid)}
+[data-ui-theme] .rally-workshop .garage-categories button[aria-selected=true]{background:var(--brand-acid);color:var(--brand-ink);box-shadow:none}
+[data-ui-theme] .rally-workshop :is(.garage-fit,.visual-option,.paint-chip)[aria-pressed=true]{border-color:#81903c;box-shadow:inset 0 0 0 1px #81903c;background:var(--panel);color:var(--text)}
+[data-ui-theme=rally] .rally-workshop :is(.garage-fit,.visual-option,.paint-chip)[aria-pressed=true]{border-color:var(--brand-acid);box-shadow:inset 0 0 0 1px var(--brand-acid)}
+[data-ui-theme] .rally-workshop .garage-fit[aria-pressed=true]::after{background:var(--brand-acid);color:var(--brand-ink)}
+[data-ui-theme] :is(.garage-review-button,.header-build,.primary,.pkg .apply,.source-links button:first-child,.source-open,.garage-save-main){background:var(--brand-acid);border-color:var(--brand-acid);color:var(--brand-ink)}
+[data-ui-theme] .garage-chips button span{color:inherit}
+[data-ui-theme=rally] :is(.garage-scope,.source-quick,.cabin-palette button[aria-pressed=true]){background:#303e30;color:#f0f3da;border-color:#82904f}
+[data-ui-theme=rally] :is(.garage-looks-launch,.hero-cta,.source-links a,.text-button){color:var(--brand-acid)}
+[data-ui-theme] :is(button,a,input,select,summary,[tabindex]):focus-visible{outline-color:#738425;outline-offset:3px}
+[data-ui-theme=rally] :is(button,a,input,select,summary,[tabindex]):focus-visible{outline-color:var(--brand-acid)}
+[data-ui-theme=rally] button:hover:not(:disabled):not(.sw){border-color:#d4d9d6}
+input{accent-color:#7c8e21!important}
+[data-ui-theme] .rally-workshop .garage-stage-actions>a{background:var(--brand-acid);border-color:var(--brand-acid);color:var(--brand-ink)}
+[data-ui-theme] .rally-workshop .camera-controls button.active{background:#405033;color:#f2f5ea;border-color:#738425}
+[data-ui-theme] .rally-workshop :is(.wheel-variant,.cabin-fabric-grid button)[aria-pressed=true]{border-color:#81903c;box-shadow:inset 0 0 0 1px #81903c}
+[data-ui-theme=rally] .rally-workshop :is(.wheel-variant,.cabin-fabric-grid button)[aria-pressed=true]{border-color:var(--brand-acid);box-shadow:inset 0 0 0 1px var(--brand-acid)}
+[data-ui-theme] .rally-workshop .paint-chip[aria-pressed=true]::after,[data-ui-theme] .toast button{background:var(--brand-acid);color:var(--brand-ink)}
+[data-ui-theme] .rally-workshop .cabin-material-studio>[data-fit-tourer]{background:#405033;color:#f2f5ea;border-color:#738425}
+[data-ui-theme=rally] :is(.cabin-tour-controls button[aria-pressed=true],.cabin-match-actions .action){background:#303e30;color:#f0f3da;border-color:#82904f}
+.game-header .brand{gap:0}.game-header .logo-art{width:176px}
+.game-header .game-name{font-family:Outfit,sans-serif;letter-spacing:.04em}
+html[data-ui-theme=rally] :is(.game-header,#console,dialog){--ink:#f1f4e9;--paper:#23312c;--muted:#bec9bf;--line:#526259;--accent:#d4d9d6}
+html[data-ui-theme=rally] .game-header{background:#192421;border-bottom-color:#526259}
+html[data-ui-theme] .primary,html[data-ui-theme] #startButton{background:#d4d9d6;color:#1b2927;border-color:#d4d9d6;box-shadow:none;clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,0 100%);border-radius:5px;font-family:Outfit,sans-serif;font-weight:750}
+#lobby h1{font-family:Outfit,sans-serif!important;text-transform:none;font-size:clamp(30px,4.5vw,58px);font-weight:750;letter-spacing:-.05em}
+#lobby .eyebrow,.course-card small,.coach>span:first-child{color:#536b3d}
+html[data-ui-theme=rally] #lobby .eyebrow,html[data-ui-theme=rally] .coach>span:first-child{color:#d4d9d6}
+.game-header button,.game-header select{border-color:#829077}
+html[data-ui-theme=rally] #lobby.adventure-lobby{background:#202c27;color:#f2f5ea;border-color:#526259;scrollbar-color:#829077 #202c27}
+html[data-ui-theme] .adventure-lobby #lobbyTitle{font-style:normal}
+html[data-ui-theme] .expedition-stamp{border-left-color:#81903c;transform:none}
+html[data-ui-theme] .adventure-lobby :is(.play-mode-picker button,.mission-event-grid button)[aria-pressed=true]{background:#334c3f;border-color:#81903c;box-shadow:inset 3px 0 #d4d9d6;color:#f2f5ea}
+html[data-ui-theme] .difficulty-levels button[aria-checked=true]{background:#d4d9d6;color:#1b2927;border-color:#81903c}
+html[data-ui-theme=rally] .adventure-lobby :is(.lobby-heading .eyebrow,#coursePlace,.expedition-links a,a){color:#d4d9d6}
+html[data-ui-theme] .adventure-lobby #startButton{background:#d4d9d6;color:#1b2927;border-color:#d4d9d6;box-shadow:none}
+html[data-ui-theme] .adventure-lobby #startButton:hover:not(:disabled){background:#e3e6e4}
+html[data-ui-theme] .adventure-lobby #startButton:disabled{background:#465346;color:#d0d6c9;border-color:#667563;clip-path:none}
+html[data-ui-theme=rally] .terrain-palette button[aria-pressed=true]{background:#334c3f;border-color:#d4d9d6;color:#f2f5ea}
+html[data-ui-theme] .badge-entry{background:#334c3f;border-color:#81903c;color:#f2f5ea}
+html[data-ui-theme] .badge-heading h2{font-family:Outfit,sans-serif;text-transform:none;letter-spacing:-.03em}
+html[data-ui-theme] .badge-rank[aria-pressed=true]{background:#334c3f;border-left-color:#d4d9d6;color:#f2f5ea}
+html[data-ui-theme] .badge-detail progress{accent-color:#81903c}
+@media(min-width:1100px){.rally-workshop .brandline{gap:20px}.rally-workshop .brandline>.workbench-nav{gap:22px}.rally-workshop .brandline>.market-bar{grid-template-columns:88px 148px}}
+@media(max-width:700px){.logo-art{width:176px}.game-header .logo-art{width:142px}.brand-copy small{font-size:max(8px,var(--fs-copy,0px))!important;letter-spacing:.1em}.brandline{gap:10px}.game-header{padding-inline:12px}.footer-brand .logo-art{width:218px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}}
+.surface-controls{margin:14px 0 20px;padding:12px 0;border-block:1px solid var(--line);font-size:12px}
+.surface-actions,.surface-pick-actions,.surface-apply{display:flex;flex-wrap:wrap;gap:8px}
+.surface-controls button{min-height:40px;padding:8px 12px;font:650 12px Outfit,sans-serif;border:1px solid var(--line);border-radius:5px;background:var(--panel2);color:var(--text);cursor:pointer}
+.surface-controls [data-all-black]{background:#171b1d;color:#f4f6ed;border-color:#819077;display:flex;align-items:center;gap:24px}
+.surface-controls button:disabled{opacity:.5;cursor:not-allowed}.surface-controls button:active{transform:translateY(1px)}
+.surface-controls summary{padding:12px 0 3px;min-height:40px;cursor:pointer;font-weight:700;font-size:13px}
+.surface-targets{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin:10px 0}
+.surface-targets label{display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:center;min-height:44px;border-bottom:1px solid var(--line);font-size:12px;cursor:pointer}
+.surface-targets input{width:16px;height:16px;margin:0}.surface-targets small{font-size:max(10px,var(--fs-copy,0px));color:var(--muted)}
+.surface-apply button:not(:first-child){background:#405033;color:#f4f6ed;border-color:#819077}
+.surface-status{font-size:max(11px,var(--fs-floor,0px));line-height:1.5;color:var(--muted);margin:8px 0 0}.surface-status:empty{display:none}
+@media(max-width:700px){.surface-targets{grid-template-columns:1fr}.surface-controls{margin:10px 0 16px}}
+
+/* A quiet application bar. Settings remain single-instance controls inside Setup. */
+body.rally-workshop>header{position:relative;z-index:35;width:100%;box-sizing:border-box;padding:0 24px;border-bottom:1px solid var(--line)}
+body.rally-workshop .brandline{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:24px;min-height:68px;max-width:none;width:100%;padding:9px 0;position:relative}
+body.rally-workshop .brandline .logo-art{width:184px}
+body.rally-workshop .brandline .brand-copy small{display:none}
+body.rally-workshop .brandline>.workbench-nav{display:flex;justify-content:center;gap:26px;min-width:0;width:auto;margin:0;padding:0;border:0;background:transparent;overflow:visible}
+body.rally-workshop .brandline>.workbench-nav :is(a,button){font-family:Outfit,sans-serif;font-size:13px;min-height:42px;padding:9px 0!important;white-space:nowrap;color:var(--text);background:transparent}
+body.rally-workshop .brandline>.workbench-nav .workshop-nav-note{display:none}
+.header-setup{position:relative;min-width:0;color:var(--text);font-size:12px}
+.header-setup>summary{display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;min-height:42px;padding:8px 10px;list-style:none;border:1px solid var(--line);border-radius:5px;background:transparent;font-weight:550;white-space:nowrap}
+.header-setup>summary::-webkit-details-marker{display:none}.setup-short{display:none}
+.header-setup[open]>summary{background:var(--panel2)}
+.header-setup-panel{position:absolute;right:0;top:calc(100% + 13px);width:340px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 100px);overflow:auto;padding:18px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;box-shadow:0 14px 40px #10181530}
+.setup-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;font-size:16px}
+.setup-heading button{min-height:36px;padding:6px 10px;background:transparent;border:1px solid var(--line);border-radius:4px;color:var(--text);font:inherit;font-size:12px;cursor:pointer}
+body.rally-workshop .header-setup .market-bar{display:grid;grid-template-columns:1fr;gap:15px;margin:0;padding:0;border:0;min-height:0;color:var(--text);background:transparent}
+body.rally-workshop .header-setup :is(.market-bar label,.ui-theme-picker){display:grid;grid-template-columns:1fr;gap:6px;align-items:stretch;font-size:12px;font-weight:600;text-transform:none;color:var(--text);margin:0}
+body.rally-workshop .header-setup :is(.market-bar select,.ui-theme-picker select){width:100%;min-height:42px;padding:9px 10px;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:4px;background:var(--panel2);color:var(--text)}
+body.rally-workshop .header-setup .ui-theme-picker>span{display:block}
+.header-setup-theme{margin-top:15px}.setup-note{margin:16px 0 0;font-size:max(11px,var(--fs-copy,0px));line-height:1.55;color:var(--muted)}
+body.rally-workshop .header-setup .market-context{display:block;font-size:max(11px,var(--fs-floor,0px));line-height:1.5;color:var(--muted)}
+.header-setup .market-context summary{min-height:30px;cursor:pointer}.header-setup .market-context p{margin:7px 0}
+body.rally-workshop .header-build{min-height:40px;font-size:max(11px,var(--fs-floor,0px));padding:8px 12px;gap:8px}
+@media(min-width:1100px){body.rally-workshop .wrap>.garage-categories{height:48px}body.rally-workshop .wrap>.garage-categories button{min-height:48px;font-size:max(11px,var(--fs-floor,0px))}body.rally-workshop .wrap>.garage-categories svg{width:20px;height:20px}}
+@media(max-width:1099px){body.rally-workshop>header{padding-inline:16px}body.rally-workshop .brandline{grid-template-columns:1fr auto auto;gap:14px;min-height:0;padding:10px 0 0}body.rally-workshop .brandline>.workbench-nav{grid-row:2;grid-column:1/-1;justify-content:flex-start;gap:28px;border-top:1px solid var(--line);padding-top:3px;margin-top:3px}body.rally-workshop .brandline>.workbench-nav :is(a,button){min-height:40px;font-size:13px}.header-setup-panel{top:calc(100% + 7px)}body.rally-workshop .brandline .logo-art{width:170px}}
+@media(max-width:600px){body.rally-workshop>header{padding-inline:12px}body.rally-workshop .brandline{gap:10px!important}body.rally-workshop .brandline .logo-art{width:145px}.setup-context{display:none}.setup-short{display:inline}.header-setup>summary{gap:6px;padding:8px;min-height:38px}.header-setup>summary svg{width:16px}.header-setup-panel{position:fixed;right:12px;top:62px;width:340px;max-height:calc(100dvh - 78px)}body.rally-workshop .header-build{min-height:38px;padding:7px 9px;font-size:max(10px,var(--fs-floor,0px))}body.rally-workshop .brandline>.workbench-nav{justify-content:space-between;gap:14px}body.rally-workshop .brandline>.workbench-nav :is(a,button){font-size:12px;min-height:39px}}
+@media(max-width:360px){body.rally-workshop .brandline .logo-art{width:120px}.header-setup>summary svg{display:none}body.rally-workshop .brandline>.workbench-nav :is(a,button){font-size:max(11px,var(--fs-floor,0px))}}
+.camera-inspection{position:relative;order:5;flex:1;min-width:90px;text-align:center}
+.camera-inspection>summary{cursor:pointer;list-style:none;font-size:max(11px,var(--fs-floor,0px));min-height:40px;padding:12px 8px;color:var(--text)}
+.camera-inspection>summary::after{content:' ⌄'}
+.camera-inspection>div{position:absolute;bottom:100%;right:0;z-index:30;min-width:155px;background:var(--panel);padding:6px;border:1px solid var(--line);box-shadow:0 8px 24px #0003;display:grid}
+.camera-inspection>div button{min-height:40px!important;text-align:left!important;padding:9px 12px!important;white-space:nowrap}
+.camera-controls{overflow:visible!important}
+.camera-controls>[data-camera]{flex:1;min-width:0}
+.camera-controls>[data-camera=seats]{order:3}.camera-controls>[data-camera=storage]{order:4}
+.cabin-inspection{font-size:12px;padding:8px 0}.cabin-inspection>summary{cursor:pointer}
+@media(max-width:600px){.camera-controls{display:flex!important}.camera-controls>[data-camera],.camera-inspection>summary{font-size:max(10px,var(--fs-floor,0px))!important;padding-inline:5px!important}.camera-inspection{min-width:73px}}
