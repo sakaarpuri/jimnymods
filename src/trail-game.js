@@ -93,7 +93,11 @@ $('coachVoiceChoice').onchange=()=>{voice.voiceURI=$('coachVoiceChoice').value;s
 $('autoSpotter').onchange=()=>{autoInspect=$('autoSpotter').checked;saveCoachPrefs();};
 $('coachVoice').onclick=()=>{if(enableVoice(!voice.enabled))voice.say(coaching(),'manual',{force:true});};
 $('hearAgain').onclick=()=>{if(voice.enabled||enableVoice(true))voice.say(coaching(),'repeat',{force:true});};
-function showDialog(id){running=false;clearInputs();voice.stop();if(voice.enabled&&$('voiceStatus'))$('voiceStatus').textContent='Spoken coaching paused · captions remain available.';for(const key of dialogs)if($(key).open)$(key).close();$(id).showModal();trailAudio.pause();}
+function showDialog(id){running=false;clearInputs();voice.stop();if(voice.enabled&&$('voiceStatus'))$('voiceStatus').textContent='Spoken coaching paused · captions remain available.';for(const key of dialogs)if($(key).open)$(key).close();if(id==='lobby')showLobby();else $(id).showModal();trailAudio.pause();}
+// The course lobby is the landing state, so it stays non-modal: the shared site header
+// above it remains usable while the paused game behind it is made inert.
+function showLobby(){const lobby=$('lobby');$('game').inert=true;document.body.classList.add('drive-lobby-open');lobby.show();lobby.focus({preventScroll:true});}
+$('lobby').addEventListener('close',()=>{$('game').inert=false;document.body.classList.remove('drive-lobby-open');});
 function closeDialogs(){for(const id of dialogs)if($(id).open)$(id).close();}
 function clearInputs(){physicalKeys.clear();keys.clear();touch.clear();state.throttle=0;state.braking=0;document.querySelectorAll('[data-input]').forEach(b=>b.classList.remove('held'));}
 function syncPressedKeys(){keys.clear();for(const code of canonicalPressedCodes(physicalKeys))keys.add(code);}
@@ -360,7 +364,7 @@ $('createRecap').onclick=async()=>{
   }catch(error){$('recapStatus').textContent=error.name==='AbortError'?'Export cancelled. Your drive is unchanged.':error.message;canvas.hidden=true;}
   finally{narration.stop();if(trailAudio.recording)trailAudio.endRecording();view.endCapture();view.render(state,gate,0);exportController=null;exportBusy(false);}
 };
-$('saveTrailImage').onclick=async()=>{try{const [width,height]=exportSize($('recapFormat').value),c=document.createElement('canvas');c.width=width;c.height=height;view.beginCapture(width,height);view.render(state,gate,0);const ctx=c.getContext('2d');ctx.drawImage(view.canvas,0,0);stampFrame(ctx,{width,height,title:`${player.name||'Trail driver'} / ${course.name}`,detail:'Build & Trail · approximate game simulation / jimnygami'});downloadBlob(await canvasBlob(c),`jimny-${course.id}.jpg`);$('recapStatus').textContent='Trail image saved.';}catch(error){$('recapStatus').textContent=error.message;}finally{view.endCapture();view.render(state,gate,0);}};
+$('saveTrailImage').onclick=async()=>{try{const [width,height]=exportSize($('recapFormat').value),c=document.createElement('canvas');c.width=width;c.height=height;view.beginCapture(width,height);view.render(state,gate,0);const ctx=c.getContext('2d');ctx.drawImage(view.canvas,0,0);stampFrame(ctx,{width,height,title:`${player.name||'Trail driver'} / ${course.name}`,detail:'Drive · approximate game simulation / jimnygami'});downloadBlob(await canvasBlob(c),`jimny-${course.id}.jpg`);$('recapStatus').textContent='Trail image saved.';}catch(error){$('recapStatus').textContent=error.message;}finally{view.endCapture();view.render(state,gate,0);}};
 // Read-only diagnostics for browser QA, never a public movement/score shortcut.
 window.trailGame={snapshot:()=>({running,loading,course:course.id,mission:mission.id,freeRoam,physics:rigidVehicle?.snapshot(),difficulty,gate,totalGates:gates.length,state:{...state},player:{...player},camera:view?.cameraState(),replaySeconds:replayBuffer.duration,exporting:!!exportController,voice:{enabled:voice.enabled,speaking:!!voice.active,available:voice.voices.length,mode:voice.mode,cue:voice.active?.cueId,recordedEvents:voiceEvents.map(e=>({...e}))},spotter:{problem:spotter.problem?.id,lowProgress:spotter.lowProgress,inspection:$('inspection').open,automatic:autoInspect},fps:Math.round(fps),render:view?.info()})};
 window.trailGame.audio=()=>trailAudio.snapshot();

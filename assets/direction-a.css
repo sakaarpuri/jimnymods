@@ -63,7 +63,7 @@ html[data-ui-theme] body header.site-header{position:sticky;top:0;z-index:50;wid
 .site-setup #layoutChoice{min-height:44px;padding:8px 12px;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:transparent;color:var(--a-text);font:500 14px var(--font-body)}
 .site-setup-summary{display:grid;gap:10px;margin:0}
 .site-setup-summary div{display:flex;justify-content:space-between;gap:12px;font-size:15px}
-.site-setup-summary dt{color:var(--a-muted)}.site-setup-summary dd{margin:0;font-weight:600;text-align:right}
+.site-setup-summary dt{color:var(--a-muted)}.site-header .site-setup-summary dd{margin:0;color:var(--a-text);font-weight:600;text-align:right}
 .site-setup-change{color:var(--a-accent-text);font-weight:600;font-size:15px}
 .site-setup-theme{margin-top:14px}
 .site-setup-note{margin:14px 0 0;font-size:14px;line-height:1.5;color:var(--a-muted)}

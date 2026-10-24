@@ -20,8 +20,6 @@
   document.addEventListener('DOMContentLoaded',()=>{
     // The shared site header carries the Style setting on every page.
     document.querySelectorAll('.site-setup-theme').forEach(slot=>slot.append(picker()));
-    // Modal dialogs make the header inert, so keep a synchronized control inside.
-    const lobby=document.getElementById('lobby');if(lobby){const row=document.createElement('div');row.className='lobby-style-row';row.append(picker());lobby.prepend(row);}
   },{once:true});
   window.addEventListener('storage',event=>{if(event.key===key||event.key===null)apply(event.newValue);});
 })();

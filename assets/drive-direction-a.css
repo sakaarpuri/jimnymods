@@ -1,0 +1,56 @@
+/* Drive in Direction A (Brief 2, task 4b).
+   The game menus take the shared tokens, Outfit headings and DM Sans body, and
+   drop the all-caps italic rally styling. In-world signage in the 3D scene is
+   unchanged. The html[data-ui-theme] prefix outranks game.css. */
+html[data-ui-theme] body.drive-page{--paper:var(--a-panel);--ink:var(--a-text);--muted:var(--a-muted);--line:var(--a-line);--accent:var(--a-lime);background:var(--a-ground);color:var(--a-text);font-family:var(--font-body)}
+html[data-ui-theme] body.drive-page dialog{background:var(--a-panel);color:var(--a-text);border:1px solid var(--a-line);border-radius:20px;font-family:var(--font-body)}
+html[data-ui-theme] body.drive-page dialog::backdrop{background:rgba(5,8,8,.62);backdrop-filter:blur(4px)}
+html[data-ui-theme] body.drive-page :is(dialog,.hud,.console) :is(h1,h2,h3){font-family:var(--font-display);font-style:normal;text-transform:none;color:var(--a-text)}
+
+/* Lobby: non-modal under the shared header, so the header stays usable. */
+html[data-ui-theme] body.drive-page #lobby.adventure-lobby{position:fixed;inset:auto;top:calc(var(--site-header-h) + 16px);left:50%;transform:translateX(-50%);margin:0;z-index:40;width:min(1220px,calc(100vw - 48px));max-height:calc(100dvh - var(--site-header-h) - 32px);padding:28px 32px;overflow:auto;background:var(--a-panel);color:var(--a-text);border:1px solid var(--a-line);border-radius:20px;box-shadow:0 30px 100px rgba(0,0,0,.45)}
+html[data-ui-theme] body.drive-page.drive-lobby-open #game::after{content:'';position:absolute;inset:0;z-index:30;background:rgba(5,8,8,.62);backdrop-filter:blur(6px)}
+@media(max-width:700px){html[data-ui-theme] body.drive-page #lobby.adventure-lobby{top:calc(var(--site-header-h) + 8px);width:calc(100vw - 16px);max-height:calc(100dvh - var(--site-header-h) - 16px);padding:20px 16px;border-radius:16px}}
+
+/* Type: sentence case, no italics, readable sizes. */
+html[data-ui-theme] body.drive-page :is(.eyebrow,.event-kicker,.adventure-lobby .lobby-grid>section>h2:first-child,.adventure-lobby #coursePlace,.coach>span:first-child,.coach>#coachKicker,.expedition-settings>summary,.training-map>span,.difficulty-levels span,.mission-event-grid strong){text-transform:none!important;font-style:normal!important;letter-spacing:.02em!important;font-family:var(--font-body)}
+html[data-ui-theme] body.drive-page :is(.eyebrow,.adventure-lobby .lobby-heading .eyebrow,.adventure-lobby #coursePlace){color:var(--a-accent-text);font-size:14px!important;font-weight:600}
+html[data-ui-theme] body.drive-page :is(.event-kicker,.adventure-lobby .lobby-grid>section>h2:first-child){color:var(--a-muted);font-size:14px!important;font-weight:600}
+html[data-ui-theme] body.drive-page .adventure-lobby #lobbyTitle{font:800 clamp(32px,3.6vw,52px)/1.05 var(--font-display)!important;font-style:normal!important;letter-spacing:-.03em!important;text-transform:none!important}
+html[data-ui-theme] body.drive-page .adventure-lobby .course-list button strong{font-family:var(--font-display);font-style:normal!important;font-weight:800;letter-spacing:-.02em;text-transform:none}
+html[data-ui-theme] body.drive-page .terrain-marker{font-family:var(--font-display);font-weight:800}
+html[data-ui-theme] body.drive-page .badge-heading h2{font:800 clamp(28px,4vw,42px)/1.1 var(--font-display)!important;text-transform:none!important;letter-spacing:-.02em!important}
+html[data-ui-theme] body.drive-page .expedition-stamp{display:none}
+html[data-ui-theme] body.drive-page :is(.mission-event-grid strong,.difficulty-levels span){font-size:15px!important;font-weight:600}
+html[data-ui-theme] body.drive-page .expedition-settings>summary{font-size:15px!important;font-weight:600;color:var(--a-text)}
+html[data-ui-theme] body.drive-page .expedition-links a{letter-spacing:0;font-weight:600}
+html[data-ui-theme] body.drive-page :is(dialog,.hud) :is(p,small,.fine,li){color:inherit}
+html[data-ui-theme] body.drive-page dialog :is(.fine,small){color:var(--a-muted)}
+
+/* Buttons: one lime primary per dialog, quiet secondaries. */
+html[data-ui-theme] body.drive-page dialog button{border:1px solid var(--a-line-strong);border-radius:12px;background:transparent;color:var(--a-text);font-family:var(--font-body);font-style:normal;text-transform:none}
+html[data-ui-theme] body.drive-page dialog button:hover{border-color:var(--a-text);background:transparent}
+html[data-ui-theme] body.drive-page :is(#startButton,dialog .primary){background:var(--a-lime)!important;border-color:var(--a-lime)!important;color:var(--a-on-lime)!important;font:700 19px var(--font-body)!important;font-style:normal!important;letter-spacing:0!important;text-transform:none!important}
+html[data-ui-theme] body.drive-page #startButton:disabled{opacity:.6}
+html[data-ui-theme] body.drive-page dialog :is(button[aria-pressed=true],button[aria-checked=true],button.active,[aria-current=true]){background:var(--a-panel2);border-color:var(--a-lime);color:var(--a-text)}
+html[data-ui-theme] body.drive-page dialog :is(select,input){border:1px solid var(--a-line-strong);border-radius:12px;background:var(--a-panel2);color:var(--a-text)}
+html[data-ui-theme] body.drive-page :is(dialog,.hud,.console) :is(button,select,input,a,summary):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+
+/* Selected states: one rule for every picker (lime edge, no orange or green fills). */
+html[data-ui-theme] body.drive-page :is(.course-list,.play-mode-picker,.mission-event-grid,.terrain-palette) button[aria-pressed=true],
+html[data-ui-theme] body.drive-page .difficulty-levels button[aria-checked=true],
+html[data-ui-theme] body.drive-page .badge-rank[aria-pressed=true],
+html[data-ui-theme] body.drive-page .pro-picker button[aria-pressed=true]{background:var(--a-panel2)!important;color:var(--a-text)!important;border-color:var(--a-lime)!important;box-shadow:inset 3px 0 var(--a-lime)!important}
+html[data-ui-theme] body.drive-page :is(.course-list,.play-mode-picker,.mission-event-grid,.terrain-palette,.difficulty-levels,.pro-picker) button{background:transparent;border:1px solid var(--a-line-strong);border-radius:14px;color:var(--a-text)}
+html[data-ui-theme] body.drive-page :is(.mission-event-grid,.play-mode-picker) button :is(small,span:not(:first-child)){color:var(--a-muted)}
+html[data-ui-theme] body.drive-page .training-map{background:var(--a-panel2);border-radius:16px}
+/* The lobby receives focus on open for screen readers; it is a container, not a control. */
+html[data-ui-theme] body.drive-page #lobby:focus{outline:none}
+html[data-ui-theme] body.drive-page .expedition-links a{color:var(--a-text);font-size:15px}
+/* Lime is too pale an edge on a light ground; Daylight uses the darker accent. */
+:root[data-ui-theme=daylight] body.drive-page :is(.course-list,.play-mode-picker,.mission-event-grid,.terrain-palette) button[aria-pressed=true],
+:root[data-ui-theme=daylight] body.drive-page .difficulty-levels button[aria-checked=true],
+:root[data-ui-theme=daylight] body.drive-page .badge-rank[aria-pressed=true],
+:root[data-ui-theme=daylight] body.drive-page .pro-picker button[aria-pressed=true]{border-color:var(--a-accent-text)!important;box-shadow:inset 3px 0 var(--a-accent-text)!important}
+html[data-ui-theme] body.drive-page .training-map{color:var(--a-text)}
+html[data-ui-theme] body.drive-page .event-number{color:var(--a-accent-text)}
