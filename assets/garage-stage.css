@@ -1,0 +1,312 @@
+/* Garage stage and panels (Direction A frames 03, 04, 07–10).
+   Scoped to the Garage mode. The !important flags and the html[data-ui-theme]
+   prefix outrank the stacked app-shell rules in design.css and jimnygami-brand.css. */
+
+/* ---------- Shared: overlays on the car ---------- */
+body[data-mode=garage] .workbench-purpose{display:none!important}
+.garage-stage-top{position:absolute;top:16px;left:16px;right:96px;z-index:6;display:flex;align-items:center;gap:12px;pointer-events:none}
+.garage-stage-top>*{pointer-events:auto}
+.garage-view-switch{display:flex;gap:2px;padding:4px;border-radius:14px;background:rgba(17,23,22,.78);backdrop-filter:blur(6px)}
+html[data-ui-theme] .garage-view-switch button{min-height:44px!important;min-width:0;padding:0 18px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:#f1f3ea!important;font:500 16px var(--font-body)!important;box-shadow:none!important}
+html[data-ui-theme] .garage-view-switch button.active{background:var(--a-chip)!important;color:var(--a-on-chip)!important}
+.garage-angles-open{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 18px;border:0;border-radius:14px;background:rgba(17,23,22,.78);color:#f1f3ea;font:500 16px var(--font-body);backdrop-filter:blur(6px);cursor:pointer}
+.garage-angles-open[aria-expanded=true]{background:var(--a-chip);color:var(--a-on-chip)}
+.garage-stage-tools{position:absolute;top:16px;right:16px;z-index:6;display:flex;gap:10px}
+html[data-ui-theme] .garage-stage-tools :is(button,.viewer-fullscreen){position:static!important;display:grid!important;place-items:center;width:52px!important;height:52px!important;min-width:0!important;min-height:0!important;padding:0!important;border:0!important;border-radius:14px!important;background:rgba(17,23,22,.78)!important;color:#f1f3ea!important;inset:auto!important;transform:none!important;backdrop-filter:blur(6px)}
+html[data-ui-theme] .garage-stage-tools .viewer-fullscreen span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.garage-stage-top :is(button):focus-visible,.garage-stage-tools button:focus-visible,.garage-buildbar :is(a,button):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+html[data-ui-theme] body[data-mode=garage] .garage-pick-direction{display:none!important}
+
+/* Angles & scenery panel (a sheet on phones, see below). */
+.garage-angles{color:var(--a-text);font-family:var(--font-body);background:var(--a-panel);border:1px solid var(--a-line)}
+.garage-angles-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 10px}
+.garage-angles-head h2{margin:0;font:700 20px var(--font-display);color:var(--a-text)}
+.garage-angles-close{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--a-line);border-radius:12px;background:transparent;color:var(--a-text);cursor:pointer}
+.garage-angles section{padding:14px 0;border-top:1px solid var(--a-line)}
+.garage-angles h3{margin:0 0 10px;color:var(--a-muted);font:600 13px var(--font-body);letter-spacing:.06em;text-transform:uppercase}
+html[data-ui-theme] .garage-angles :is(.camera-controls,.cabin-viewpoints,.garage-angles-tools){display:flex!important;flex-wrap:wrap;gap:8px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;height:auto!important;justify-content:flex-start!important;text-align:left}
+/* Cabin viewpoints only apply inside the car, as before. */
+html[data-ui-theme] .garage-angles .cabin-viewpoints{display:none!important;margin-top:8px!important}
+html[data-ui-theme] body:has(#viewer3d[data-camera-mode=inside]) .garage-angles .cabin-viewpoints{display:flex!important}
+html[data-ui-theme] .garage-angles :is(.camera-controls,.cabin-viewpoints,.garage-angles-tools) :is(button,summary){position:static!important;display:inline-flex!important;align-items:center;gap:8px;flex:0 0 auto!important;width:auto!important;min-height:44px!important;padding:0 14px!important;border:1px solid var(--a-line-strong)!important;border-radius:12px!important;background:transparent!important;color:var(--a-text)!important;font:500 15px var(--font-body)!important;inset:auto!important;transform:none!important;box-shadow:none!important}
+html[data-ui-theme] .garage-angles :is(.camera-controls,.cabin-viewpoints) button.active{background:var(--a-chip)!important;color:var(--a-on-chip)!important;border-color:var(--a-chip)!important}
+html[data-ui-theme] .garage-angles .camera-inspection{position:static!important;flex-basis:100%}
+html[data-ui-theme] .garage-angles .camera-inspection>div{position:static!important;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html[data-ui-theme] .garage-angles .scenery-picker{display:grid!important;grid-template-columns:1fr!important;gap:6px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important}
+html[data-ui-theme] .garage-angles .scenery-picker label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+html[data-ui-theme] .garage-angles .scenery-picker select{width:100%!important;min-height:44px!important;padding:0 14px!important;border:1px solid var(--a-line-strong)!important;border-radius:12px!important;background:var(--a-panel2)!important;color:var(--a-text)!important;font:500 16px var(--font-body)!important}
+html[data-ui-theme] .garage-angles .scenery-picker :is(p,span,small){margin:0;color:var(--a-muted)!important;font-size:14px!important}
+.garage-angles :is(button,summary,select):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+
+/* Build bar (on the car on desktop, floating on phones). */
+.garage-buildbar{display:flex;align-items:center;gap:10px;border:1px solid var(--a-line);border-radius:18px;background:rgba(26,33,32,.94);backdrop-filter:blur(8px);color:var(--a-text)}
+:root[data-ui-theme=daylight] .garage-buildbar{background:rgba(255,255,251,.95)}
+.garage-buildbar-summary{flex:1;min-width:0;display:grid;justify-items:start;gap:2px;min-height:56px;padding:4px 8px 4px 20px;border:0;background:transparent;color:var(--a-text);text-align:left;cursor:pointer}
+.garage-buildbar-summary b{font:600 17px var(--font-body)}
+.garage-buildbar-summary span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--a-muted);font-size:15px}
+html[data-ui-theme] .garage-buildbar [data-garage-stock]{flex-shrink:0;min-height:52px!important;padding:0 20px!important;border:1px solid var(--a-line-strong)!important;border-radius:14px!important;background:transparent!important;color:var(--a-text)!important;font:600 16px var(--font-body)!important;width:auto!important}
+html[data-ui-theme] .garage-buildbar [data-garage-stock][aria-pressed=true]{background:var(--a-chip)!important;color:var(--a-on-chip)!important}
+html[data-ui-theme] .garage-buildbar a[href="game.html"]{flex-shrink:0;display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 22px;border:0;border-radius:14px;background:var(--a-lime)!important;color:var(--a-on-lime)!important;font:700 17px var(--font-body);text-decoration:none;white-space:nowrap}
+html[data-ui-theme] .garage-buildbar a[href="game.html"] span{display:none}
+html[data-ui-theme] .garage-buildbar a[href="game.html"]::after{content:'→';font-weight:600}
+
+/* Just fitted. */
+.garage-fitted{display:none}
+.garage-fitted.show{display:flex;align-items:center;gap:14px;padding:10px 16px 10px 10px;border-radius:16px;background:var(--a-chip);color:var(--a-on-chip);box-shadow:0 16px 40px rgba(0,0,0,.35)}
+.garage-fitted img{width:84px;height:60px;flex-shrink:0;border-radius:10px;object-fit:cover}
+.garage-fitted-copy{flex:1;min-width:0;display:grid;gap:2px}
+.garage-fitted-copy b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:700 16px/1.3 var(--font-body)}
+.garage-fitted-copy span{font-size:14px;opacity:.8}
+.garage-fitted button{flex-shrink:0;min-height:44px;border-radius:12px;font:600 16px var(--font-body);cursor:pointer}
+.garage-fitted-undo{padding:0 6px;border:0;background:transparent;color:inherit;text-decoration:underline;text-underline-offset:4px}
+.garage-fitted-view{display:none;padding:0 18px;border:0;background:var(--a-on-chip);color:var(--a-chip)}
+.garage-fitted button:focus-visible{outline:3px solid var(--a-on-chip);outline-offset:2px}
+
+/* ---------- Shared: the category panel ---------- */
+html[data-ui-theme] #garage .garage-heading{display:flex!important;align-items:flex-start;justify-content:space-between;gap:16px;margin:0!important;padding:0!important;border:0!important}
+html[data-ui-theme] #garage .garage-heading h1{margin:0!important;color:var(--a-text)!important;font:800 clamp(34px,3vw,44px)/1.05 var(--font-display)!important;letter-spacing:-.03em!important;text-transform:none!important}
+/* The decorative ▶ after each category heading carried no meaning. */
+html[data-ui-theme] #garage .garage-heading h1::after,html[data-ui-theme] #garage .garage-heading h1::before{content:none!important;display:none!important}
+html[data-ui-theme] #garage .garage-intro{margin:10px 0 0!important;color:var(--a-muted)!important;font:400 17px/1.5 var(--font-body)!important}
+html[data-ui-theme] #garage .garage-looks-launch{display:inline-flex!important;align-items:center;gap:8px;min-height:44px!important;margin:6px 0 0!important;padding:0!important;border:0!important;background:transparent!important;color:var(--a-accent-text)!important;font:600 17px var(--font-body)!important;box-shadow:none!important;text-align:left}
+html[data-ui-theme] #garage .garage-looks-launch .looks-short{display:none}
+/* Ready-made looks: once, in Quick fits. */
+html[data-ui-theme] #garage:not([data-category=popular]) .garage-looks-launch{display:none!important}
+html[data-ui-theme] #garage .garage-undo{flex-shrink:0;min-height:44px!important;padding:0 4px!important;border:0!important;background:transparent!important;color:var(--a-muted)!important;font:500 16px var(--font-body)!important;text-decoration:underline;text-underline-offset:4px}
+/* Undo only shows when there is something to undo (it is also in each fit toast and My build). */
+html[data-ui-theme] #garage .garage-undo:disabled{display:none!important}
+/* All black and Matte / gloss sit in Paint's More options (or Grilles' panel), not above every category. */
+html[data-ui-theme] #garage>.surface-controls{display:none!important}
+html[data-ui-theme] #garage .garage-more .surface-controls{display:block!important;margin:14px 0 0!important;padding:14px 0 0!important;border:0!important;border-top:1px solid var(--a-line)!important;background:transparent!important}
+html[data-ui-theme] #garage #garageChoices{margin-top:24px!important}
+
+/* Cards: one image, one name, one clear Fitted state. */
+html[data-ui-theme] #garage .garage-part-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:24px 20px!important}
+html[data-ui-theme] #garage .garage-part{display:flex!important;flex-direction:column;gap:8px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html[data-ui-theme] #garage .garage-fit{flex:1;position:relative!important;display:flex!important;flex-direction:column;align-items:stretch;width:100%!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden;border:2px solid transparent!important;border-radius:16px!important;background:var(--a-panel)!important;color:var(--a-text)!important;text-align:left;box-shadow:none!important;cursor:pointer}
+html[data-ui-theme] #garage .garage-fit img{flex-shrink:0;display:block;width:100%!important;height:auto!important;aspect-ratio:4/3;object-fit:cover;margin:0!important;border:0!important;border-radius:0!important}
+html[data-ui-theme] #garage .garage-part-name{display:block;padding:14px 16px 16px!important;color:var(--a-text)!important;font:600 17px/1.3 var(--font-body)!important;letter-spacing:0!important;text-transform:none!important}
+html[data-ui-theme] #garage .garage-fit:not([disabled]) .garage-fit-state{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+html[data-ui-theme] #garage .garage-fit[disabled] .garage-fit-state{display:block;padding:0 16px 14px;color:var(--a-muted);font-size:14px}
+html[data-ui-theme] #garage .garage-fit[aria-pressed=true]{border-color:var(--a-lime)!important}
+:root[data-ui-theme=daylight] #garage .garage-fit[aria-pressed=true]{border-color:var(--a-accent-text)!important}
+html[data-ui-theme] #garage .garage-fit[aria-pressed=true]::after{content:'✓ Fitted'!important;position:absolute!important;top:10px!important;right:10px!important;left:auto!important;bottom:auto!important;padding:5px 12px!important;border-radius:999px!important;background:var(--a-lime)!important;color:var(--a-on-lime)!important;font:700 14px var(--font-body)!important;letter-spacing:0!important;text-transform:none!important}
+html[data-ui-theme] #garage .garage-fit:focus-visible{outline:3px solid var(--a-accent-text)!important;outline-offset:2px}
+html[data-ui-theme] #garage .garage-fit:hover:not([disabled]){border-color:var(--a-line-strong)!important}
+html[data-ui-theme] #garage .garage-fit[aria-pressed=true]:hover{border-color:var(--a-lime)!important}
+html[data-ui-theme] #garage .garage-part .garage-source,html[data-ui-theme] #garage .garage-part .garage-edit{align-self:flex-start;min-height:44px!important;margin:0!important;padding:0 2px!important;border:0!important;background:transparent!important;color:var(--a-muted)!important;font:500 15px var(--font-body)!important;text-decoration:underline;text-underline-offset:4px;box-shadow:none!important}
+html[data-ui-theme] #garage .garage-part .garage-edit{color:var(--a-text)!important}
+html[data-ui-theme] #garage .garage-part .garage-source span{display:none}
+
+/* "More options": one quiet disclosure per category. */
+html[data-ui-theme] #garage .garage-more,html[data-ui-theme] #garage .grille-appearance{margin:20px 0 0!important;padding:0!important;border:1px solid var(--a-line)!important;border-radius:16px!important;background:transparent!important}
+html[data-ui-theme] #garage :is(.garage-more,.grille-appearance)>summary{display:flex!important;align-items:center;flex-wrap:wrap;gap:4px 10px;min-height:56px;padding:12px 52px 12px 18px!important;position:relative;list-style:none;cursor:pointer;color:var(--a-text)!important;font:600 17px var(--font-body)!important;background:transparent!important;border:0!important}
+html[data-ui-theme] #garage :is(.garage-more,.grille-appearance)>summary::-webkit-details-marker{display:none}
+html[data-ui-theme] #garage :is(.garage-more,.grille-appearance)>summary small{color:var(--a-muted);font-weight:400;font-size:15px}
+html[data-ui-theme] #garage :is(.garage-more,.grille-appearance)>summary::after{content:''!important;position:absolute;right:20px;top:50%;width:10px;height:10px;margin-top:-7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .15s;background:none!important}
+html[data-ui-theme] #garage :is(.garage-more,.grille-appearance)[open]>summary::after{transform:rotate(-135deg);margin-top:-2px}
+html[data-ui-theme] #garage :is(.garage-more,.grille-appearance)>:not(summary){margin-left:18px!important;margin-right:18px!important}
+html[data-ui-theme] #garage :is(.garage-more,.grille-appearance)>:last-child{margin-bottom:18px!important}
+
+/* Default ▶ markers in the Garage, Parts and My build become a chevron at the row end. */
+details>summary.summary-chevron{list-style:none;position:relative;padding-right:32px}
+details>summary.summary-chevron::-webkit-details-marker{display:none}
+details>summary.summary-chevron::before{content:'';position:absolute;right:8px;top:50%;width:8px;height:8px;margin-top:-6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .15s}
+details[open]>summary.summary-chevron::before{transform:rotate(-135deg);margin-top:-2px}
+
+/* ---------- Desktop (≥900px): car · category rail · panel ---------- */
+@media(min-width:900px){
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .wrap{max-width:none!important;margin:0!important;padding:0!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench{display:grid!important;grid-template-columns:minmax(0,1fr) 112px minmax(380px,min(560px,38vw))!important;grid-template-rows:minmax(0,1fr)!important;gap:0!important;height:calc(100dvh - var(--site-header-h) - 1px)!important;min-height:560px!important;margin:0!important;overflow:hidden!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .planner-rail{grid-column:1;grid-row:1;position:relative!important;display:block!important;height:100%!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:var(--a-panel)!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] #spin360:not(.expanded){position:relative!important;height:100%!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .planner-main{grid-column:3;grid-row:1;height:100%!important;max-height:none!important;overflow-y:auto!important;margin:0!important;padding:36px 32px 48px!important;border:0!important;background:var(--a-ground)!important}
+  /* The category rail. */
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench>.garage-categories{grid-column:2;grid-row:1;position:static!important;display:flex!important;flex-direction:column;gap:4px!important;height:100%!important;margin:0!important;padding:14px 8px!important;overflow-y:auto!important;scrollbar-width:none;background:var(--a-ground)!important;border:0!important;border-left:1px solid var(--a-line)!important;border-right:1px solid var(--a-line)!important;box-shadow:none!important;grid-template-columns:none!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench>.garage-categories button{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%!important;min-height:80px!important;padding:8px 4px!important;border:0!important;border-radius:14px!important;background:transparent!important;color:var(--a-muted)!important;font:500 14px/1.2 var(--font-body)!important;text-align:center;box-shadow:none!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench>.garage-categories button svg{width:24px;height:24px;color:var(--a-muted)}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench>.garage-categories button:hover{color:var(--a-text)!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench>.garage-categories button[aria-selected=true]{background:var(--a-panel2)!important;color:var(--a-text)!important}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench>.garage-categories button[aria-selected=true] svg{color:var(--a-accent-text)}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench>.garage-categories button:focus-visible{outline:3px solid var(--a-accent-text)!important;outline-offset:-3px}
+  /* Stage overlays. */
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] #viewerStatus{position:absolute!important;left:50%!important;right:auto!important;top:auto!important;bottom:104px!important;transform:translateX(-50%);z-index:5;max-width:calc(100% - 48px);margin:0!important;padding:8px 16px!important;border-radius:999px!important;background:rgba(17,23,22,.78)!important;color:#f1f3ea!important;font:500 15px var(--font-body)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .garage-buildbar{position:absolute;left:16px;right:16px;bottom:16px;z-index:6;padding:8px}
+  .garage-fitted.show{position:absolute;top:16px;left:16px;z-index:8;max-width:min(440px,calc(100% - 32px))}
+  .garage-angles{position:absolute;inset:auto;top:80px;left:16px;z-index:9;width:min(380px,calc(100% - 32px));max-height:calc(100% - 200px);margin:0;padding:14px 18px 8px;overflow:auto;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .garage-selection-tray{margin:0 0 12px}
+}
+@media(min-width:900px) and (max-width:1099px){
+  html[data-ui-theme] body.rally-workshop[data-mode=garage] .workbench{grid-template-columns:minmax(0,1fr) 96px minmax(340px,44vw)!important}
+  .garage-angles-open span{display:none}
+  .garage-buildbar [data-garage-stock]{display:none!important}
+}
+
+/* The selection tray lives at the top of My build. */
+#buildDrawer .garage-selection-tray{margin:0 0 12px!important;padding:12px 0!important;border:0!important;border-bottom:1px solid var(--a-line)!important;background:transparent!important;max-height:none!important}
+#buildDrawer .garage-selection-heading [data-build-open]{display:none}
+
+/* ---------- Phone (≤899px): one scrolling page ---------- */
+@media(max-width:899px){
+  html[data-ui-theme] body.phone-garage[data-mode=garage]{display:block!important;position:static!important;height:auto!important;min-height:100dvh;overflow:visible!important}
+  body.phone-garage[data-mode=garage] .wrap{max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important}
+  body.phone-garage[data-mode=garage] .workbench{display:block!important;height:auto!important;min-height:0!important;margin:0!important;gap:0!important;overflow:visible!important}
+  body.phone-garage[data-mode=garage] .planner-rail{display:block!important;position:relative!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:visible!important;background:var(--a-ground)!important}
+  body.phone-garage[data-mode=garage] .planner-main{overflow:visible!important;height:auto!important;max-height:none!important;padding:0 16px calc(112px + env(safe-area-inset-bottom))!important;margin:0!important}
+  body.phone-garage[data-mode=garage] #spin360:not(.expanded){position:relative!important;height:clamp(220px,30dvh,264px)!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;background:var(--a-panel)}
+  body.phone-garage[data-mode=garage] #spin360:not(.expanded) #viewer3d{inset:0}
+  .garage-stage-top{top:12px;left:12px;right:12px;justify-content:space-between}
+  body.phone-garage .garage-angles-open{width:48px;min-height:48px;padding:0;justify-content:center}
+  body.phone-garage .garage-angles-open span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .garage-stage-tools{display:none}
+  html[data-ui-theme] body.phone-garage[data-mode=garage] .garage-pick-direction{display:block!important;position:absolute!important;left:50%!important;right:auto!important;bottom:12px!important;top:auto!important;transform:translateX(-50%);z-index:5;max-width:calc(100% - 24px);margin:0!important;padding:8px 16px!important;border-radius:999px!important;background:rgba(17,23,22,.78)!important;color:#f1f3ea!important;font:500 14px var(--font-body)!important;white-space:nowrap;pointer-events:none}
+
+  /* Category chips: one scrolling row, pinned under the header. */
+  html[data-ui-theme] body.phone-garage[data-mode=garage] .garage-categories{position:sticky!important;top:var(--site-header-h)!important;z-index:30!important;display:flex!important;grid-template-columns:none!important;gap:8px!important;margin:0 -16px!important;padding:12px 16px!important;overflow-x:auto!important;overscroll-behavior-x:contain;scrollbar-width:none;background:var(--a-ground)!important;border:0!important;border-bottom:1px solid var(--a-line)!important;box-shadow:none!important}
+  body.phone-garage .garage-categories::-webkit-scrollbar{display:none}
+  html[data-ui-theme] body.phone-garage .garage-categories button{flex:0 0 auto!important;width:auto!important;min-height:48px!important;padding:0 20px!important;border:1px solid var(--a-line-strong)!important;border-radius:999px!important;background:transparent!important;color:var(--a-text)!important;font:500 16px var(--font-body)!important;white-space:nowrap}
+  html[data-ui-theme] body.phone-garage .garage-categories button[aria-selected=true]{background:var(--a-chip)!important;border-color:var(--a-chip)!important;color:var(--a-on-chip)!important}
+  body.phone-garage .garage-categories button svg{display:none}
+  html[data-ui-theme] body.phone-garage.garage-car-docked[data-mode=garage] .garage-categories{padding-left:108px!important}
+  body.phone-garage #garage{padding-top:0!important}
+  html[data-ui-theme] body.phone-garage #garage .garage-heading{margin-top:24px!important;align-items:center}
+  html[data-ui-theme] body.phone-garage #garage .garage-heading h1{font-size:34px!important}
+  html[data-ui-theme] body.phone-garage #garage .garage-heading>div{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1}
+  html[data-ui-theme] body.phone-garage #garage .garage-looks-launch{margin:0!important}
+  html[data-ui-theme] body.phone-garage #garage .garage-looks-launch .looks-long{display:none}
+  html[data-ui-theme] body.phone-garage #garage .garage-looks-launch .looks-short{display:inline}
+  html[data-ui-theme] body.phone-garage #garage .garage-looks-launch svg{display:none}
+  html[data-ui-theme] body.phone-garage #garage .garage-part-grid{gap:16px 14px!important}
+  html[data-ui-theme] body.phone-garage #garage .garage-heading h1{white-space:nowrap}
+  html[data-ui-theme] body.phone-garage #garage .garage-part-name{padding:12px 14px 14px!important;font-size:15px!important}
+
+  /* Docked: the same viewer element, now a thumbnail at the start of the chip row. */
+  html body.phone-garage.garage-car-docked[data-mode=garage] #viewer3d{position:fixed!important;inset:auto!important;top:calc(var(--site-header-h) + 10px)!important;left:16px!important;width:80px!important;height:52px!important;z-index:41;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px var(--a-line-strong)}
+  body.phone-garage.garage-car-docked #viewer3d canvas{pointer-events:none}
+  /* #spin360 isolates its children at z-index 1; lift it so the thumbnail sits above the pinned chips. */
+  html body.phone-garage.garage-car-docked[data-mode=garage] #spin360{z-index:45!important}
+  .garage-thumb{display:none}
+  body.phone-garage.garage-car-docked[data-mode=garage] .garage-thumb{position:fixed;top:calc(var(--site-header-h) + 10px);left:16px;z-index:46;display:grid;place-items:end;width:80px;height:52px;padding:4px;border:0;border-radius:10px;background:transparent;color:#f1f3ea;cursor:pointer}
+  body.phone-garage .garage-thumb svg{width:22px;height:22px;padding:3px;border-radius:6px;background:rgba(17,23,22,.8)}
+  body.phone-garage .garage-thumb:focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+
+  /* Just fitted with the car in view: a toast above the build bar. */
+  body.phone-garage .garage-fitted.show{position:fixed;left:12px;right:12px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:52}
+  /* Just fitted while docked: the viewer grows into a card above Undo / View car. */
+  html body.phone-garage.garage-car-docked.garage-peek[data-mode=garage] #viewer3d{top:calc(var(--site-header-h) + 84px)!important;left:12px!important;width:calc(100vw - 24px)!important;height:min(52vw,208px)!important;border-radius:16px 16px 0 0;box-shadow:none}
+  body.phone-garage.garage-car-docked.garage-peek .garage-fitted.show{top:calc(var(--site-header-h) + 84px + min(52vw,208px));bottom:auto;z-index:47;border-radius:0 0 16px 16px;padding:14px 12px 14px 20px}
+  body.phone-garage.garage-peek .garage-fitted img{display:none}
+  body.phone-garage.garage-peek .garage-fitted-view{display:inline-flex;align-items:center;min-height:48px}
+
+  /* Build bar: always reachable, opens My build. */
+  .garage-buildbar{display:none}
+  body.phone-garage[data-mode=garage] .garage-buildbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;display:flex;padding:8px 8px 8px 0;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+  body.phone-garage .garage-buildbar-summary span{font-size:14px}
+  html[data-ui-theme] body.phone-garage .garage-buildbar a[href="game.html"]{min-height:56px;padding:0 16px;font-size:16px}
+  html[data-ui-theme] body.phone-garage .garage-buildbar a[href="game.html"]::after{content:none}
+  body.phone-garage[data-mode=garage] #buildFab{display:none!important}
+  body.phone-garage[data-mode=garage] #toast{bottom:calc(96px + env(safe-area-inset-bottom))!important}
+
+  /* Angles & scenery: a bottom sheet. */
+  body.phone-garage .garage-angles{width:100vw;max-width:none;max-height:80dvh;margin:auto 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom));border-bottom:0;border-radius:20px 20px 0 0}
+  body.phone-garage .garage-angles::backdrop{background:rgba(5,8,8,.5)}
+  body.phone-garage .garage-angles-head{position:sticky;top:-8px;padding:8px 0;background:var(--a-panel);z-index:1}
+  body.phone-garage .garage-angles-close{width:48px;height:48px}
+  html[data-ui-theme] body.phone-garage .garage-angles :is(.camera-controls,.cabin-viewpoints,.garage-angles-tools) :is(button,summary){min-height:48px!important;font-size:16px!important}
+}
+/* Tablets in portrait get the same one-page Garage with more room for the car. */
+@media(min-width:600px) and (max-width:899px){
+  body.phone-garage[data-mode=garage] #spin360:not(.expanded){height:clamp(300px,40dvh,440px)!important}
+  html[data-ui-theme] body.phone-garage[data-mode=garage] #garage .garage-part-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+
+/* ---------- Try in 3D / full-screen studio: same dark ground as the rest ---------- */
+html[data-ui-theme] .spin360.expanded{background:var(--a-panel)!important;border-color:var(--a-line)!important;color:var(--a-text)}
+.spin360.expanded :is(.garage-stage-top,.garage-buildbar,.garage-fitted){display:none!important}
+html[data-ui-theme] .spin360.expanded .garage-stage-tools .viewer-fullscreen{width:auto!important;padding:0 16px!important;gap:8px;grid-auto-flow:column}
+html[data-ui-theme] .spin360.expanded .garage-stage-tools .viewer-fullscreen span{position:static;width:auto;height:auto;overflow:visible;clip-path:none;font:600 15px var(--font-body)}
+html[data-ui-theme] .spin360.expanded .studio-angles{border-color:var(--a-line)!important}
+html[data-ui-theme] .spin360.expanded :is(.studio-tools button,.view-toggle button){color:var(--a-text)!important;background:transparent!important}
+html[data-ui-theme] .spin360.expanded :is(.studio-angles button.active,.view-toggle button.active){background:var(--a-chip)!important;color:var(--a-on-chip)!important}
+html[data-ui-theme] .spin360.expanded .studio-tools :is(select){background:var(--a-panel2)!important;color:var(--a-text)!important;border:1px solid var(--a-line-strong)!important;border-radius:10px}
+html[data-ui-theme] .spin360.expanded :is(.studio-tools label,.studio-scenery-note){color:var(--a-muted)!important}
+html[data-ui-theme] .spin360.expanded .preset-preview-banner{background:var(--a-panel)!important;color:var(--a-text)!important;border-color:var(--a-line)!important}
+html[data-ui-theme] .spin360.expanded .preset-preview-banner :is(strong){color:var(--a-text)!important}
+html[data-ui-theme] .spin360.expanded .preset-preview-banner small{color:var(--a-muted)!important}
+html[data-ui-theme] .spin360.expanded #applyPreviewSetup{background:var(--a-lime)!important;color:var(--a-on-lime)!important;border:0!important;border-radius:12px!important;font-weight:700}
+html[data-ui-theme] .spin360.expanded #viewerStatus{background:rgba(17,23,22,.78)!important;color:#f1f3ea!important}
+
+/* The category rail belongs to the Garage only. */
+html[data-ui-theme] body:not([data-mode=garage]) .workbench>.garage-categories{display:none!important}
+
+/* ---------- My build (frames 04 and 10) ---------- */
+html[data-ui-theme] .build-drawer{background:var(--a-panel)!important;color:var(--a-text)!important;border-color:var(--a-line)!important;padding:0 24px!important;font-family:var(--font-body)}
+html[data-ui-theme] .build-drawer .drawer-head{align-items:flex-start!important;padding:24px 0 16px!important;top:0!important;background:var(--a-panel)!important;border-bottom:1px solid var(--a-line)}
+html[data-ui-theme] .build-drawer .drawer-head h2{font:700 30px/1.1 var(--font-display)!important;letter-spacing:-.02em;color:var(--a-text)!important}
+.drawer-context{margin:6px 0 0;color:var(--a-text);font-size:16px}
+html[data-ui-theme] .build-drawer .drawer-head .secsub{margin:2px 0 0!important;color:var(--a-muted)!important;font-size:15px!important}
+html[data-ui-theme] .build-drawer .closebtn{display:grid;place-items:center;width:52px!important;height:52px!important;flex-shrink:0;padding:0!important;border:1px solid var(--a-line-strong)!important;border-radius:14px!important;background:transparent!important;color:var(--a-text)!important;font-size:26px!important;line-height:1}
+html[data-ui-theme] .build-drawer .drawer-versions{margin:0;border-bottom:1px solid var(--a-line)}
+html[data-ui-theme] .build-drawer .drawer-versions>summary{min-height:52px;display:flex;align-items:center;color:var(--a-muted);font:500 15px var(--font-body);cursor:pointer}
+html[data-ui-theme] .build-drawer .drawer-versions[open]{padding-bottom:16px}
+html[data-ui-theme] .build-drawer .drawer-versions .form-grid{margin-top:12px!important}
+html[data-ui-theme] .build-drawer :is(input,select){min-height:48px;background:var(--a-panel2)!important;color:var(--a-text)!important;border:1px solid var(--a-line-strong)!important;border-radius:12px!important}
+html[data-ui-theme] .build-drawer .field label{color:var(--a-muted)!important;font-size:14px!important}
+html[data-ui-theme] .build-drawer .drawer-items{gap:0!important;margin:4px 0 0!important}
+html[data-ui-theme] .build-drawer .drawer-item{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;align-items:center;column-gap:16px;padding:16px 0!important;border-bottom:1px solid var(--a-line)!important;font-size:17px!important}
+html[data-ui-theme] .build-drawer .drawer-item img{grid-row:1/3;width:84px;height:60px;object-fit:cover;border-radius:10px}
+html[data-ui-theme] .build-drawer .drawer-item>span{grid-column:2;color:var(--a-text);font-weight:600}
+html[data-ui-theme] .build-drawer .drawer-item>b{grid-column:2;color:var(--a-muted);font-weight:400;font-size:15px}
+html[data-ui-theme] .build-drawer .drawer-item:not(:has(img))>:is(span,b){grid-column:1/3}
+html[data-ui-theme] .build-drawer .drawer-item .remove-item{grid-column:3;grid-row:1/3;width:44px;height:44px;border:0!important;background:transparent!important;color:var(--a-text)!important;font-size:24px!important;border-radius:10px}
+html[data-ui-theme] .build-drawer .drawer-item .remove-item:hover{background:var(--a-panel2)!important}
+html[data-ui-theme] .build-drawer .cost-table{margin:16px 0 0!important;padding:0!important;border:0!important;background:transparent!important}
+html[data-ui-theme] .build-drawer .cost-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0!important;color:var(--a-muted);font-size:16px!important;border:0!important}
+html[data-ui-theme] .build-drawer .cost-row b{color:var(--a-text)}
+html[data-ui-theme] .build-drawer .next-steps{margin:16px 0!important;padding:20px!important;border:0!important;border-radius:16px!important;background:var(--a-panel2)!important;color:var(--a-text)!important}
+html[data-ui-theme] .build-drawer .drawer-actions{position:sticky;bottom:0;z-index:2;display:flex!important;gap:10px!important;margin:16px -24px 0!important;padding:16px 24px calc(16px + env(safe-area-inset-bottom))!important;border-top:1px solid var(--a-line);background:var(--a-panel)!important;flex-wrap:nowrap!important}
+html[data-ui-theme] .build-drawer .drawer-actions>.action{min-height:56px!important;border-radius:14px!important;font:600 17px var(--font-body)!important}
+html[data-ui-theme] .build-drawer .drawer-actions>#shareBuild{flex:1.3;background:var(--a-lime)!important;color:var(--a-on-lime)!important;border:0!important}
+html[data-ui-theme] .build-drawer .drawer-actions>#saveSnapshot{flex:1;background:transparent!important;color:var(--a-text)!important;border:1px solid var(--a-line-strong)!important}
+html[data-ui-theme] .build-drawer .drawer-more>summary{display:grid!important;place-items:center;width:56px;min-height:56px!important;padding:0!important;border:1px solid var(--a-line-strong)!important;border-radius:14px!important;background:transparent!important;color:var(--a-text)!important;font-size:24px!important;list-style:none}
+html[data-ui-theme] .build-drawer .drawer-more>summary::-webkit-details-marker{display:none}
+html[data-ui-theme] .build-drawer .drawer-more-menu{right:0!important;left:auto!important;bottom:calc(100% + 10px)!important;min-width:280px;padding:8px!important;border:1px solid var(--a-line)!important;border-radius:16px!important;background:var(--a-chip)!important;box-shadow:0 20px 50px rgba(0,0,0,.4)!important}
+html[data-ui-theme] .build-drawer .drawer-more-menu .action{display:flex!important;width:100%;min-height:48px!important;justify-content:flex-start!important;padding:0 14px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--a-on-chip)!important;font:500 16px var(--font-body)!important;text-align:left}
+html[data-ui-theme] .build-drawer .drawer-more-menu .action:hover{background:rgba(0,0,0,.06)!important}
+html[data-ui-theme] .build-drawer .drawer-more-menu #clearBuild{color:#a33a1c!important;border-top:1px solid rgba(0,0,0,.1)!important;border-radius:0 0 10px 10px!important}
+html[data-ui-theme] .build-drawer .drawer-more-menu .action:disabled{opacity:.45}
+@media(min-width:900px){
+  html[data-ui-theme] .build-drawer{top:0!important;right:0!important;bottom:0!important;left:auto!important;width:min(480px,100vw)!important;max-height:none!important;height:100dvh!important;border-radius:0!important;border:0!important;border-left:1px solid var(--a-line)!important;transform:translateX(105%)!important}
+  html[data-ui-theme] .build-drawer.open{transform:none!important}
+}
+@media(max-width:899px){
+  html[data-ui-theme] .build-drawer{padding:0 16px!important;border-radius:22px 22px 0 0!important}
+  html[data-ui-theme] .build-drawer .drawer-actions{margin:16px -16px 0!important;padding:16px 16px calc(16px + env(safe-area-inset-bottom))!important}
+  html[data-ui-theme] .build-drawer .drawer-head h2{font-size:28px!important}
+}
+html[data-ui-theme] .build-drawer .cost-row.total{margin-top:6px;padding-top:14px!important;border-top:1px solid var(--a-line)!important;color:var(--a-text)!important;font:700 19px var(--font-body)!important}
+html[data-ui-theme] .build-drawer .cost-row.total b{font-size:21px}
+html[data-ui-theme] .build-drawer .cost-table .warning{margin:0 0 10px!important;padding:12px 14px!important;border:0!important;border-radius:12px!important;background:var(--a-panel2)!important;color:var(--a-text)!important;font-size:15px!important}
+html[data-ui-theme] .build-drawer .drawer-actions>.action,html[data-ui-theme] .build-drawer .drawer-more>summary{clip-path:none!important}
+html[data-ui-theme] .build-drawer .drawer-more>summary::before,html[data-ui-theme] .build-drawer .drawer-more>summary::after{content:none!important;display:none!important}
+html[data-ui-theme] .build-drawer .drawer-item .drawer-item-name{grid-column:2;justify-self:start;min-height:0;padding:0;border:0;background:transparent;color:var(--a-text);font:600 17px/1.35 var(--font-body);text-align:left;cursor:pointer}
+html[data-ui-theme] .build-drawer .drawer-item .drawer-item-name:hover{text-decoration:underline;text-underline-offset:4px}
+/* In My build the item rows already list, remove and link each part; keep the tray's Edit my build. */
+html[data-ui-theme] #buildDrawer .garage-selection-tray{display:flex!important;justify-content:flex-start;padding:4px 0 8px!important;border:0!important}
+html[data-ui-theme] #buildDrawer .garage-selection-tray :is(.garage-chips,#garageSelectionCount,.garage-selection-heading>span,[data-open-kits]){display:none!important}
+html[data-ui-theme] #buildDrawer .garage-selection-heading{display:flex;padding:0!important;border:0!important;background:transparent!important}
+html[data-ui-theme] #buildDrawer .edit-build-launch{min-height:44px;padding:0!important;border:0!important;background:transparent!important;color:var(--a-accent-text)!important;font:600 16px var(--font-body)!important;text-decoration:underline;text-underline-offset:4px}
+/* A fitted card's Edit sits on the same row as Details & where to buy. */
+html[data-ui-theme] #garage .garage-part{display:grid!important;grid-template-columns:1fr auto;grid-template-rows:1fr auto;column-gap:12px;row-gap:6px}
+html[data-ui-theme] #garage .garage-part>.garage-fit{grid-column:1/-1;grid-row:1}
+html[data-ui-theme] #garage .garage-part>.garage-source{grid-column:1;grid-row:2}
+html[data-ui-theme] #garage .garage-part>.garage-edit{grid-column:2;grid-row:2}
+/* Phones: Undo stays in each fit toast and My build's ⋯ menu, keeping the heading row to one line. */
+@media(max-width:899px){html[data-ui-theme] body.phone-garage #garage .garage-undo{display:none!important}}
+/* "Next" links under each category: quiet text links, not three more boxes. */
+html[data-ui-theme] #garage .garage-next{display:flex!important;flex-wrap:wrap;gap:4px 20px!important;margin:32px 0 8px!important;padding:20px 0 0!important;border-top:1px solid var(--a-line)!important}
+html[data-ui-theme] #garage .garage-next button{min-height:44px!important;padding:0!important;border:0!important;background:transparent!important;color:var(--a-text)!important;font:500 16px var(--font-body)!important;text-decoration:underline;text-underline-offset:4px;box-shadow:none!important}
+html[data-ui-theme] #garage .garage-honesty{color:var(--a-muted)!important;font-size:14px!important;line-height:1.5}
+html[data-ui-theme] #garage .paint-label{color:var(--a-text)!important;font:600 16px var(--font-body)!important}
+html[data-ui-theme] #garage .paint-label :is(small,span){color:var(--a-muted)!important;font-weight:400;font-size:14px}
+html[data-ui-theme] #garage .editor-note{color:var(--a-muted)!important;font-size:14px!important;line-height:1.5}

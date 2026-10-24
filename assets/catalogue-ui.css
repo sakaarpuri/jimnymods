@@ -26,3 +26,27 @@ body.resource-page[data-mode="parts"] #mods.visual-catalogue{grid-template-colum
 }
 
 .estimates-dialog{max-width:min(520px,calc(100vw - 32px));padding:20px;border:1px solid var(--line);border-radius:10px;background:var(--panel,#fff);color:var(--text,#111)}.estimates-dialog::backdrop{background:rgba(0,0,0,.55)}.estimates-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.estimates-head h2{margin:0;font-size:20px}.estimates-head button{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:6px;background:transparent;color:inherit;font:inherit;cursor:pointer}.estimates-dialog dt{font-weight:700;margin-top:14px}.estimates-dialog dd{margin:2px 0 0;font-size:max(14px,1em);line-height:1.5;color:var(--muted)}
+
+/* Direction A (Brief 2, task 3): same card language as the Garage — one primary
+   action, quieter secondary ones, fewer boxes, readable type. */
+html[data-ui-theme] .visual-catalogue{gap:32px 24px!important}
+html[data-ui-theme] .product-card{padding:0 0 20px!important;border:0!important;border-bottom:1px solid var(--a-line)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+html[data-ui-theme] .product-frame,html[data-ui-theme] .product-image,html[data-ui-theme] .product-image img{border-radius:16px!important;overflow:hidden}
+html[data-ui-theme] .product-media-label{padding:4px 10px!important;border:0!important;border-radius:999px!important;background:rgba(17,23,22,.78)!important;color:#f1f3ea!important;font:600 13px var(--font-body)!important}
+html[data-ui-theme] .product-media-toggle{display:inline-flex!important;gap:2px!important;margin-top:10px!important;padding:3px;border-radius:12px;background:var(--a-panel)}
+html[data-ui-theme] .product-media-toggle button{flex:0 0 auto!important;min-height:40px!important;padding:0 14px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--a-muted)!important;font:500 14px var(--font-body)!important}
+html[data-ui-theme] .product-media-toggle button[aria-pressed=true]{background:var(--a-chip)!important;color:var(--a-on-chip)!important}
+html[data-ui-theme] .product-kicker{color:var(--a-muted)!important;font:500 14px var(--font-body)!important;letter-spacing:0!important;text-transform:none!important}
+html[data-ui-theme] .product-card h3{margin:6px 0 4px!important;color:var(--a-text)!important;font:600 19px/1.3 var(--font-display)!important;letter-spacing:-.01em!important}
+html[data-ui-theme] .product-fitment{color:var(--a-muted)!important;font-size:15px!important}
+html[data-ui-theme] .product-actions{gap:10px!important;margin-top:14px!important}
+html[data-ui-theme] .product-actions button{min-height:44px!important;padding:0 16px!important;border-radius:12px!important;font:600 15px var(--font-body)!important}
+html[data-ui-theme] .product-actions .product-primary{background:var(--a-lime)!important;color:var(--a-on-lime)!important;border:0!important}
+html[data-ui-theme] .product-actions button:not(.product-primary):not(.product-save){background:transparent!important;color:var(--a-text)!important;border:1px solid var(--a-line-strong)!important}
+html[data-ui-theme] .product-actions{flex-wrap:nowrap!important}
+html[data-ui-theme] .product-actions .product-save{display:inline-flex!important;align-items:center;gap:6px;flex-shrink:0;padding:0 8px!important;background:transparent!important;color:var(--a-text)!important;border:0!important}
+html[data-ui-theme] .product-actions .product-save[aria-pressed=true]{color:var(--a-accent-text)!important}
+html[data-ui-theme] .product-notes summary{min-height:44px;color:var(--a-muted)!important;font:500 15px var(--font-body)!important}
+@media(max-width:899px){
+  html[data-ui-theme] .product-actions .product-save{border:1px solid var(--a-line-strong)!important}
+}

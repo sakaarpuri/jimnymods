@@ -21,12 +21,14 @@
  // The category picker and the direct-on-car editor are separate entry paths.
  // Both must show the visual choice before optional paint/finish controls.
  const grillePanel=$('grilleControls'),grilleGrid=grillePanel.querySelector('[aria-label="Grille choices"]'),surfaces=document.querySelector('.surface-controls'),surfaceHome=document.createComment('Shared surface editor home');surfaces.before(surfaceHome);
- const grilleAppearance=document.createElement('details');grilleAppearance.id='grilleAppearance';grilleAppearance.className='grille-appearance';grilleAppearance.innerHTML='<summary>Colour, badge & finish</summary>';grilleAppearance.append(grillePanel.querySelector('.grille-colour-controls'));grillePanel.prepend(grilleGrid);grilleGrid.after(grilleAppearance);
+ const grilleAppearance=document.createElement('details');grilleAppearance.id='grilleAppearance';grilleAppearance.className='grille-appearance';grilleAppearance.innerHTML='<summary>More options <small>Colour, badge & finish</small></summary>';grilleAppearance.append(grillePanel.querySelector('.grille-colour-controls'));grillePanel.prepend(grilleGrid);grilleGrid.after(grilleAppearance);
  const grilleActions=document.createElement('div');grilleActions.className='grille-choice-actions';grilleActions.innerHTML='<button type="button" data-open-grille-appearance>Colour & finish</button><button type="button" data-source-design="grille">Buying options</button>';grilleGrid.before(grilleActions);
  let previousCategory='';
  function syncGarageCategory(){
   $('garage').dataset.category=garageCategory;
-  if(garageCategory==='grille'){if(surfaces.parentElement!==grilleAppearance)grilleAppearance.append(surfaces);}else if(surfaces.previousSibling!==surfaceHome)surfaceHome.after(surfaces);
+  // All black and Matte / gloss appear once: in Grilles' appearance panel or Paint's More options.
+  const paintMore=$('paintMore');
+  if(garageCategory==='grille'){if(surfaces.parentElement!==grilleAppearance)grilleAppearance.append(surfaces);}else if(garageCategory==='paint'&&paintMore){if(surfaces.parentElement!==paintMore)paintMore.append(surfaces);}else if(surfaces.previousSibling!==surfaceHome)surfaceHome.after(surfaces);
   if(previousCategory!==garageCategory)grilleAppearance.open=false;previousCategory=garageCategory;
  }
  document.addEventListener('click',e=>{if(!e.target.closest('[data-open-grille-appearance]'))return;grilleAppearance.open=true;grilleAppearance.scrollIntoView({block:'start',behavior:'instant'});grilleAppearance.querySelector('summary').focus({preventScroll:true});});

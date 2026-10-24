@@ -98,3 +98,6 @@ html body.drive-page #game{height:calc(100dvh - var(--site-header-h))}
 body.drive-page .site-header{position:relative}
 .site-bar>[data-site-header-slot]{flex-shrink:0;min-height:44px;padding:0 14px;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:transparent;color:var(--a-text);font:500 15px var(--font-body);cursor:pointer}
 @media(min-width:701px) and (max-height:600px){:root{--site-header-h:52px}.site-bar>[data-site-header-slot],.site-build,.site-setup>summary{min-height:40px}.site-menu-toggle{width:42px;height:42px}}
+
+/* Direction A buttons are rounded; the older notched-corner primary style is retired. */
+html[data-ui-theme] :is(.primary,#startButton){clip-path:none!important;border-radius:12px!important}
