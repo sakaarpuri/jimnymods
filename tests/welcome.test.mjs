@@ -1,0 +1,31 @@
+import test from'node:test';import assert from'node:assert/strict';import{readFileSync}from'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const html=read('index.html'),welcome=read('assets/welcome.js'),css=read('assets/welcome.css');
+
+test('first-visit welcome uses the brief copy and asks only region and body',()=>{
+ assert.match(welcome,/Build it<br>here first\./);
+ assert.match(welcome,/Try every mod on a live 3D Jimny, then find the parts and the people who fit them\. Spend once you're sure\./);
+ assert.match(welcome,/Open the Garage/);assert.match(welcome,/Browse parts/);assert.match(welcome,/Find a fitter/);assert.match(welcome,/Plan a trip/);
+ assert.match(welcome,/Start building/);assert.match(welcome,/Just look around/);
+ const fields=[...welcome.matchAll(/<(select|input) /g)].length;assert.equal(fields,2,'one radio group and one region select');
+ // Answers go through the existing controls, so there is one source of truth.
+ assert.match(welcome,/regionSelect\.dispatchEvent\(new Event\('change'/);assert.match(welcome,/bodySelect\.dispatchEvent\(new Event\('change'/);
+});
+
+test('welcome is decided before first paint and skipped for returning visitors',()=>{
+ const head=html.split('</head>')[0];
+ assert.match(head,/assets\/welcome\.css/);
+ assert.match(head,/dataset\.welcome=deep\?'sheet':'page'/);
+ for(const key of ['thatsuvmod-welcomed','thatsuvmod-region','thatsuvmod-build','thatsuvmod-snapshots'])assert(head.includes(key),key);
+ assert.match(head,/build\?\.parts\?\.length/,'an autosaved stock build is not a returning visitor');
+ assert.match(head,/has\('build'\)/,'share links get the sheet, not the page');
+ assert.match(css,/:root\[data-welcome=page\] body>:not\(\.welcome-page\)/);
+ assert.doesNotMatch(html,/class="hero-intro"/,'the unused hidden hero is gone');
+});
+
+test('the welcome can be seen again from the header and footer',()=>{
+ assert.match(read('assets/site-header.js'),/#welcome">What is jimnygami\?<\/a>/);
+ assert.match(html,/<a href="#welcome">What is jimnygami\?<\/a>/);
+ assert.match(welcome,/a\[href\$="#welcome"\]/);
+ assert.match(read('scripts/build.mjs'),/'assets\/welcome\.js'/);
+});

@@ -49,7 +49,7 @@
 <div class="site-menu-panel" id="siteMenu">
 <nav class="site-nav" id="siteNav" aria-label="Main navigation">${NAV.map(item=>navItem(item,page)).join('')}</nav>
 <details class="site-setup"><summary aria-label="Your setup: region, Jimny and style"><span class="site-setup-context">${esc(contextLabel(context))}</span>${icons.chevron}</summary>
-<div class="site-setup-panel"><div class="site-setup-heading"><strong>Your setup</strong><button type="button" data-close-setup>Close</button></div><div class="site-setup-fields">${fields}</div><div class="site-setup-theme"></div><p class="site-setup-note">Body and region shape the previews and sources. Style changes the look of every page.</p></div></details>
+<div class="site-setup-panel"><div class="site-setup-heading"><strong>Your setup</strong><button type="button" data-close-setup>Close</button></div><div class="site-setup-fields">${fields}</div><div class="site-setup-theme"></div><p class="site-setup-note">Body and region shape the previews and sources. Style changes the look of every page.</p><a class="site-setup-welcome" href="${page==='garage'?'':'index.html'}#welcome">What is jimnygami?</a></div></details>
 </div>
 ${build}
 <button type="button" class="site-menu-toggle" aria-expanded="false" aria-controls="siteMenu" aria-label="Menu">${icons.menu}</button>

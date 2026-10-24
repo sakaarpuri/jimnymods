@@ -1,0 +1,95 @@
+/* First-visit welcome page and sheet. Uses the Direction A tokens. */
+:root[data-welcome=page] body>:not(.welcome-page):not(script):not(dialog){visibility:hidden}
+:root[data-welcome=page],:root[data-welcome=page] body{overflow:hidden;background:var(--a-ground)}
+
+.welcome-page{position:fixed;inset:0;z-index:80;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;background:var(--a-ground);color:var(--a-text);font-family:var(--font-body)}
+.welcome-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:24px clamp(16px,5vw,72px) 0}
+.welcome-logo{padding:0 10px}
+.welcome-logo .site-logo-art{width:144px}
+.welcome-skip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border:0;background:transparent;color:var(--a-text);font:500 17px var(--font-body);cursor:pointer}
+.welcome-skip:hover{color:var(--a-accent-text)}
+.welcome-skip-short{display:none}
+.welcome-main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:clamp(32px,6vw,96px);padding:clamp(32px,6vh,72px) clamp(16px,5vw,72px)}
+.welcome-eyebrow{margin:0 0 20px;color:var(--a-accent-text);font:600 14px var(--font-body);letter-spacing:.16em;text-transform:uppercase}
+.welcome-page h1,.welcome-sheet h2{margin:0;font:800 clamp(48px,6.4vw,92px)/.98 var(--font-display);letter-spacing:-.04em;color:var(--a-text)}
+.welcome-page h1:focus{outline:none}
+.welcome-lede{max-width:36em;margin:24px 0 0;color:var(--a-muted);font-size:clamp(17px,1.4vw,20px);line-height:1.5}
+.welcome-form{display:grid;gap:22px;margin-top:32px}
+.welcome-field{display:grid;gap:10px;margin:0;padding:0;border:0;min-width:0}
+.welcome-field legend,.welcome-label{padding:0;margin-bottom:10px;font:600 16px var(--font-body);color:var(--a-text)}
+.welcome-field .welcome-label{margin:0}
+.welcome-doors{display:grid;grid-template-columns:repeat(2,minmax(0,max-content));gap:10px}
+.welcome-door{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 18px;border:1px solid var(--a-line-strong);border-radius:var(--a-radius);cursor:pointer;color:var(--a-text)}
+/* Selector weight beats the Garage's global input styles. */
+.welcome-door input[type=radio]{appearance:none;color:inherit;flex-shrink:0;width:22px;height:22px;min-height:0;margin:0;padding:0;border:2px solid currentColor;border-radius:50%;background:transparent;box-shadow:none}
+.welcome-door input[type=radio]:checked{border:7px solid currentColor;background:var(--a-chip)}
+.welcome-door:has(input:checked){background:var(--a-chip);border-color:var(--a-chip);color:var(--a-on-chip)}
+.welcome-door:has(input:focus-visible){outline:3px solid var(--a-accent-text);outline-offset:2px}
+.welcome-door span{display:flex;flex-wrap:wrap;column-gap:6px;font:500 17px var(--font-body)}
+.welcome-door b{font-weight:600}
+.welcome-door small{font-size:17px;opacity:.85}
+.welcome-door small::before{content:'/ '}
+.welcome-field select{width:100%;max-width:400px;min-height:52px;padding:0 16px;border:1px solid var(--a-line-strong);border-radius:var(--a-radius-sm);background:var(--a-panel);color:var(--a-text);font:500 17px var(--font-body)}
+.welcome-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:8px}
+.welcome-primary{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:56px;padding:0 28px;border:0;border-radius:var(--a-radius);background:var(--a-lime);color:var(--a-on-lime);font:700 18px var(--font-body);cursor:pointer}
+.welcome-primary:hover{filter:brightness(1.05)}
+.welcome-routes{display:flex;flex-wrap:wrap;gap:4px 20px}
+.welcome-routes :is(a,button),.welcome-quiet{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:transparent;color:var(--a-text);font:500 17px var(--font-body);text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.welcome-routes :is(a,button):hover,.welcome-quiet:hover{color:var(--a-accent-text)}
+.welcome-page :is(button,a,select):focus-visible,.welcome-sheet :is(button,select):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:3px}
+.welcome-car{position:relative;margin:0;border-radius:20px;overflow:hidden;background:var(--a-panel);aspect-ratio:4/3}
+.welcome-car img{display:block;width:100%;height:100%;object-fit:cover}
+.welcome-car figcaption{position:absolute;left:20px;bottom:20px;max-width:calc(100% - 40px);padding:10px 16px;border-radius:999px;background:rgba(17,23,22,.78);color:#f1f3ea;font-size:15px;backdrop-filter:blur(6px)}
+.welcome-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px clamp(24px,4vw,64px);margin:0;padding:32px clamp(16px,5vw,72px) 40px;border-top:1px solid var(--a-line);list-style:none;counter-reset:feature}
+.welcome-features li{display:grid;grid-template-columns:auto 1fr;column-gap:16px;row-gap:6px;counter-increment:feature}
+.welcome-features li::before{content:counter(feature,decimal-leading-zero);grid-row:1/3;color:var(--a-accent-text);font:700 17px var(--font-display);line-height:1.5}
+.welcome-features b{font:600 19px var(--font-body)}
+.welcome-features span{color:var(--a-muted);font-size:16px;line-height:1.5}
+
+/* Sheet over the Garage for first visits through a link. */
+.welcome-sheet{width:min(640px,calc(100vw - 32px));max-height:calc(100dvh - 32px);margin:auto;padding:0;border:1px solid var(--a-line);border-radius:20px;background:var(--a-panel);color:var(--a-text);font-family:var(--font-body);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.welcome-sheet::backdrop{background:rgba(5,8,8,.62)}
+.welcome-sheet .welcome-form{margin:0;padding:40px 40px 36px;gap:20px}
+.welcome-sheet .welcome-eyebrow{margin:0}
+.welcome-sheet h2{font-size:clamp(36px,5vw,52px)}
+.welcome-sheet .welcome-lede{margin:0}
+.welcome-sheet .welcome-field select{max-width:none}
+.welcome-sheet .welcome-actions{justify-content:space-between}
+.welcome-grip{display:none}
+
+@media(max-width:899px){
+  .welcome-main{grid-template-columns:1fr;gap:0;padding:20px 16px 24px;align-items:start}
+  .welcome-car{order:-1;border-radius:16px;aspect-ratio:16/9;margin-bottom:28px}
+  .welcome-car figcaption{display:none}
+  .welcome-features{grid-template-columns:1fr;padding:28px 16px 32px}
+}
+@media(max-width:599px){
+  .welcome-top{padding:14px 16px 0}
+  .welcome-logo .site-logo-art{width:112px}
+  .welcome-skip-long{display:none}.welcome-skip-short{display:inline}.welcome-skip svg{display:none}
+  .welcome-skip{text-decoration:underline;text-underline-offset:4px}
+  .welcome-page .welcome-eyebrow{display:none}
+  .welcome-main{padding-top:16px}
+  .welcome-car{margin-bottom:22px}
+  .welcome-page h1{font-size:clamp(40px,12vw,48px)}
+  .welcome-page .welcome-lede{margin-top:14px;font-size:17px}
+  .welcome-page .welcome-form{margin-top:20px;gap:16px}
+  .welcome-page .welcome-actions{margin-top:4px;gap:4px}
+  .welcome-doors{grid-template-columns:1fr 1fr}
+  .welcome-door{min-height:64px;padding:10px 14px;align-items:center}
+  .welcome-door span{flex-direction:column}
+  .welcome-door small{font-size:15px}.welcome-door small::before{content:none}
+  .welcome-field select{max-width:none}
+  .welcome-actions{flex-direction:column;align-items:stretch;gap:12px}
+  .welcome-primary{width:100%}
+  .welcome-routes{justify-content:center;gap:4px 24px}
+  .welcome-sheet{width:100vw;max-width:none;max-height:92dvh;margin:auto 0 0;border-radius:20px 20px 0 0;border-bottom:0}
+  .welcome-sheet .welcome-form{padding:12px 16px calc(20px + env(safe-area-inset-bottom))}
+  .welcome-grip{display:block;justify-self:center;width:40px;height:5px;border-radius:3px;background:var(--a-line-strong)}
+  .welcome-sheet .welcome-actions{flex-direction:column;align-items:stretch}
+  .welcome-quiet{justify-content:center}
+}
+@media(prefers-reduced-motion:no-preference){
+  .welcome-sheet[open]{animation:welcome-rise .28s ease-out}
+  @keyframes welcome-rise{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+}
