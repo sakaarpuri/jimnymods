@@ -340,6 +340,12 @@
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="assets/jimnygami-brand.css">
 <link rel="stylesheet" href="assets/direction-a.css">
+<link rel="stylesheet" href="assets/welcome.css">
+<script>/* First-visit welcome, decided before first paint so the Garage never flashes.
+   Returning = welcomed before, a chosen region, or a saved build with parts. */
+(()=>{const forced=location.hash==='#welcome';let returning=false;try{const ls=localStorage,build=JSON.parse(ls.getItem('thatsuvmod-build')||ls.getItem('thatsuvlab-build')||ls.getItem('jimnylab-build')||'null');returning=!!(ls.getItem('thatsuvmod-welcomed')||ls.getItem('thatsuvmod-region')||build?.parts?.length||JSON.parse(ls.getItem('thatsuvmod-snapshots')||'[]').length);}catch{returning=true;}
+if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.search).has('build')||(location.hash.length>1));document.documentElement.dataset.welcome=deep?'sheet':'page';})();
+</script>
 <script src="assets/ui-theme.js"></script>
 <script src="assets/surface-style-state.js"></script>
 </head>
@@ -348,7 +354,6 @@
 
 <header data-site-header data-page="garage"></header>
 <script src="assets/site-header.js"></script>
-<div class="hero-intro" hidden><div><p class="eyebrow">A little SUV. A lot of possibility.</p><h1>Small car.<br><em>Big possibilities.</em></h1><p class="site-promise">Ideas and resources for modifying your Jimny</p></div><div class="hero-aside"><p>Find a look you love. Pick the upgrades that suit you. Know where to start.</p><a class="hero-cta" href="#explore">Explore the possibilities <span aria-hidden="true">↗</span></a><span class="hero-footnote">Looks, parts & fitting help. All in one place.</span></div></div>
 
 <div class="wrap" id="build">
   <section class="market-bar" aria-label="Your region and Jimny"><label for="regionSelect">Your region<select id="regionSelect" aria-describedby="regionNote"></select></label><label for="bodySelect">Your Jimny<select id="bodySelect"><option value="5door">5-door / XL / Nomade</option><option value="3door">3-door / Sierra (JB74)</option></select></label><details class="market-context"><summary>Region & pricing notes</summary><p id="regionNote"></p><p id="priceRegionNote">Planning estimates in INR. Ask sellers for current local quotes.</p></details><button type="button" id="layoutChoice" aria-pressed="false">Try Studio layout ↗</button></section>
@@ -532,7 +537,7 @@
 </div>
 
   <footer>
-    <div class="footer-brand"><span class="logo-art"><img loading="lazy" decoding="async" src="assets/jimnygami-logo.webp" width="560" height="280" alt="jimnygami"></span><span>Ideas and resources for modifying your Jimny</span><a href="#workspace">Back to exploring ↑</a></div>
+    <div class="footer-brand"><span class="logo-art"><img loading="lazy" decoding="async" src="assets/jimnygami-logo.webp" width="560" height="280" alt="jimnygami"></span><span>Ideas and resources for modifying your Jimny</span><a href="#workspace">Back to exploring ↑</a><a href="#welcome">What is jimnygami?</a></div>
     <p>jimnygami is an independent platform and is not affiliated with, endorsed by, or sponsored by Suzuki Motor Corporation or Maruti Suzuki India Limited. Suzuki and Jimny are trademarks of their respective owners.</p>
     <p>jimnygami is not a seller, installer or agent for any listed business and is not responsible for their prices, policies or work. Prices are Indian planning estimates (July 2026) shown in ₹; other regions see approximate converted ranges. Neither is a local quote or currency conversions. Actual prices, shipping, duties and installation are set by sellers.</p>
     <div class="footer-links"><button type="button" data-footer-note="checking">How resources are checked</button><button type="button" data-footer-note="privacy">Privacy & saved builds</button></div>
@@ -2103,6 +2108,7 @@ if(requestedWorkshopHash&&requestedWorkshopHash!=='#garage'){const mode=Object.e
 <link rel="stylesheet" href="assets/catalogue-ui.css">
 <script src="assets/owner-tools-state.js"></script>
 <script src="assets/owner-workspace.js"></script>
+<script src="assets/welcome.js"></script>
 <link rel="stylesheet" href="assets/owner-workspace.css">
 <link rel="stylesheet" href="assets/trip-planner.css">
 <script type="module" src="assets/viewer3d.js"></script>

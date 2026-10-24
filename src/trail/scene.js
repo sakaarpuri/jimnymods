@@ -2,6 +2,7 @@ import {companionVehicle} from './companions.js';
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+import {loadBodyModel} from '../model-loader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {RGBELoader} from 'three/addons/loaders/RGBELoader.js';
 import {Sky} from 'three/addons/objects/Sky.js';
@@ -91,7 +92,7 @@ export function createTrailScene(mount){
   async function loadVehicle(body,build={}){
     const buildKey=JSON.stringify(build);if(currentBody===body&&currentBuildKey===buildKey)return;
     const path=body==='3door'?__JIMNY_SWB_URL__:__JIMNY_MODEL_URL__;
-    const [gltf]=await Promise.all([new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(path),preloadRockAssets(),preloadVegetationAssets(),preloadAuthoredPines()]);gltf.scene.updateMatrixWorld(true);surfaceStyler.clear();wheelRoot.userData.finishTarget='wheels';
+    const [gltf]=await Promise.all([loadBodyModel(path),preloadRockAssets(),preloadVegetationAssets(),preloadAuthoredPines()]);gltf.scene.updateMatrixWorld(true);surfaceStyler.clear();wheelRoot.userData.finishTarget='wheels';
 mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose();dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);wheels=[];windowMaterials=[];car.position.set(0,0,0);car.rotation.set(0,0,0);bodyRig.position.set(0,0,0);bodyRig.rotation.set(0,0,0);car.updateMatrixWorld(true);
     const design={...(build.design||{}),drivingPreview:true},colour=typeof build.colour==='string'&&/^#[\da-f]{6}$/i.test(build.colour)?build.colour:'#728773';
     const paint=new T.MeshPhysicalMaterial({color:colour,roughness:design.finish==='matte'?.72:design.finish==='satin'?.42:.28,metalness:['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0,clearcoat:design.finish==='matte'?.04:design.finish==='satin'?.26:1,clearcoatRoughness:design.finish==='satin'?.34:.22});
