@@ -1,0 +1,18 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+const viewer = readFileSync(new URL('../src/viewer3d.js', import.meta.url), 'utf8');
+const contact = readFileSync(new URL('../src/contact-shadow.js', import.meta.url), 'utf8');
+
+test('the car is grounded by a rendered contact shadow, not painted gradient cards', () => {
+  assert.match(viewer, /createContactShadow\(renderer\)/);
+  assert.doesNotMatch(viewer, /contactCanvas|tyreContactCanvas/, 'no canvas gradient shadow blobs');
+  assert.match(viewer, /function sync\(payload=current\)\{\n    contactDirty=true;/, 'every build change re-renders the contact shadow');
+  assert.match(contact, /OrthographicCamera/);assert.match(contact, /HorizontalBlurShader/);
+});
+test('ambient occlusion ignores the photographed backdrop and all renders share one pipeline', () => {
+  assert.match(viewer, /new GTAOPass\(/);
+  assert.match(viewer, /backdrops\.forEach\(sky=>\{sky\.visible=false;\}\)/);
+  assert.doesNotMatch(viewer, /renderer\.render\(scene,camera\)/, 'Save image and previews also go through the composer');
+});
