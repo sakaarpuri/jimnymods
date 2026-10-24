@@ -1,11 +1,11 @@
 {
   "generated": "2026-10-23",
   "source": "Live Three.js renderer using the authored Blender model, not AI photographs",
-  "modelSha256": "6bea3ce4a3dfbc22c54dc3e9851ad2efb5df13d41a9e7dfba2023e7bca1cb784",
+  "modelSha256": "0b7863dbf1533ebccd541cdb73f339981a88c6f40948b0396c61cc1ac741675b",
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
-    "src/viewer3d.js": "1494708d5704af6676abc14d97ed2a2d267c0a0f800f6d930a8fbbfda6a0bbd2",
+    "src/viewer3d.js": "38d8ac949df97f62c8b5bccd92973f53cd3f26e07271f85d08e347e8e8eaed14",
     "src/refined-parts.js": "67124a252e652c0587bdb780029897922712c9d72a1efa29bf689cca99472ad3",
     "src/decals.js": "ab5112e00b6affdca87142ab9885d2def01d43be47a244bee49047bb3553ccf1",
     "src/accessories.js": "6039126f2417f6ad93a7f05c804ec5a869e7b0ed98220300003f13b02ebfdc59",
@@ -91,7 +91,7 @@
     "ambient",
     "shelf"
   ],
-  "swbModelSha256": "b05100f69454a65f97a42c4d61939a3b2889045300d7d90f22b611a4f3bd6ecd",
+  "swbModelSha256": "48f13c24ef0673259eafd5e58ca1b37911e899ad69ceeb9106668efd3a7f4a80",
   "swbPresets": [
     "classic",
     "retro",

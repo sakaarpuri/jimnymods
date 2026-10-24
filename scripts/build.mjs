@@ -1,6 +1,7 @@
 import { build } from 'esbuild';
 import { mkdir, cp, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
 
 const hash=async file=>createHash('sha256').update(await readFile(file)).digest('hex');
 const modelFull=await hash('assets/models/jimny-lwb-blender.glb'),swbFull=await hash('assets/models/jimny-swb-blender.glb');
@@ -15,6 +16,8 @@ const previewVersion=createHash('sha256').update(JSON.stringify({modelFull,swbFu
 await writeFile('assets/visual-release.js','/* Generated model/preview identity. */\nwindow.JIMNY_VISUAL_RELEASE='+JSON.stringify({previewVersion,models:{'5door':modelHash,'3door':swbHash}})+';\n');
 await build({entryPoints:['src/viewer3d.js'],bundle:true,minify:true,format:'esm',outfile:'assets/viewer3d.js',logLevel:'info',define:{__JIMNY_MODEL_URL__:JSON.stringify(`assets/models/jimny-lwb-blender.glb?v=${modelHash}`),__JIMNY_SWB_URL__:JSON.stringify(`assets/models/jimny-swb-blender.glb?v=${swbHash}`)}});
 await build({entryPoints:['src/trail-game.js'],bundle:true,minify:true,format:'esm',outfile:'assets/trail-game.js',logLevel:'info',define:{__JIMNY_MODEL_URL__:JSON.stringify(`assets/models/jimny-lwb-blender.glb?v=${modelHash}`),__JIMNY_SWB_URL__:JSON.stringify(`assets/models/jimny-swb-blender.glb?v=${swbHash}`)}});
+// Gzip copies of the body models (loaded by src/model-loader.js; the plain .glb stays as fallback).
+for(const stem of ['lwb','swb']){const file=`assets/models/jimny-${stem}-blender.glb`;await writeFile(file+'.gz',gzipSync(await readFile(file),{level:9}));}
 await mkdir('dist',{recursive:true});
 await cp('assets','dist/assets',{recursive:true});
 for(const file of ['index.html','design.css','game.html','game.css','trip-planner.html','robots.txt','_headers'])await copyFile(file,`dist/${file}`);
@@ -29,7 +32,7 @@ if(publicOrigin){
  const home=new URL('/',site).href,image=new URL('/assets/previews/design-finish-oem.webp',site).href;
  html=html.replace(/(<link rel="canonical" href=")[^"]+/,(_,prefix)=>prefix+home).replace(/(<meta property="og:image" content=")[^"]+/,(_,prefix)=>prefix+image);
 }
-for(const file of ['assets/visual-release.js','assets/visual-assets.js','assets/viewer3d.js','assets/market-catalog.js','assets/practical-accessories-data.js','assets/interior-products.js','assets/look-packages.js','assets/build-kits.js','assets/build-kits-ui.js','assets/global-mod-guide.js','assets/mod-guide-ui.js','assets/regions.js','assets/region-ui.js','assets/directory.js','assets/directory-ui.js','assets/ui-theme.js','assets/site-header.js','assets/direction-a.css','assets/surface-style-state.js','assets/trip-planner.js','assets/trip-planner-ui.js','assets/trip-planner-garage.js','assets/on-car-editor.js','assets/on-car-editor.css','assets/workbench-flow.js','assets/workbench-flow.css','assets/product-photos.js','assets/catalogue-ui.js','assets/catalogue-ui.css','assets/owner-tools-state.js','assets/owner-workspace.js','assets/owner-workspace.css','assets/trip-planner.css','design.css','assets/jimnygami-brand.css']){const hash=createHash('sha256').update(await readFile(file)).digest('hex').slice(0,12);html=html.replace(`"${file}"`,`"${file}?v=${hash}"`);}
+for(const file of ['assets/visual-release.js','assets/visual-assets.js','assets/viewer3d.js','assets/market-catalog.js','assets/practical-accessories-data.js','assets/interior-products.js','assets/look-packages.js','assets/build-kits.js','assets/build-kits-ui.js','assets/global-mod-guide.js','assets/mod-guide-ui.js','assets/regions.js','assets/region-ui.js','assets/directory.js','assets/directory-ui.js','assets/ui-theme.js','assets/site-header.js','assets/direction-a.css','assets/welcome.css','assets/welcome.js','assets/surface-style-state.js','assets/trip-planner.js','assets/trip-planner-ui.js','assets/trip-planner-garage.js','assets/on-car-editor.js','assets/on-car-editor.css','assets/workbench-flow.js','assets/workbench-flow.css','assets/product-photos.js','assets/catalogue-ui.js','assets/catalogue-ui.css','assets/owner-tools-state.js','assets/owner-workspace.js','assets/owner-workspace.css','assets/trip-planner.css','design.css','assets/jimnygami-brand.css']){const hash=createHash('sha256').update(await readFile(file)).digest('hex').slice(0,12);html=html.replace(`"${file}"`,`"${file}?v=${hash}"`);}
 await writeFile('dist/index.html',html);
 let game=await readFile('dist/game.html','utf8');
 for(const file of ['assets/visual-release.js','assets/visual-assets.js','assets/trail-game.js','assets/market-catalog.js','assets/ui-theme.js','assets/site-header.js','assets/direction-a.css','game.css','assets/jimnygami-brand.css']){const hash=createHash('sha256').update(await readFile(file)).digest('hex').slice(0,12);game=game.replace(`"${file}"`,`"${file}?v=${hash}"`);}

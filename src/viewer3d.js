@@ -21,6 +21,7 @@ import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { loadBodyModel } from './model-loader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { LIGHT_PROFILES, resolvePreviewParts, activeLightProfiles } from './lighting.js';
 import { SCENERIES, validScenery, sceneryMessage } from './scenery.js';
@@ -673,7 +674,7 @@ if(renderer){
     mount.setAttribute('aria-busy','true');car.visible=false;status.textContent=`Loading ${body==='3door'?'three':'five'}-door Jimny…`;
     const modelURL=body==='3door'?(typeof __JIMNY_SWB_URL__==='string'?__JIMNY_SWB_URL__:'assets/models/jimny-swb-blender.glb'):(typeof __JIMNY_MODEL_URL__==='string'?__JIMNY_MODEL_URL__:'assets/models/jimny-lwb-blender.glb');
     try{
-    const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(modelURL);
+    const gltf=await loadBodyModel(modelURL);
     if(request!==modelRequest){gltf.scene.traverse(o=>{o.geometry?.dispose();if(o.material)o.material.dispose();});return;}
     const names=['BodyShell','RoofShell','OEMGrille','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille','StockBumper','StockHeadlamps','StockWheels','AllTerrainWheels','Cabin','SpareWheel'];
     const objects=Object.fromEntries(names.map(name=>[name,gltf.scene.getObjectByName(name)]));
