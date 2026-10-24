@@ -1,0 +1,7 @@
+{"source":"Suzuki Australia Jimny brochure 4047.pdf page 6, Jimny XL drawings, rasterised at 1200 dpi",
+ "views":{
+  "side":{"kind":"side","crop":[100,1120,1600,1800],"reference":{"axis":"x","pixels":[347,1306],"band":[1792,1834],"mm":2590},"ground":1786,"ground_band":[100,1600],"anchor":"front-axle-ground","axle_end":"a"},
+  "front":{"kind":"front","crop":[1850,1150,2650,1840],"reference":{"axis":"x","pixels":[1925,2570],"band":[1880,1925],"mm":1645},"ground":1823,"ground_band":[1880,2620],"anchor":"centre-ground"},
+  "rear":{"kind":"rear","crop":[4500,1150,5300,1860],"reference":{"axis":"x","pixels":[4625,5152],"band":[1856,1905],"mm":1405},"ground":1848,"ground_band":[4520,5280],"anchor":"centre-ground"},
+  "top":{"kind":"top","crop":[2780,1230,4220,1890],"reference":{"axis":"y","pixels":[1277,1842],"band":[4070,4300],"mm":1645},"anchor":"top-front"}
+ }}

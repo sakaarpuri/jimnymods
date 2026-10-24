@@ -1,0 +1,5 @@
+{"source":"suzuki.co.jp Jimny Nomade colour picker, Sizzling Red (E5R), frames 04 and 07",
+ "views":{
+  "suzuki-side":{"kind":"side","photo":"<suzuki-colour-picker-frames>/E5R-04.png","mm_per_px":[3.244,3.346],"anchor":"front-axle-ground","anchor_px":[319,781]},
+  "suzuki-front":{"kind":"front","photo":"<suzuki-colour-picker-frames>/E5R-07.png","mm_per_px":[3.018,2.99],"anchor":"centre-ground","anchor_px":[725,842]}
+ }}
