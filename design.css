@@ -996,3 +996,5 @@ body.rally-workshop .garage-selected-item{flex-shrink:0}
 .cabin-tour-controls button[aria-pressed=true]{background:#594333;color:#f5e5d8;border-color:#e59a6c}
 .cabin-tour-controls button:disabled{opacity:.45;cursor:default}
 .cabin-fabric-grid button:focus-visible,.cabin-tour-controls button:focus-visible{outline:2px solid #e59a6c;outline-offset:3px}
+
+.drawer-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.drawer-actions>.action,.drawer-more>summary{min-height:44px}.drawer-more{position:relative}.drawer-more>summary{display:inline-flex;align-items:center;list-style:none;cursor:pointer}.drawer-more>summary::-webkit-details-marker{display:none}.drawer-more>summary::after{content:"\25BE";margin-left:6px}.drawer-more[open]>summary::after{content:"\25B4"}.drawer-more-menu{position:absolute;right:0;bottom:calc(100% + 6px);z-index:3;display:grid;gap:6px;min-width:220px;padding:10px;background:var(--panel,#fff);border:1px solid var(--line,rgba(128,128,128,.4));border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}.drawer-more-menu .action{width:100%;text-align:left;min-height:40px}
