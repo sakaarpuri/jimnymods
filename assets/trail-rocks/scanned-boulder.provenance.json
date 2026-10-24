@@ -1,0 +1,63 @@
+{
+  "asset": "boulder_01",
+  "author": "Rico Cilliers",
+  "source": "https://polyhaven.com/a/boulder_01",
+  "license": "CC0-1.0",
+  "licenseURL": "https://polyhaven.com/license",
+  "checked": "2026-10-21",
+  "api": "https://api.polyhaven.com/files/boulder_01",
+  "downloaded": [
+    {
+      "file": "boulder_01.gltf",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/boulder_01/boulder_01_1k.gltf",
+      "md5": "26e2eef4a1f68c9557c65cd375b21d6c",
+      "bytes": 2773
+    },
+    {
+      "file": "textures/boulder_01_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_arm_1k.jpg",
+      "md5": "d632159982cc3121ed3d69b89a122146",
+      "bytes": 659386
+    },
+    {
+      "file": "textures/boulder_01_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_diff_1k.jpg",
+      "md5": "25f8a843f13369d56d37f49db05ea8c3",
+      "bytes": 987467
+    },
+    {
+      "file": "boulder_01.bin",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/boulder_01/boulder_01.bin",
+      "md5": "27a19fa031d8b4c3a09261f19c444dc5",
+      "bytes": 2938808
+    },
+    {
+      "file": "textures/boulder_01_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_nor_gl_1k.jpg",
+      "md5": "0c4da644d901144b53e4fe2446f3c389",
+      "bytes": 1183552
+    }
+  ],
+  "originalBounds": {
+    "min": [
+      -0.7544583082199097,
+      -0.06926175206899643,
+      -0.950101375579834
+    ],
+    "max": [
+      0.5262805819511414,
+      0.9266272187232971,
+      0.8805339336395264
+    ]
+  },
+  "normalizedEnvelope": {
+    "radius": 1,
+    "minY": -0.5,
+    "maxY": 0.5
+  },
+  "sourceTriangles": 123976,
+  "decimatedTriangles": 3000,
+  "triangles": 3000,
+  "bytes": 780160,
+  "sha256": "736d00ef278129de1ce0727684c9d498bc836db2d8a4ff35364a80ceb9efb83d"
+}

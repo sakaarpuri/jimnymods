@@ -1,0 +1,9 @@
+{
+  "generated": "2026-10-23",
+  "modelSha256": "6bea3ce4a3dfbc22c54dc3e9851ad2efb5df13d41a9e7dfba2023e7bca1cb784",
+  "images": {
+    "mountain": "743aeb5cc93e8d131ff30a3bf3ffde399fb3e9e2372e0d7447de8bca4ace61e1",
+    "sand": "5ce7f229fcb488469e8df1cf575bb59cb4ffc4538cb5f3b77a4a709cb2d866f9",
+    "urban": "bb89d13525522614290578b5f2a66a04b315ab77c9ace6ecb2ef31995815aa79"
+  }
+}

@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "jimnylab",
+      "name": "jimnygami",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8734", "--directory", "/Users/sakaarpuri/Documents/jimnymods"],
-      "port": 8734
+      "runtimeArgs": ["-m", "http.server", "8735", "--directory", "/Volumes/ThatSUVMod/jimnymods"],
+      "port": 8735
     }
   ]
 }

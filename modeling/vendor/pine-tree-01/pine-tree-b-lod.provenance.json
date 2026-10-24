@@ -1,0 +1,94 @@
+{
+  "asset": "pine_tree_01",
+  "variant": "pine_tree_01_b_LOD2",
+  "authors": [
+    "Rico Cilliers",
+    "Rob Tuytel"
+  ],
+  "license": "CC0-1.0",
+  "source": "https://polyhaven.com/a/pine_tree_01",
+  "licenseSource": "https://polyhaven.com/license",
+  "sourceMaster": {
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/blend/1k/pine_tree_01/pine_tree_01_1k.blend",
+    "md5": "e6d9e76cc8dfb58e23813c264f7736e6",
+    "bytes": 570739325
+  },
+  "processing": "Offline Blender material-aware reduction plus error-bounded meshoptimizer wood simplification; photographic maps; alpha-tested foliage. Experimental: not wired into renderer.",
+  "parts": [
+    {
+      "material": "Pine bark",
+      "triangles": 3046
+    },
+    {
+      "material": "Pine dry branches",
+      "triangles": 100
+    },
+    {
+      "material": "Pine needles",
+      "triangles": 11000
+    },
+    {
+      "material": "Pine trunk",
+      "triangles": 1100
+    }
+  ],
+  "triangles": 15246,
+  "bytes": 1809832,
+  "sha256": "56755b2c5e7280735838dc6d9179280a11d60bcdd1865f9d39c8440fef2ffedb",
+  "sourceTextures": [
+    {
+      "file": "textures/pine_tree_01_bark_diff_1k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_bark_diff_1k.png",
+      "md5": "63688d7bcdd5ff5500f12bde192b197a",
+      "size": 5568559
+    },
+    {
+      "file": "textures/pine_tree_01_bark_nor_gl_1k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_bark_nor_gl_1k.png",
+      "md5": "a0e2bfeda173e20c494d79c6125effa5",
+      "size": 5640903
+    },
+    {
+      "file": "textures/pine_tree_01_trunk_b_diff_1k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_trunk_b_diff_1k.png",
+      "md5": "a3e4cc704875d7d8795a2b7949927952",
+      "size": 4847111
+    },
+    {
+      "file": "textures/pine_tree_01_trunk_b_nor_gl_1k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_trunk_b_nor_gl_1k.png",
+      "md5": "944aed03478cf0590469c7de834b4ec4",
+      "size": 4129931
+    },
+    {
+      "file": "textures/pine_tree_01_twig_alpha_1k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_twig_alpha_1k.png",
+      "md5": "641911a5a3f543911dad04ebb26e7bca",
+      "size": 351928
+    },
+    {
+      "file": "textures/pine_tree_01_twig_diff_1k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_twig_diff_1k.png",
+      "md5": "a4fa4a55aab9231915a4023ea9841577",
+      "size": 3208228
+    },
+    {
+      "file": "textures/pine_tree_01_twig_nor_gl_1k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_twig_nor_gl_1k.png",
+      "md5": "1c437201b679e4b5e6a10af8e9b9b523",
+      "size": 3021524
+    }
+  ],
+  "review": {
+    "status": "experimental-not-integrated",
+    "evidence": [
+      "modeling/verification/pine-authored-lod-front.png",
+      "modeling/verification/pine-authored-lod-side.png"
+    ],
+    "limitations": [
+      "Low-detail needle reduction remains angular at close range.",
+      "One irregular mature-pine variant, not a lush conical fir.",
+      "Use near-only instanced candidates after in-scene review, not wholesale forest replacement."
+    ]
+  }
+}

@@ -4,15 +4,21 @@ Run: Blender --background --python modeling/build_jimny.py
 Coordinates in helper calls: x = width, h = height, z = forward, all in metres.
 The glTF exporter maps Blender Z-up into the website's Y-up coordinates.
 No third-party vehicle mesh, photo texture, or manufacturer CAD is included.
+The tailgate wordmark follows Suzuki's published vector trademark outlines.
 """
 import bpy
 import bmesh
 import math
+import json
 import os
+import sys
 from mathutils import Vector, Matrix
+from mathutils.bvhtree import BVHTree
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'assets', 'models')
+SHORT_BODY = '--three-door' in sys.argv
+MODEL_STEM = 'jimny-swb' if SHORT_BODY else 'jimny-lwb'
 os.makedirs(OUT, exist_ok=True)
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)
@@ -41,24 +47,34 @@ def material(name, color, rough=.4, metal=0, coat=0, alpha=1):
 paint = material('BodyPaint', (.72, .73, .62), .28, .025, .85)
 roof = material('RoofPaint', (.72, .73, .62), .28, .025, .85)
 trim = material('MouldedPlastic', (.018, .021, .023), .72)
-rubber = material('TyreRubber', (.013, .016, .017), .81)
+rubber = material('TyreRubber', (.012, .014, .015), .96)
 glass = material('WindowGlass', (.038, .065, .073), .055, .02, 1, .82)
 chrome = material('BrightChrome', (.72, .75, .77), .16, 1)
-alloy = material('MachinedAlloy', (.105, .12, .135), .30, .82)
-gunmetal = material('WheelGunmetal', (.075, .082, .091), .35, .72)
-grillemetal = material('GrilleAnthracite', (.12, .135, .15), .3, .65)
+alloy = material('MachinedAlloy', (.21, .225, .24), .43, .72)
+gunmetal = material('WheelGunmetal', (.065, .070, .076), .48, .62)
+wheel_barrel = material('WheelBarrelDark', (.035, .038, .041), .64, .45)
+grillemetal = material('GrilleAnthracite', (.12, .135, .15), .36, .30)
 glossblack = material('GlossBlackGrille', (.013, .017, .020), .17, .22, 1)
 badgewhite = material('GrilleLettering', (.76, .79, .81), .27, .35, .6)
 brake = material('BrakeSteel', (.19, .21, .22), .47, .88)
 seat = material('WovenCabinFabric', (.038, .043, .048), .93)
+seat_insert = material('CabinSeatInsert', (.072, .078, .082), .96)
+carpet = material('CabinCarpet', (.024, .026, .028), 1)
+dash = material('CabinDashboard', (.029, .032, .035), .83)
+stitch = material('CabinStitch', (.12, .13, .135), .95)
+steering_satin=material('CabinSteeringSatin',(.26,.28,.30),.39,.64)
 black = material('IntakeShadow', (.004, .006, .007), .82)
 red = material('RearLampRed', (.42, .009, .004), .24, .12, 1)
 amber = material('IndicatorAmber', (.75, .19, .012), .20, .14, 1)
-lens = material('LampLens', (.72, .81, .84), .045, .02, 1, .13)
-lamp = material('LampEmitter', (.85, .90, 1), .16, .6)
+lens = material('LampLens', (.86, .93, .96), .035, 0, 1, .09)
+optical = material('OpticalGlass', (.075, .105, .13), .08, .45, 1)
+lamp = material('LampEmitter', (.56, .64, .71), .12, .7)
 caliper = material('CaliperMetal', (.12, .13, .14), .49, .65)
 
 groups = {}
+headlamp_root=bpy.data.objects.new('StockHeadlamps',None)
+bpy.context.collection.objects.link(headlamp_root)
+groups['StockHeadlamps']=headlamp_root
 for name in ['BodyShell', 'RoofShell', 'OEMGrille', 'BlockGrille', 'RhinoGrille', 'ScriptGrille', 'GlossGrille', 'DeleteGrille', 'ClassicGrille', 'MeshGrille', 'StockBumper', 'StockWheels', 'AllTerrainWheels', 'Cabin', 'SpareWheel']:
     root = bpy.data.objects.new(name, None)
     bpy.context.collection.objects.link(root)
@@ -72,7 +88,7 @@ def finish(obj, name, mat, group='BodyShell', bevel=0, smooth=False):
     if bevel:
         mod = obj.modifiers.new('Manufactured edge radii', 'BEVEL')
         mod.width = bevel
-        mod.segments = 2
+        mod.segments = 2 if bevel < .008 else 3
         mod.limit_method = 'ANGLE'
     if smooth or bevel:
         for poly in obj.data.polygons:
@@ -104,6 +120,16 @@ def geometry(name, vertices, faces, mat, group='BodyShell', bevel=0, smooth=Fals
     obj = bpy.data.objects.new(name, data)
     bpy.context.collection.objects.link(obj)
     return finish(obj, name, mat, group, bevel, smooth)
+
+
+def subtract(target, cutter):
+    bpy.context.view_layer.objects.active=target
+    for mod in list(target.modifiers):bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.context.view_layer.objects.active=cutter
+    for mod in list(cutter.modifiers):bpy.ops.object.modifier_apply(modifier=mod.name)
+    mod=target.modifiers.new('True recessed aperture','BOOLEAN');mod.operation='DIFFERENCE';mod.object=cutter
+    bpy.context.view_layer.objects.active=target;bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.data.objects.remove(cutter,do_unlink=True)
 
 
 def prism_side(name, points, side, mat, group='BodyShell', inset=0, thickness=.016, bevel=.006):
@@ -156,6 +182,8 @@ def ring(name, outer, inner, depth, at, mat, axis='front', group='BodyShell', se
             u, v = math.cos(a)*r, math.sin(a)*r
             if axis == 'side':
                 vertices.append((at[0]+d, at[1]+u, at[2]+v))
+            elif axis == 'up':
+                vertices.append((at[0]+u, at[1]+d, at[2]+v))
             else:
                 vertices.append((at[0]+u, at[1]+v, at[2]+d))
     for i in range(segments):
@@ -165,7 +193,7 @@ def ring(name, outer, inner, depth, at, mat, axis='front', group='BodyShell', se
     return geometry(name, vertices, faces, mat, group, 0, True)
 
 
-def window_frame(name, w, h, radius, wall, depth, at, mat, group='BodyShell'):
+def window_frame(name, w, h, radius, wall, depth, at, mat, group='BodyShell', wall_h=None, inner_radius=None):
     def outline(w,h,r):
         points=[]
         for cx,cy,start in [(w/2-r,h/2-r,0),(-w/2+r,h/2-r,90),(-w/2+r,-h/2+r,180),(w/2-r,-h/2+r,270)]:
@@ -173,7 +201,9 @@ def window_frame(name, w, h, radius, wall, depth, at, mat, group='BodyShell'):
                 a=math.radians(start+i*15)
                 points.append((cx+math.cos(a)*r,cy+math.sin(a)*r))
         return points
-    outer=outline(w,h,radius);inner=outline(w-wall*2,h-wall*2,max(.005,radius-wall));n=len(outer)
+    wall_h=wall if wall_h is None else wall_h
+    inner_radius=max(.005,radius-min(wall,wall_h)) if inner_radius is None else inner_radius
+    outer=outline(w,h,radius);inner=outline(w-wall*2,h-wall_h*2,inner_radius);n=len(outer)
     vs=[(x,y,z) for z,points in [(-depth/2,outer),(depth/2,outer),(-depth/2,inner),(depth/2,inner)] for x,y in points]
     faces=[]
     for i in range(n):
@@ -185,9 +215,11 @@ def window_frame(name, w, h, radius, wall, depth, at, mat, group='BodyShell'):
 
 
 def body_width(h):
-    # The pressed lower shoulder and rolled waist catch long reflections.
-    profile=[(.45,.721),(.50,.736),(.68,.749),(.705,.758),(.724,.758),
-             (.745,.741),(.80,.743),(.99,.749),(1.08,.746),(1.12,.739),(1.18,.724)]
+    # Reference: the real lower door has a narrow stamped swage, not a broad
+    # diagonal slab. The shoulder above the handles rolls into the glass belt.
+    profile=[(.45,.721),(.48,.735),(.51,.739),(.635,.745),(.66,.749),
+             (.678,.751),(.690,.748),(.709,.740),(.73,.740),(.82,.745),
+             (.98,.750),(1.075,.749),(1.105,.746),(1.13,.737),(1.18,.724)]
     for (a,x),(b,y) in zip(profile,profile[1:]):
         if h<=b:return x+(y-x)*max(0,(h-a)/(b-a))
     return profile[-1][1]
@@ -196,7 +228,8 @@ def body_width(h):
 def body_panel(side):
     # A connected, gently crowned sheet with open arches; no overlapping door boxes.
     zs=sorted(set([-1.76+i*3.56/112 for i in range(113)]+[-.40,-.38,.64,.68]))
-    levels=[0,.06,.14,.22,.29,.34,.38,.48,.64,.80,.93,1]
+    # Shared height rows keep the pressed swage level around the wheel arches.
+    levels=sorted(set([.46+i*.69/40 for i in range(41)]+[.48,.51,.635,.66,.678,.690,.709,.73,.82,.98,1.075,1.105,1.13,1.15]))
     vertices=[]
     for z in zs:
         low=.46
@@ -206,15 +239,24 @@ def body_panel(side):
                   (.18,.795),(.28,.75),(.35,.66),(.385,.53),(.40,.40)]
             for (a,ha),(b,hb) in zip(arch,arch[1:]):
                 if a<=dz<=b:low=max(low,ha+(hb-ha)*(dz-a)/(b-a)+.012)
-        top=1.15-max(0,z-.68)*.040
-        for t in levels:
-            h=low+(top-low)*t
+        # End the painted rear apron at the bumper shoulder, not at the sill.
+        rear=max(0,min(1,(-z-1.54)/.15))
+        low=max(low,.46+.24*rear*rear*(3-2*rear))
+        # The wing/bonnet shut line is nearly level. The former 40 mm/m
+        # downhill seam left a long, deep wedge under a detached bonnet lid.
+        top=1.15-max(0,z-.69)*.011
+        for level in levels:
+            h=max(low,min(top,level))
             vertices.append((side*(body_width(h)-max(0,abs(z)-1.69)*.20),h,z))
     faces=[]
     for i in range(len(zs)-1):
         for j in range(len(levels)-1):
             a=i*len(levels)+j;faces.append((a,a+len(levels),a+len(levels)+1,a+1))
     obj=geometry('Crowned side pressing with open wheel wells',vertices,faces,paint,smooth=True)
+    bm=bmesh.new();bm.from_mesh(obj.data)
+    bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=.000001)
+    bmesh.ops.dissolve_degenerate(bm,edges=list(bm.edges),dist=.000001)
+    bm.to_mesh(obj.data);bm.free()
     solid=obj.modifiers.new('Steel panel return','SOLIDIFY');solid.thickness=.012
 
 
@@ -230,15 +272,72 @@ def rounded_polygon(points, radius=.035):
     return result
 
 
+def rounded_flat_plate(name,w,h,depth,radius,at,mat,group='BodyShell'):
+    # A genuinely rounded XY outline, independent of the very thin depth.
+    # Beveling a 4–5mm cube clamps the requested corner radius to half depth.
+    points=rounded_polygon([(-w/2,-h/2),(w/2,-h/2),(w/2,h/2),(-w/2,h/2)],radius)
+    n=len(points)
+    vertices=[(at[0]+x,at[1]+y,at[2]+z) for z in [-depth/2,depth/2] for x,y in points]
+    faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    return geometry(name,vertices,faces,mat,group)
+
+
+def upholstered_loft(name,sections,x,mat):
+    # Width/depth change with height rather than merely rounding a box. This
+    # gives the seat real shoulders and a sculpted side silhouette.
+    vertices=[]
+    for h,w,d,z in sections:
+        outline=rounded_polygon([(-w/2,-d/2),(w/2,-d/2),(w/2,d/2),(-w/2,d/2)],min(w,d)*.24)
+        vertices.extend((x+u,h,z+v) for u,v in outline)
+    n=len(outline);faces=[tuple(reversed(range(n)))]
+    for row in range(len(sections)-1):
+        for i in range(n):faces.append((row*n+i,row*n+(i+1)%n,(row+1)*n+(i+1)%n,(row+1)*n+i))
+    faces.append(tuple(range((len(sections)-1)*n,len(sections)*n)))
+    return geometry(name,vertices,faces,mat,'Cabin',smooth=True)
+
+
+def windscreen_bow(x,y,w=1.337,h=.480):
+    # Original photo-guided laminated-glass shape, not a measured Suzuki CAD
+    # radius. Keep a broad cross-car bow and a gentler vertical crown.
+    return .032*max(0,1-(2*x/w)**2)*max(0,1-.28*(2*y/h)**2)
+
+def glazing(name, w, h, radius, at, angle=0):
+    # One optical surface. A bevelled transparent box renders front, back and
+    # side reflections on top of one another and makes the cabin look ghosted.
+    points=rounded_polygon([(-w/2,-h/2),(w/2,-h/2),(w/2,h/2),(-w/2,h/2)],radius)
+    # The laminated front glass is not a flat polygon: a shallow compound bow
+    # catches a continuous reflection rather than a single mirror-flat plane.
+    # Use nested rounded contours so the shape remains rounded at every row.
+    # Bow is photo-guided (not an unpublished factory glazing measurement).
+    if name=='Laminated windscreen':
+        rings=18;n=len(points)
+        vertices=[(0,0,windscreen_bow(0,0,w,h))]
+        for row in range(1,rings+1):
+            t=row/rings
+            vertices.extend((x*t,y*t,windscreen_bow(x*t,y*t,w,h)) for x,y in points)
+        faces=[(0,i+1,(i+1)%n+1) for i in range(n)]
+        for row in range(rings-1):
+            a=1+row*n;b=a+n
+            faces.extend((a+i,b+i,b+(i+1)%n,a+(i+1)%n) for i in range(n))
+    else:
+        vertices=[(0,0,0)]+[(x,y,0) for x,y in points]
+        faces=[(0,i+1,(i+1)%len(points)+1) for i in range(len(points))]
+    obj=geometry(name,vertices,faces,glass,smooth=True)
+    obj.location=pos(*at);obj.rotation_euler.x=math.radians(angle)
+    return obj
+
+
 for side in [-1, 1]:
     body_panel(side)
-    for front, rear in [(.64,-.38),(-.40,-1.25)]:
-        tube('Door shut line',[(side*(body_width(h)+.001),h,front) for h in [.48,.50,.68,.705,.724,.745,.80,.99,1.08,1.12,1.15]],.0015,black)
-        tube('Lower door seam',[(side*(body_width(.48)+.001),.48,front-.02),(side*(body_width(.48)+.001),.48,rear+.01)],.0015,black)
-        tube('Window pillar door seam',[(side*(.746-max(0,h-1.14)*.105)+side*.001,h,front-(.15 if front>0 else 0)*(h-1.14)/.525) for h in [1.14,1.4,1.665]],.0013,black)
-        z = rear+.15
-        cube('Recessed door handle bowl',(.012,.048,.132),(side*.748,1.063,z),trim,bevel=.018)
-        cube('Body colour pull handle',(.026,.021,.112),(side*.761,1.080,z+.002),paint,bevel=.008)
+    for front, rear in ([(.64,-.82)] if SHORT_BODY else [(.64,-.38),(-.40,-1.25)]):
+        # Keep the fine seam clear of interpolated panel triangles. The older
+        # almost-coplanar tube intersected the pressing and looked like a zipper.
+        tube('Door shut line',[(side*(body_width(h)+.0045),h,front) for h in [.48+i*.67/80 for i in range(81)]],.0012,black)
+        tube('Lower door seam',[(side*(body_width(.48)+.0024),.48,front-.02),(side*(body_width(.48)+.0024),.48,rear+.01)],.0017,black)
+        tube('Window pillar door seam',[(side*(.746-max(0,h-1.14)*.105)+side*.001,h,front-(.234 if front>0 else 0)*(h-1.14)/.525) for h in [1.14,1.4,1.665]],.0013,black)
+        z = rear+(.40 if SHORT_BODY else .15)
+        cube('Recessed door handle bowl',(.010,.050,.151),(side*.750,1.065,z),trim,bevel=.021)
+        cube('Body colour pull handle',(.028,.033,.139),(side*.762,1.079,z+.002),paint,bevel=.014)
         cylinder('Door lock barrel',.008,.006,(side*.766,1.060,z-.072),chrome,'side',vertices=16)
     cube('Sill moulding',(.055,.064,1.83),(side*.748,.463,-.11),trim,bevel=.016)
     # Moulded arch tapers from its body seam to a broad, curved shoulder.
@@ -247,62 +346,108 @@ for side in [-1, 1]:
                (0,.928),(.21,.918),(.34,.875),(.425,.76),(.47,.57),(.47,.38)]
         inner=[(-.40,.38),(-.385,.53),(-.35,.66),(-.28,.75),(-.18,.795),
                (0,.815),(.18,.795),(.28,.75),(.35,.66),(.385,.53),(.40,.38)]
+        # Subdivide the profile before lofting: the factory trapezoidal arch has
+        # soft moulded transitions, not eleven visible polygon corners.
+        def resample_arch(profile):
+            out=[]
+            for i in range(len(profile)-1):
+                p0=Vector(profile[max(0,i-1)]);p1=Vector(profile[i])
+                p2=Vector(profile[i+1]);p3=Vector(profile[min(len(profile)-1,i+2)])
+                for j in range(5):
+                    t=j/5
+                    v=.5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t*t+(-p0+3*p1-3*p2+p3)*t*t*t)
+                    out.append(tuple(v))
+            return out+[profile[-1]]
+        outer=resample_arch(outer);inner=resample_arch(inner);count=len(outer)
         vs=[]
-        for t,width in [(0,.746),(.20,.782),(.68,.817),(.91,.820),(1,.807)]:
+        for t,width in [(0,.746),(.20,.782),(.68,.8195),(.91,.8225),(1,.8095)]:
             for (zo,ho),(zi,hi) in zip(outer,inner):
                 vs.append((side*width,ho+(hi-ho)*t,center+zo+(zi-zo)*t))
         faces=[]
         for row in range(4):
-            for i in range(10):
-                a=row*11+i;faces.append((a,a+1,a+12,a+11))
+            for i in range(count-1):
+                a=row*count+i;faces.append((a,a+1,a+count+1,a+count))
         obj=geometry('Contoured moulded wheel arch',vs,faces,trim,smooth=True)
         mod=obj.modifiers.new('Arch inner return','SOLIDIFY');mod.thickness=.008
         tube('Arch to body seam',[(side*.747,h,center+z) for z,h in outer],.0018,black)
-        lining=[(side*width,h,center+z) for width in [.60,.825] for z,h in inner]
-        geometry('Dark wheel well inner tub',lining,[(i,i+1,i+12,i+11) for i in range(10)],black,smooth=True)
+        lining=[(side*width,h,center+z) for width in [.60,.817] for z,h in inner]
+        geometry('Dark wheel well inner tub',lining,[(i,i+1,i+count+1,i+count) for i in range(count-1)],black,smooth=True)
         prism_side('Wheel well shadow backing',[(center+z,h+.015) for z,h in inner],side,black,inset=-.16,thickness=.006,bevel=0)
     cylinder('Side repeater bezel',.026,.014,(side*.758,1.035,1.105),trim,'side',vertices=32)
     cylinder('Amber side repeater',.021,.017,(side*.767,1.035,1.105),amber,'side',vertices=32)
 
-# Clamshell bonnet: a crowned surface with real shoulder creases and rolled front lip.
-xs=[-.744,-.727,-.685,-.555,-.50,-.44,0,.44,.50,.555,.685,.727,.744]
-zs=[.69,.72,.80,1.04,1.47,1.68,1.765,1.79]
+# Square clamshell bonnet with a broad, shallow centre, defined shoulder
+# pressings and a continuous rolled leading edge. Photo-guided from Suzuki's
+# five-door ex_img04.jpg, not an unpublished factory tooling surface.
+xs=sorted(set([-.755+i*1.510/100 for i in range(101)]+[s*x for s in [-1,1] for x in [.748,.735,.72,.69,.60,.58,.54,.525,.51,.48,.465]]))
+zs=[.69,.70,.715,.735,.76,.80,.90,1.04,1.20,1.40,1.58,1.68,1.74,1.78,1.805,1.825,1.84,1.85]
+def bonnet_height(x,z):
+    t=min(1,max(0,(z-.70)/1.08))
+    centre=1.197-.019*t+.0015*(1-(abs(x)/.755)**2)
+    # Two distinct stamped shoulders: a short concave transition, a broad
+    # nearly planar rail, then a tight outer roll. A linear ramp across the
+    # whole width read as a padded cushion in the actual browser render.
+    s=min(1,max(0,(abs(x)-.465)/.075))
+    shoulder=.018*s*s*(3-2*s)
+    roll=.018*(max(0,(abs(x)-.718)/.037)**2)
+    # The pressed rear cross-edge closes the centre well into the scuttle.
+    # Keep it below the side rails and fade it before the longitudinal crease.
+    rear=.008*max(0,1-(z-.69)/.07)**2*(1-s)
+    nose=.042*(min(1,max(0,(z-1.78)/.07))**2)
+    seam=1.15-max(0,z-.69)*.011
+    height=max(seam+.0055,centre+shoulder+rear-roll-nose)
+    # Shoulder pressings terminate in the same straight folded leading lip.
+    # Carrying their full height to the edge made two raised ears over the lamps.
+    lead=min(1,max(0,(z-1.805)/.045));lead=lead*lead*(3-2*lead)
+    return height*(1-lead)+(seam+.0055)*lead
+def bonnet_forward(x,z):
+    # Plan-view front corners turn back into the side return rather than
+    # producing knife-sharp rectangular ears alongside the round indicators.
+    return z-.022*(max(0,(abs(x)-.69)/.065)**2)*min(1,max(0,(z-1.74)/.11))
 verts=[]
 for z in zs:
     for x in xs:
-        crown=.018*(1-(abs(x)/.75)**2)
-        shoulder=.014*math.exp(-((abs(x)-.53)/.055)**2)
-        frontdrop=max(0,z-1.69)*.16
-        h=1.15+crown+shoulder-frontdrop
-        verts.append((x,h,z))
+        verts.append((x,bonnet_height(x,z),bonnet_forward(x,z)))
 faces=[]
 for j in range(len(zs)-1):
     for i in range(len(xs)-1):
         n=j*len(xs)+i
         faces.append((n,n+1,n+1+len(xs),n+len(xs)))
 bonnet=geometry('Crowned clamshell bonnet',verts,faces,paint,bevel=0,smooth=True)
-mod=bonnet.modifiers.new('Bonnet sheet thickness','SOLIDIFY');mod.thickness=.025
-mod=bonnet.modifiers.new('Rolled bonnet edges','BEVEL');mod.width=.008;mod.segments=3
+mod=bonnet.modifiers.new('Bonnet sheet thickness','SOLIDIFY');mod.thickness=.005
+mod=bonnet.modifiers.new('Rolled bonnet edges','BEVEL');mod.width=.003;mod.segments=3
+mod.limit_method='ANGLE';mod.angle_limit=.65;mod.harden_normals=True
 for side in [-1,1]:
     vs=[]
     for z in zs:
-        upper=1.15+.018*(1-(.744/.75)**2)-max(0,z-1.69)*.16
-        lower=1.15-max(0,z-.68)*.040
-        vs.extend([(side*.744,upper,z),(side*.746,lower,z)])
-    geometry('Clamshell bonnet side return',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(zs)-1)],paint,smooth=True)
-    tube('Bonnet panel shut line',[(side*.748,1.15-max(0,z-.68)*.040-.0015,z) for z in zs],.0013,black)
-cube('Bonnet nose rolled edge',(1.485,.031,.045),(0,1.126,1.79),paint,bevel=.014)
-cube('Cowl and scuttle',(1.45,.042,.16),(0,1.163,.635),paint,bevel=.012)
+        upper=bonnet_height(side*.755,z)
+        lower=1.15-max(0,z-.69)*.011+.0025
+        # The final leading-edge roll meets the return; no inverted flap.
+        upper=max(lower+.003,upper)
+        vs.extend([(side*.755,upper,bonnet_forward(side*.755,z)),(side*.748,lower,bonnet_forward(side*.755,z))])
+    return_faces=[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(zs)-1)]
+    if side>0:return_faces=[tuple(reversed(face)) for face in return_faces]
+    obj=geometry('Clamshell bonnet side return',vs,return_faces,paint,smooth=True)
+    mod=obj.modifiers.new('Folded bonnet side sheet','SOLIDIFY');mod.thickness=.003
+    tube('Bonnet panel shut line',[(side*.750,1.15-max(0,z-.69)*.011+.0005,bonnet_forward(side*.755,z)) for z in zs],.0011,black)
+# The solidified, bevelled bonnet already has a rolled lip. A second box here
+# previously intersected the front panel and made the nose look double-edged.
+cube('Cowl and scuttle',(1.45,.045,.16),(0,1.183,.635),paint,bevel=.018)
 for x in [-.43,-.38,-.33,.30,.35,.40]:
-    cube('Scuttle ventilation slots',(.011,.005,.07),(x,1.187,.627),black,bevel=.002)
+    cube('Scuttle ventilation slots',(.011,.005,.07),(x,1.208,.627),black,bevel=.002)
 
 # Cabin ring is formed from real pillars and window openings.
 for side in [-1,1]:
-    panel=prism_side('Continuous cabin side with window apertures',[(.66,1.14),(.51,1.68),(-1.76,1.68),(-1.76,1.14)],side,roof,thickness=.025,bevel=0)
-    prism_side('Roof edge rail',[(.54,1.63),(.53,1.69),(-1.74,1.69),(-1.74,1.63)],side,roof,'RoofShell',thickness=.04,bevel=.012)
-    windows=[[(.575,1.188),(.473,1.603),(-.305,1.603),(-.305,1.218),(.29,1.218),(.35,1.188)],
-             [(-.468,1.218),(-.468,1.603),(-1.173,1.603),(-1.173,1.218)],
-             [(-1.344,1.218),(-1.344,1.603),(-1.638,1.603),(-1.650,1.218)]]
+    panel=prism_side('Continuous cabin side with window apertures',[(.715,1.14),(.475,1.68),(-1.76,1.68),(-1.76,1.14)],side,paint,thickness=.025,bevel=0)
+    prism_side('Roof edge rail',[(.522,1.63),(.495,1.69),(-1.74,1.69),(-1.74,1.63)],side,roof,'RoofShell',thickness=.04,bevel=.012)
+    windows=[[(.635,1.180),(.439,1.620),(-.305,1.620),(-.305,1.185),(.29,1.185),(.35,1.165)],
+             [(-.445,1.185),(-.445,1.620),(-1.173,1.620),(-1.173,1.185)],
+             [(-1.325,1.185),(-1.325,1.620),(-1.638,1.620),(-1.650,1.185)]]
+    if SHORT_BODY:
+        # JB74 has one longer front door and one uninterrupted rear quarter
+        # window on each side; it is not a scaled five-door/kei JB64 shell.
+        windows=[[(.635,1.180),(.439,1.620),(-.770,1.620),(-.770,1.185),(.29,1.185),(.35,1.165)],
+                 [(-.940,1.185),(-.940,1.620),(-1.638,1.620),(-1.650,1.185)]]
     for points in windows:
         boundary=rounded_polygon(points,.052)
         cutter=prism_side('Temporary rounded window cutter',boundary,side,black,inset=.05,thickness=.12,bevel=0)
@@ -310,19 +455,39 @@ for side in [-1,1]:
         bpy.context.view_layer.objects.active=panel
         bpy.ops.object.modifier_apply(modifier=boolean.name)
         bpy.data.objects.remove(cutter,do_unlink=True)
-        prism_side('Rounded flush side glass',boundary,side,glass,inset=-.005,thickness=.003,bevel=0)
+        # A single sheet also prevents the far-side cabin from receiving four
+        # layers of alpha at every window edge. Orient outward on either side.
+        glass_vertices=[(side*(.746-max(0,h-1.14)*.105-.005),h,z) for z,h in boundary]
+        obj=geometry('Rounded flush side glass',glass_vertices,[tuple(range(len(boundary)))],glass)
+        for poly in obj.data.polygons:
+            if poly.normal.x*side<0:
+                bm=bmesh.new();bm.from_mesh(obj.data);bmesh.ops.reverse_faces(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
         tube('Window rubber seal',[(side*(.746-max(0,h-1.14)*.105),h,z) for z,h in boundary],.006,trim,closed=True)
+    # Fixed quarter-light divider in each rear door, visible in the real car.
+    if not SHORT_BODY:
+        tube('Rear door quarter light divider',[(side*(.746-max(0,h-1.14)*.105),h,-.925) for h in [1.195,1.610]],.009,trim)
+    shut_z=-.82 if SHORT_BODY else -1.25
+    tube('Front door trailing shut line' if SHORT_BODY else 'Rear door trailing shut line',[(side*(body_width(h)+.004 if h<1.14 else .747-max(0,h-1.14)*.105),h,shut_z) for h in ([.48,.65,.93,1.05,1.14,1.32,1.51,1.665] if SHORT_BODY else [.93,1.05,1.14,1.32,1.51,1.665])],.0013,black)
     bevel=panel.modifiers.new('Rolled window aperture edge','BEVEL');bevel.width=.004;bevel.segments=2
-    tube('Rain gutter',[(side*.710,1.675,.54),(side*.710,1.702,.46),(side*.710,1.702,-1.68),(side*.710,1.675,-1.76)],.009,trim)
+    tube('Painted folded rain gutter',[(side*.720,1.672,.500),(side*.720,1.685,.475),(side*.720,1.685,-1.68),(side*.720,1.663,-1.76)],.008,roof,'RoofShell')
+    tube('Rain gutter shadow',[(side*.717,1.677,.38),(side*.717,1.677,-1.70)],.0025,trim)
     cube('Mirror mounting triangle',(.035,.16,.11),(side*.754,1.247,.575),trim,bevel=.015)
     cube('Mirror neck',(.14,.039,.05),(side*.817,1.257,.577),trim,bevel=.014)
-    cube('Rounded mirror housing',(.155,.182,.135),(side*.893,1.30,.582),glossblack,bevel=.032)
-    cube('Rear facing mirror glass',(.121,.145,.008),(side*.894,1.303,.512),chrome,bevel=.023)
+    housing=cube('Rounded mirror housing',(.205,.145,.137),(side*.897,1.285,.582),glossblack,bevel=.036)
+    aperture=rounded_flat_plate('Mirror lens recess cutter',.179,.121,.060,.027,(side*.898,1.285,.516),black)
+    subtract(housing,aperture)
+    rounded_flat_plate('Rear facing rounded mirror glass',.175,.117,.004,.026,(side*.898,1.285,.542),chrome)
+
+# Flush fuel flap with rounded stamped perimeter on the left rear quarter.
+fuel_outline=rounded_polygon([(-1.495,1.004),(-1.495,1.125),(-1.665,1.125),(-1.665,1.004)],.025)
+tube('Fuel flap panel gap',[(-body_width(h)-.002,h,z) for z,h in fuel_outline],.0016,black,closed=True)
+cylinder('Antenna foot',.025,.028,(-.42,1.714,-1.53),trim,'up',vertices=24)
+tube('Flexible roof antenna',[(-.42,1.725,-1.53),(-.42,1.825,-1.60),(-.42,1.89,-1.65)],.0035,trim)
 
 # Crowned roof, pressed roof channels and curved front/back window frames.
 roofverts=[]
 rxs=sorted(set([-.716+i*1.432/80 for i in range(81)]+[-.70,-.59,-.47,-.235,0,.235,.47,.59,.70]))
-rzs=[-1.76,-1.725,-1.65,-1.56,-1.50,-1.3,-.9,-.5,0,.25,.32,.40,.46,.52,.56]
+rzs=[-1.76,-1.725,-1.65,-1.56,-1.50,-1.3,-.9,-.5,0,.25,.32,.36,.40,.43,.46,.485,.505]
 for z in rzs:
     for x in rxs:
         h=1.695+.026*(1-(x/.73)**2)-max(0,abs(z+.60)-1.10)*.15
@@ -337,47 +502,147 @@ for j in range(len(rzs)-1):
 obj=geometry('Crowned pressed steel roof',roofverts,rooffaces,roof,'RoofShell',smooth=True)
 mod=obj.modifiers.new('Roof thickness','SOLIDIFY');mod.thickness=.024
 mod=obj.modifiers.new('Roof roll','BEVEL');mod.width=.008;mod.segments=3
-cube('Windshield upper header',(1.39,.061,.075),(0,1.668,.552),roof,bevel=.014)
-front=window_frame('Open windscreen rubber surround',1.385,.475,.035,.018,.025,(0,1.416,.626),trim)
-front.rotation_euler.x=math.radians(-10)
-front=cube('Laminated windscreen',(1.315,.411,.011),(0,1.421,.649),glass,bevel=.025)
-front.rotation_euler.x=math.radians(-10)
+cube('Windshield upper header',(1.39,.061,.075),(0,1.668,.477),paint,bevel=.014)
+front=window_frame('Open windscreen rubber surround',1.385,.527,.042,.026,.018,(0,1.416,.570),trim)
+for vertex in front.data.vertices:
+    vertex.co.y-=windscreen_bow(vertex.co.x,vertex.co.z)
+front.rotation_euler.x=math.radians(-24)
+glazing('Laminated windscreen',1.337,.480,.036,(0,1.416,.584),-24)
 for side in [-1,1]:
-    tube('Painted A pillar',[(side*.716,1.181,.688),(side*.699,1.647,.538)],.025,roof)
+    tube('Painted A pillar',[(side*.716,1.181,.689),(side*.699,1.647,.4815)],.025,paint)
 for x in [-.45,.18]:
     tube('Wiper arm',[(x,1.194,.711),(x+.075,1.23,.702)],.005,trim)
     tube('Wiper blade',[(x-.11,1.233,.705),(x+.22,1.247,.700)],.008,trim)
 
-# Rear door, window, washer and latch.
-cube('Tailgate lower pressing',(1.46,.57,.055),(0,.90,-1.745),paint,bevel=.03)
-cube('Rear window upper header',(1.385,.061,.07),(0,1.668,-1.742),roof,bevel=.014)
-window_frame('Open rear window frame',1.385,.48,.035,.04,.041,(0,1.414,-1.748),paint)
-window_frame('Tailgate window seal',1.28,.37,.03,.016,.016,(0,1.426,-1.774),trim)
-cube('Tailgate tinted glass',(1.24,.332,.017),(0,1.43,-1.786),glass,bevel=.027)
-cube('High brake light',(.23,.045,.023),(0,1.598,-1.800),red,bevel=.009)
-tube('Rear wiper',[(.43,1.292,-1.801),(.05,1.298,-1.805)],.007,trim)
-cube('Tailgate door handle',(.14,.035,.025),(-.55,1.06,-1.784),trim,bevel=.01)
+# Rear closure: one continuous stamped skin, not a rounded lower box joined
+# to an unrelated window frame. Both outlines have corresponding corner
+# samples so the belt, corners and glazing shoulders share surface normals.
+def closure_outline(w,h,r,cy):
+    points=[]
+    for cx,yy,start in [(w/2-r,h/2-r,0),(-w/2+r,h/2-r,90),(-w/2+r,-h/2+r,180),(w/2-r,-h/2+r,270)]:
+        for i in range(9):
+            a=math.radians(start+i*11.25)
+            points.append((cx+math.cos(a)*r,cy+yy+math.sin(a)*r))
+    return points
+outer=closure_outline(1.400,.966,.036,1.197)
+inner=closure_outline(1.178,.478,.056,1.39)
+def rear_skin_depth(x,h):
+    # The belt rolls inward above the handle rather than leaving a hard
+    # horizontal join across the rear door. The lower sheet has a slight crown.
+    belt=.014*math.exp(-((h-1.135)/.030)**2)
+    crown=.005*max(0,1-(x/.70)**2)*max(0,1-((h-.94)/.25)**2)
+    return -1.800+belt-crown
+vs=[];steps=[0,.025,.07,.16,.30,.48,.68,.86,.97,1];n=len(outer)
+for layer in [0,1]:
+    for t in steps:
+        for (xi,hi),(xo,ho) in zip(inner,outer):
+            x=xi+(xo-xi)*t;h=hi+(ho-hi)*t
+            # Taper the outer door into the same leaning pillars as its
+            # perimeter seam; keep the glazing aperture itself unchanged.
+            x-=math.copysign(max(0,h-1.14)*.085*t,x)
+            z=rear_skin_depth(x,h)+(.012*max(0,(t-.97)/.03)**2)
+            vs.append((x,h,z+layer*.025))
+faces=[];count=n*len(steps)
+for layer in [0,1]:
+    for row in range(len(steps)-1):
+        for i in range(n):
+            a=layer*count+row*n+i;b=layer*count+row*n+(i+1)%n
+            faces.append((a,b,b+n,a+n))
+for row in [0,len(steps)-1]:
+    for i in range(n):
+        a=row*n+i;b=row*n+(i+1)%n;faces.append((a,a+count,b+count,b))
+geometry('Continuous stamped tailgate skin',vs,faces,paint,smooth=True)
+tube('Tailgate perimeter shut line',[(x,h,-1.784) for x,h in closure_outline(1.408,.974,.039,1.197)],.0018,black,closed=True)
+for side in [-1,1]:
+    # Swept corner pressing joins the side wall to the rear face without
+    # overlapping rounded cubes or diagonal pinched highlights at the roof.
+    profile=[(.700,-1.783),(.721,-1.779),(.739,-1.769),(.749,-1.752),(.752,-1.720),(.748,-1.675)]
+    heights=[.700,.714,.80,.98,1.08,1.13,1.17,1.39,1.60,1.65,1.68]
+    vs=[(side*x,h,z) for h in heights for x,z in profile]
+    faces=[(j*len(profile)+i,j*len(profile)+i+1,(j+1)*len(profile)+i+1,(j+1)*len(profile)+i) for j in range(len(heights)-1) for i in range(len(profile)-1)]
+    corner=geometry('Rolled rear body corner',vs,faces,paint,smooth=True)
+    mod=corner.modifiers.new('Stamped corner thickness','SOLIDIFY');mod.thickness=.008
+window_frame('Tailgate window seal',1.185,.485,.056,.018,.016,(0,1.39,-1.798),trim)
+glazing('Tailgate tinted glass',1.140,.440,.045,(0,1.39,-1.811),180)
+# Printed ceramic perimeter sits on the pane, inside the physical seal.
+# It is not another thick rubber gasket. The real rear view has a clear
+# distinction between painted surround, thin seal and the black glass frit.
+window_frame('Rear glass ceramic frit',1.140,.440,.045,.019,.001,(0,1.39,-1.812),black,wall_h=.018,inner_radius=.034)
+cube('High brake light painted recess',(.168,.039,.013),(0,1.649,-1.804),paint,bevel=.016)
+cube('High brake light bezel',(.149,.027,.012),(0,1.649,-1.814),trim,bevel=.012)
+cube('High brake light',(.130,.018,.013),(0,1.649,-1.820),red,bevel=.008)
+tube('Rear wiper',[(.43,1.190,-1.824),(.05,1.203,-1.828)],.006,trim)
+window_frame('Tailgate handle stamped surround',.168,.100,.018,.012,.009,(.54,1.007,-1.810),paint,inner_radius=.012)
+cube('Tailgate handle recessed cup',(.142,.074,.008),(.54,1.007,-1.812),paint,bevel=.012)
+cube('Tailgate handle finger shadow',(.127,.028,.006),(.54,1.000,-1.820),black,bevel=.008)
+cube('Tailgate door handle',(.126,.023,.014),(.54,1.024,-1.824),paint,bevel=.005)
 for h in [.71,1.13]:
-    cube('Tailgate hinge',(.09,.05,.028),(.65,h,-1.785),paint,bevel=.01)
+    cube('Tailgate hinge cover',(.105,.085,.035),(-.672,h,-1.812),trim,bevel=.018)
 
-# Five-slot Suzuki grille. Rounded apertures have inset honeycomb and rolled chrome bezels.
-cube('Upper front panel',(1.52,.31,.075),(0,.978,1.79),paint,bevel=.045)
-cube('Anthracite grille face',(1.49,.28,.045),(0,.980,1.839),grillemetal,'OEMGrille',bevel=.030)
+# Shared factory fascia silhouette: clipped shoulders and a bowed/tapered
+# lower edge. The former generic rounded rectangle obscured this key shape.
+GRILLE_OUTLINE=[(-.680,1.120),(.680,1.120),(.725,1.109),(.747,1.079),
+                (.747,.915),(.734,.889),(.692,.871),(.430,.842),(0,.835),
+                (-.430,.842),(-.692,.871),(-.734,.889),(-.747,.915),(-.747,1.079),(-.725,1.109)]
+def fascia_plate(name,outline,back,front,mat,group='BodyShell'):
+    outline=rounded_polygon(outline,.009);n=len(outline)
+    vertices=[(x,h,z) for z in [back,front] for x,h in outline]
+    return geometry(name,vertices,[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],mat,group,bevel=.0015)
+def grille_face(group,mat):
+    return fascia_plate('Reference shaped grille face',GRILLE_OUTLINE,1.8165,1.8615,mat,group)
+def factory_slot(name,x,mat,group):
+    def outline(w,h,c):return [(-w/2+c,h/2),(w/2-c,h/2),(w/2,h/2-c),(w/2,-h/2+c),(w/2-c,-h/2),(-w/2+c,-h/2),(-w/2,-h/2+c),(-w/2,h/2-c)]
+    outer,inner=outline(.132,.178,.021),outline(.106,.152,.015);n=8
+    vertices=[(x+u,.983+h,z) for z in [1.872,1.894] for shape in [outer,inner] for u,h in shape]
+    faces=[]
+    for i in range(n):
+        j=(i+1)%n;faces.extend([(i,j,n+j,n+i),(2*n+i,3*n+i,3*n+j,2*n+j),(i,2*n+i,2*n+j,j),(n+i,n+j,3*n+j,3*n+i)])
+    return geometry(name,vertices,faces,mat,group,bevel=.0016)
+paint_outline=[(x*1.022,.980+(h-.980)*1.105) for x,h in GRILLE_OUTLINE]
+front_panel=fascia_plate('Reference shaped painted nose',paint_outline,1.752,1.834,paint)
+grille_faces=[front_panel,grille_face('OEMGrille',grillemetal)]
 for x in [-.32,-.16,0,.16,.32]:
-    window_frame('Rolled open chrome slot',.112,.214,.024,.011,.022,(x,.983,1.883),chrome,'OEMGrille')
-    cube('Deep grille aperture',(.091,.188,.007),(x,.983,1.867),black,'OEMGrille',bevel=.017)
-    for h in [.918,.951,.984,1.017,1.050]:
-        tube('Inset grille mesh',[(x-.035,h,1.875),(x,h+.014,1.875),(x+.035,h,1.875)],.0018,gunmetal,'OEMGrille')
+    factory_slot('Chamfered factory chrome slot',x,chrome,'OEMGrille')
+    cube('Deep grille aperture',(.106,.152,.007),(x,.983,1.867),black,'OEMGrille',bevel=.015)
+    for row in range(6):
+        for column in range(3):
+            centre=x-.031+column*.031+(row%2)*.0155
+            if abs(centre-x)>.039:continue
+            h=.924+row*.0235
+            points=[(centre+math.cos(i*math.tau/6)*.016,h+math.sin(i*math.tau/6)*.0135,1.875) for i in range(6)]
+            tube('Inset grille honeycomb',points,.0012,gunmetal,'OEMGrille',closed=True)
 
 def emblem():
-    polygons=[[(.48,.44),(.14,.64),(-.48,.20),(-.16,-.03),(.19,.23),(.34,.14),(.48,.25)],
-              [(.16,.03),(-.19,-.23),(-.34,-.14),(-.48,-.25),(-.48,-.44),(-.14,-.64),(.48,-.20)]]
-    for points in polygons:
-        n=len(points)
-        vs=[(x*.115,.983+y*.115,z) for z in [1.903,1.913] for x,y in points]
-        faces=[tuple(range(n)),tuple(reversed(range(n,n*2)))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
-        geometry('Raised S emblem',vs,faces,chrome,'OEMGrille',.001)
-emblem()
+    # Suzuki S outline, not the former disconnected approximation.
+    # Public-domain geometric logo: Wikimedia File:Suzuki Motor Corporation logo.svg,
+    # path3213. Trademark remains Suzuki's; shown only on the depicted vehicle.
+    current=Vector((229.03885,140.36372));points=[tuple(current)]
+    commands=[
+        ('c',(0,0,-8.11688,2.35257,-23.845,12.01832)),
+        ('c',(-14.12870,8.68639,-19.66415,14.5199,-19.66415,14.5199)),
+        ('l',(-43.51448,-30.07505)),
+        ('c',(0,0,18.30956,-13.46604,33.61188,-3.15095)),
+        ('l',(20.52108,14.07813)),('l',(2.49893,-1.64997)),('l',(-56.63189,-39.66896)),
+        ('c',(0,0,8.1435,-2.35255,23.87428,-12.020963)),
+        ('c',(14.12871,-8.686393,19.6402,-14.522567,19.6402,-14.522567)),
+        ('l',(43.53577,30.07771)),
+        ('c',(0,0,-18.30957,13.46871,-33.61188,3.15095)),
+        ('l',(-20.51842,-14.075475)),('l',(-2.49894,1.642005)),('l',(56.60262,39.67692))]
+    for kind,values in commands:
+        if kind=='l':
+            current+=Vector(values);points.append(tuple(current))
+        else:
+            start=current.copy();c1=start+Vector(values[:2]);c2=start+Vector(values[2:4]);end=start+Vector(values[4:])
+            for step in range(1,9):
+                t=step/8;p=(1-t)**3*start+3*(1-t)**2*t*c1+3*(1-t)*t*t*c2+t**3*end;points.append(tuple(p))
+            current=end
+    if (Vector(points[-1])-Vector(points[0])).length<.01:points.pop()
+    n=len(points)
+    vs=[((x-185.53)*.00135,.983-(y-123.45)*.00135,z) for z in [1.901,1.912] for x,y in points]
+    faces=[tuple(range(n)),tuple(reversed(range(n,n*2)))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    geometry('Raised Suzuki S emblem',vs,faces,chrome,'OEMGrille',.0011)
+    return points
+suzuki_outline=emblem()
 
 # Replaceable aftermarket grille assemblies. Letters are extruded Blender outlines,
 # not canvas captions or screenshots pasted over the front of the car.
@@ -409,18 +674,19 @@ def raised_wordmark(group,text,script=False):
     data.offset=.0006 if script else .002
     data.extrude=.004;data.bevel_depth=.0008;data.bevel_resolution=2;data.resolution_u=6
     obj=bpy.data.objects.new('Raised Suzuki grille lettering',data);bpy.context.collection.objects.link(obj)
-    obj.location=pos(0,.983,1.911);obj.rotation_euler.x=math.pi/2;obj.parent=groups[group]
+    obj.location=pos(0,.983,1.911);obj.parent=groups[group]
     obj.data.materials.append(badgewhite)
     bpy.context.view_layer.update()
     obj.scale.x*=.46/obj.dimensions.x
-    obj.scale.y*=.060/obj.dimensions.z
+    obj.scale.y*=.060/obj.dimensions.y
+    obj.rotation_euler.x=math.pi/2
 
 for group in ['BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille']:
-    cube('Replacement grille surround',(1.49,.28,.045),(0,.980,1.839),glossblack if group=='GlossGrille' else trim,group,bevel=.022)
+    grille_faces.append(grille_face(group,glossblack if group=='GlossGrille' else trim))
     if group in ['DeleteGrille','ClassicGrille']:
         for x in [-.32,-.16,0,.16,.32]:
-            window_frame('Open five-slot bezel',.112,.214,.024,.011,.022,(x,.983,1.883),chrome if group=='DeleteGrille' else gunmetal,group)
-            cube('Unbadged grille opening',(.091,.188,.007),(x,.983,1.867),black,group,bevel=.017)
+            factory_slot('Unbadged chamfered factory slot',x,chrome if group=='DeleteGrille' else gunmetal,group)
+            cube('Unbadged grille opening',(.106,.152,.007),(x,.983,1.867),black,group,bevel=.015)
     else:
         window_frame('Recessed mesh surround',.845,.216,.045,.018,.028,(0,.983,1.879),glossblack if group=='GlossGrille' else trim,group)
         cube('Radiator shadow behind grille',(.81,.187,.008),(0,.983,1.869),black,group,bevel=.023)
@@ -434,79 +700,182 @@ for group in ['BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGr
     if group in ['BlockGrille','RhinoGrille','GlossGrille']:raised_wordmark(group,'SUZUKI')
     if group=='ScriptGrille':raised_wordmark(group,'Suzuki',True)
 
-# Deep optical headlamps: outer bezel, silver reflector, central projector, clear lens.
-for x in [-.574,.574]:
-    before=set(bpy.data.objects)
-    cylinder('Headlight rubber gasket',.140,.028,(x,.977,1.868),trim)
-    ring('Headlight chrome bezel',.130,.116,.018,(x,.977,1.889),chrome)
-    cylinder('Dark headlamp back',.117,.012,(x,.977,1.852),gunmetal)
-    # A dished reflector produces optical highlights rather than flat silver discs.
-    vs=[];faces=[];steps=48
-    for radius,depth in [(.112,1.892),(.100,1.882),(.076,1.872),(.049,1.869)]:
-        for i in range(steps):
-            a=i/steps*math.tau;vs.append((x+math.cos(a)*radius,.977+math.sin(a)*radius,depth))
-    for row in range(3):
-        for i in range(steps):
-            j=(i+1)%steps;faces.append((row*steps+i,row*steps+j,(row+1)*steps+j,(row+1)*steps+i))
-    geometry('Dished headlamp reflector',vs,faces,chrome,smooth=True)
-    cylinder('Projector dark optical centre',.041,.006,(x,.977,1.882),gunmetal)
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=24,ring_count=12,radius=1,location=pos(x,.977,1.890))
-    obj=bpy.context.object;obj.scale=(.041,.013,.041);finish(obj,'Convex projector glass',lens,smooth=True)
-    ring('Projector light guide',.044,.040,.005,(x,.977,1.889),lamp)
-    ring('Projector surround',.052,.043,.010,(x,.977,1.884),chrome)
-    for i in range(9):
-        a=i/10*math.tau
-        cube('Headlamp optical facet',(.019,.012,.008),(x+math.cos(a)*.098,.977+math.sin(a)*.098,1.883),chrome,bevel=.002)
-    cylinder('Clear front lamp glass',.116,.007,(x,.977,1.902),lens)
+# LED headlamp assemblies, based on the India Alpha reference: segmented
+# reflector bowls around a small convex projector, behind a clear outer lens.
+# There is no luminous white halo in the stock daylight headlamp.
+for panel in grille_faces:
+    # Both the grille AND painted panel must be open, otherwise the reflector
+    # bowls are hidden behind flat plastic despite existing in the GLB.
+    for x in [-.550,.550]:
+        subtract(panel,cylinder('Temporary headlamp aperture',.112,.50,(x,.977,1.81),black,vertices=80))
+    for x in [-.697,.697]:
+        subtract(panel,cylinder('Temporary indicator aperture',.043,.50,(x,1.061,1.81),black,vertices=48))
+for x in [-.550,.550]:
+    before_lamp=set(bpy.data.objects)
+    ring('Open headlight rubber gasket',.123,.110,.027,(x,.977,1.866),trim,segments=80)
+    ring('Headlight retaining bezel',.116,.109,.014,(x,.977,1.884),chrome,segments=64)
+    cylinder('Dark headlamp housing',.110,.012,(x,.977,1.823),black,vertices=64)
+    for sector in range(12):
+        vs=[];faces=[];steps=6
+        for row,(radius,depth) in enumerate([(.108,1.884),(.102,1.866),(.079,1.849),(.054,1.858)]):
+            for i in range(steps+1):
+                a=(sector+(i/steps)*.965)/12*math.tau
+                # Alternating, slightly tilted surfaces catch different parts
+                # of the environment, as stamped optical reflectors do.
+                d=depth+.005*math.sin(i/steps*math.pi)*(1 if sector%2 else -.45)
+                vs.append((x+math.cos(a)*radius,.977+math.sin(a)*radius,d))
+        for row in range(3):
+            for i in range(steps):
+                n=row*(steps+1)+i;faces.append((n,n+1,n+steps+2,n+steps+1))
+        geometry('Segmented headlight reflector',vs,faces,chrome,smooth=True)
+    ring('Projector metal shroud',.065,.049,.017,(x,.982,1.874),chrome,segments=64)
+    cylinder('Projector dark optical centre',.048,.006,(x,.982,1.876),optical,vertices=64)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=40,ring_count=20,radius=1,location=pos(x,.982,1.884))
+    obj=bpy.context.object;obj.scale=(.046,.017,.046);finish(obj,'Convex projector optic',optical,smooth=True)
+    # Stamped reflector partitions, not the previous six decorative LED dots.
+    for a in [3.55,4.15,4.75,5.35]:
+        pts=[(x+math.cos(a)*r,.977+math.sin(a)*r,z) for r,z in [(.059,1.861),(.082,1.858),(.105,1.882)]]
+        tube('Optical reflector partition',pts,.0025,chrome)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=48,ring_count=24,radius=1,location=pos(x,.977,1.889))
+    obj=bpy.context.object;obj.scale=(.110,.008,.110);finish(obj,'Curved clear headlamp cover',lens,smooth=True)
+    # Calibrated against the full-width front reference: the earlier 246 mm
+    # outer housing dominated the fascia. Reduce radial size, preserving depth.
     bpy.context.view_layer.update()
-    center=Vector(pos(x,.977,1.884))
-    radial_scale=Matrix.Diagonal((.84,1,.84,1))
-    for obj in set(bpy.data.objects)-before:
-        obj.matrix_world=Matrix.Translation(center)@radial_scale@Matrix.Translation(-center)@obj.matrix_world
+    centre=Vector(pos(x,.977,0))
+    radial=Matrix.Translation(centre) @ Matrix.Diagonal((.90,1,.90,1)) @ Matrix.Translation(-centre)
+    for lamp_part in set(bpy.data.objects)-before_lamp:
+        lamp_part.matrix_world=radial @ lamp_part.matrix_world
+        lamp_part.parent=groups['StockHeadlamps']
     side=-1 if x<0 else 1
-    cylinder('Round front turn signal seal',.033,.016,(side*.695,1.042,1.863),trim,vertices=32)
-    cylinder('Round front turn signal',.027,.019,(side*.695,1.042,1.876),amber,vertices=32)
+    # Reference-guided proportion: amber lens is about 36% of the headlamp,
+    # not the previous tiny 52 mm lens. Inset its centre to retain the edge seal.
+    cylinder('Round front turn signal seal',.045,.016,(side*.697,1.061,1.863),trim,vertices=48)
+    cylinder('Round front turn signal',.040,.019,(side*.697,1.061,1.876),amber,vertices=48)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32,ring_count=16,radius=1,location=pos(side*.697,1.061,1.884))
+    obj=bpy.context.object;obj.scale=(.039,.009,.039);finish(obj,'Domed amber indicator lens',amber,smooth=True)
+    for offset in [-.030,-.020,-.010,0,.010,.020,.030]:
+        extent=math.sqrt(.039**2-offset**2)
+        tube('Indicator lens fluting',[(side*.697+offset,1.061-extent,1.892),(side*.697+offset,1.061+extent,1.892)],.0007,amber)
 
-# One moulded bumper skin, with a recessed open intake and broad angular shoulders.
-outer=rounded_polygon([(-.82,.77),(-.77,.818),(.77,.818),(.82,.77),(.82,.55),(.69,.48),
-                       (.55,.435),(.35,.450),(-.35,.450),(-.55,.435),(-.69,.48),(-.82,.55)],.045)
-inner=rounded_polygon([(-.46,.70),(-.43,.728),(.43,.728),(.46,.70),(.46,.58),(.43,.55),
-                       (.30,.55),(.18,.55),(-.18,.55),(-.30,.55),(-.43,.55),(-.46,.58)],.014)
-n=len(outer);vs=[];faces=[]
-for t in [0,.12,.40,.80,1]:
-    for (xo,ho),(xi,hi) in zip(outer,inner):
-        x=xo+(xi-xo)*t;h=ho+(hi-ho)*t
-        depth=1.955-.11*(abs(x)/.82)**5-.052*(1-t)**3+.009*math.sin(t*math.pi)
-        vs.append((x,h,depth))
-for row in range(4):
-    for i in range(n):
-        j=(i+1)%n;faces.append((row*n+i,row*n+j,(row+1)*n+j,(row+1)*n+i))
-back=len(vs)
-vs.extend((x*.99,h,1.675) for x,h in outer)
-for i in range(n):
-    j=(i+1)%n;faces.append((i,back+i,back+j,j))
-obj=geometry('Sculpted one piece bumper face',vs,faces,trim,'StockBumper',smooth=True)
-mod=obj.modifiers.new('Bumper return thickness','SOLIDIFY');mod.thickness=.04
+# Reference bumper: an upper horizontal ledge, inset central intake and two
+# angular lower pads. Fog lamps are INSIDE actual holes, not chrome rings glued
+# onto a rounded bar. Boolean apertures retain their full-depth moulded returns.
+profile=[(.445,.565,1.905),(.47,.665,1.925),(.52,.765,1.946),(.60,.811,1.950),(.73,.811,1.950),(.78,.803,1.930),(.82,.786,1.878),(.837,.73,1.852)]
+rows=[]
+for i in range(len(profile)-1):
+    p0=Vector(profile[max(0,i-1)]);p1=Vector(profile[i]);p2=Vector(profile[i+1]);p3=Vector(profile[min(len(profile)-1,i+2)])
+    for step in range(4):
+        t=step/4;rows.append(.5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t*t+(-p0+3*p1-3*p2+p3)*t*t*t))
+rows.append(Vector(profile[-1]));columns=65;vs=[]
+for back in [False,True]:
+    for h,width,depth in rows:
+        for col in range(columns):
+            u=col/(columns-1)*2-1
+            vs.append((u*width,h,1.66 if back else depth-.115*abs(u)**6))
+count=len(rows)*columns;faces=[]
+for row in range(len(rows)-1):
+    for col in range(columns-1):
+        a=row*columns+col;faces.extend([(a,a+1,a+columns+1,a+columns),(a+count,a+columns+count,a+columns+count+1,a+count+1)])
+for row in range(len(rows)-1):
+    for col in [0,columns-1]:
+        a=row*columns+col;faces.append((a,a+count,a+count+columns,a+columns))
+for row in [0,len(rows)-1]:
+    for col in range(columns-1):
+        a=row*columns+col;faces.append((a,a+1,a+count+1,a+count))
+bumper=geometry('Continuous curved moulded bumper',vs,faces,trim,'StockBumper',smooth=True)
+subtract(bumper,cube('Temporary intake opening',(.90,.183,.60),(0,.654,1.84),black,bevel=.018))
 for side in [-1,1]:
-    cylinder('Fog light recessed cup',.072,.016,(side*.596,.635,1.956),black,group='StockBumper')
-    ring('Fog light bezel',.056,.043,.012,(side*.596,.635,1.968),chrome,group='StockBumper',segments=32)
-    cylinder('Fog light glass',.043,.010,(side*.596,.635,1.978),lens,group='StockBumper',vertices=32)
-    tube('Bumper lower pressed rib',[(side*.26,.485,1.97),(side*.39,.485,1.97),(side*.51,.518,1.97)],.012,trim,'StockBumper')
+    subtract(bumper,cylinder('Temporary fog aperture',.068,.65,(side*.607,.667,1.87),black,vertices=64))
+    # The real fog lamps sit in broad trapezoidal moulded pockets, not round
+    # chrome portholes on an inflated bar. Recess the surrounding face as well.
+    pts=[(side*.472,.762),(side*.746,.755),(side*.748,.600),(side*.480,.572)]
+    vs=[(x,h,z) for z in [1.909,2.10] for x,h in pts]
+    cutter=geometry('Temporary fog pocket',vs,[(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],black,bevel=.012)
+    subtract(bumper,cutter)
+mod=bumper.modifiers.new('Injection moulded corner radii','BEVEL');mod.width=.017;mod.segments=4
+for poly in bumper.data.polygons:poly.use_smooth=True
+mod=bumper.modifiers.new('Stable bumper surface normals','WEIGHTED_NORMAL');mod.keep_sharp=True;mod.weight=50
+cube('Upper bumper ledge',(1.46,.058,.16),(0,.818,1.835),trim,'StockBumper',bevel=.018)
+for side in [-1,1]:
+    ring('Recessed fog moulding',.068,.051,.075,(side*.607,.667,1.894),trim,group='StockBumper',segments=48)
+    cylinder('Fog reflector back',.049,.014,(side*.607,.667,1.876),chrome,group='StockBumper')
+    ring('Fog reflector rim',.049,.040,.010,(side*.607,.667,1.891),chrome,group='StockBumper',segments=48)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32,ring_count=16,radius=1,location=pos(side*.607,.667,1.900))
+    obj=bpy.context.object;obj.scale=(.045,.009,.045);finish(obj,'Inset fog lens',lens,'StockBumper',smooth=True)
+    # Raised lower protectors have planar bevelled faces, not tubular outlines.
+    points=[(side*.28,.45),(side*.28,.515),(side*.36,.551),(side*.51,.551),(side*.585,.495),(side*.555,.456)]
+    vertices=[(x,h,z) for z in [1.932,1.975] for x,h in points];count=len(points)
+    geometry('Angular lower bumper pad',vertices,[tuple(range(count)),tuple(reversed(range(count,count*2)))]+[(i,(i+1)%count,(i+1)%count+count,i+count) for i in range(count)],trim,'StockBumper',.012)
     cube('Headlight washer cap',(.045,.029,.013),(side*.52,.811,1.887),trim,'StockBumper',bevel=.005)
-cube('Deep central bumper intake',(.91,.19,.008),(0,.636,1.896),black,'StockBumper',bevel=.018)
+cube('Deep central bumper intake',(.91,.19,.008),(0,.654,1.82),black,'StockBumper',bevel=.018)
 for row in range(5):
     for col in range(14):
         x=-.401+col*.061+(row%2)*.03
         if abs(x)>.42: continue
-        h=.548+row*.036
-        pts=[(x+math.cos(i/6*math.tau)*.034,h+math.sin(i/6*math.tau)*.022,1.929) for i in range(6)]
+        h=.582+row*.036
+        pts=[(x+math.cos(i/6*math.tau)*.034,h+math.sin(i/6*math.tau)*.022,1.860) for i in range(6)]
         tube('Lower intake honeycomb',pts,.0023,trim,'StockBumper',closed=True)
-cube('Front registration mount',(.43,.105,.022),(0,.493,1.977),trim,'StockBumper',bevel=.007)
-cube('Rear bumper',(1.60,.22,.22),(0,.61,-1.78),trim,bevel=.045)
-for x in [-.60,.60]:
-    cube('Rear lamp smoked rim',(.257,.13,.031),(x,.649,-1.901),trim,bevel=.022)
-    cube('Rear red lamp',(.223,.096,.035),(x,.657,-1.920),red,bevel=.018)
-    cube('Reverse lamp',(.066,.046,.038),(x+.052,.657,-1.940),lens,bevel=.007)
+cube('Front registration mount',(.43,.125,.022),(0,.520,1.978),trim,'StockBumper',bevel=.007)
+cube('Blank front registration face',(.412,.101,.004),(0,.520,1.991),gunmetal,'StockBumper',bevel=.002)
+def vehicle_lettering(name,text,at,width,mat=chrome,group='BodyShell',rear=False):
+    data=bpy.data.curves.new(name,'FONT');data.body=text;data.font=font_block;data.align_x='CENTER';data.align_y='CENTER';data.size=.09;data.extrude=.0007;data.resolution_u=3
+    obj=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(obj);obj.parent=groups[group];data.materials.append(mat)
+    bpy.context.view_layer.update();obj.scale*=width/max(.001,obj.dimensions.x)
+    obj.rotation_euler.x=math.pi/2
+    if rear:obj.rotation_euler.z=math.pi
+    obj.location=pos(*at)
+rear_bumper=cube('Contoured rear bumper',(1.61,.245,.245),(0,.592,-1.79),trim,bevel=.055)
+subtract(rear_bumper,cube('Rear number plate recess cutter',(.535,.165,.10),(0,.565,-1.915),black,bevel=.014))
+cube('Rear number plate recess',(.535,.165,.015),(0,.565,-1.870),black,bevel=.012)
+cube('Rear registration mount',(.445,.104,.012),(0,.565,-1.882),gunmetal,bevel=.005)
+def tailgate_badge(name, glyphs, widths, at, width, height, gap=.11, rear=True, mat=chrome, group='BodyShell'):
+    # Outline lettering used for the separate SUZUKI badge.
+    total=sum(widths)+gap*(len(widths)-1)
+    cursor=-total/2
+    for index,(pieces,advance) in enumerate(zip(glyphs,widths)):
+        for piece in pieces:
+            sign=-1 if rear else 1
+            points=[(at[0]+sign*(cursor+u)*width/total,at[1]+v*height,z) for z in [at[2],at[2]+sign*.0015] for u,v in piece]
+            n=len(piece)
+            faces=[tuple(range(n)),tuple(reversed(range(n,n*2)))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+            geometry(name+' outline '+str(index),points,faces,mat,group,.00022)
+        cursor+=advance+gap
+
+# Official Suzuki vector outlines; no substitute font or hand-drawn glyphs.
+with open(os.path.join(ROOT, 'assets/models/jimny-wordmark.json')) as source:
+    jimny_wordmark = json.load(source)
+wordmark_scale = .184 / jimny_wordmark['width']
+wordmark_vertices, wordmark_faces = [], []
+for polygon in jimny_wordmark['polygons']:
+    start, count = len(wordmark_vertices), len(polygon)
+    for depth in [0, .0015]:
+        for x, y in polygon:
+            wordmark_vertices.append((-.53-(x-jimny_wordmark['width']/2)*wordmark_scale, .826-y*wordmark_scale, -1.8122-depth))
+    wordmark_faces.extend([tuple(start+i for i in reversed(range(count))), tuple(start+count+i for i in range(count))])
+    wordmark_faces.extend((start+i,start+(i+1)%count,start+(i+1)%count+count,start+i+count) for i in range(count))
+wordmark = geometry('JimnyTailgateWordmark', wordmark_vertices, wordmark_faces, chrome, bevel=.00012)
+wordmark['source_url'] = jimny_wordmark['source']
+wordmark['badge_width_m'] = .184
+# Neutral blank registration plates; the vehicle badges remain on the body.
+SUZUKI_BADGE={
+ 'S':[(.95,1),(.13,1),(0,.84),(0,.58),(.15,.46),(.74,.40),(.74,.22),(0,.22),(0,0),(.86,0),(1,.15),(1,.43),(.85,.56),(.26,.62),(.26,.78),(.95,.78)],
+ 'U':[(0,1),(0,.17),(.17,0),(.83,0),(1,.17),(1,1),(.74,1),(.74,.28),(.65,.22),(.35,.22),(.26,.28),(.26,1)],
+ 'Z':[(0,1),(1,1),(1,.78),(.36,.22),(1,.22),(1,0),(0,0),(0,.22),(.64,.78),(0,.78)],
+ 'K':[(0,1),(.26,1),(.26,.63),(.65,1),(1,1),(.50,.53),(1,0),(.65,0),(.26,.40),(.26,0),(0,0)],
+ 'I':[(0,0),(.27,0),(.27,1),(0,1)]}
+tailgate_badge('Suzuki tailgate badge',[[SUZUKI_BADGE[c]] for c in 'SUZUKI'],[1,1,1,1,1,.27],(.51,.786,-1.812),.191,.024,.13)
+vehicle_lettering('Allgrip tailgate badge','ALLGRIP',(-.53,.751,-1.809),.13,rear=True)
+for side in [-1,1]:
+    x=side*.578
+    subtract(rear_bumper,cube('Rear lamp recess cutter',(.301,.142,.10),(x,.606,-1.915),black,bevel=.021))
+    cube('Rear lamp smoked rim',(.292,.135,.029),(x,.606,-1.897),black,bevel=.020)
+    cube('Rear lamp red perimeter',(.264,.108,.020),(x,.606,-1.916),red,bevel=.016)
+    cube('Rear reversing reflector',(.096,.072,.024),(x-side*.067,.606,-1.927),chrome,bevel=.008)
+    cube('Rear reversing clear lens',(.092,.068,.025),(x-side*.067,.606,-1.940),lens,bevel=.008)
+    for dx in [-.035,-.018,0,.018,.035]:
+        tube('Rear lens optical ribs',[(x-side*.067+dx,.581,-1.942),(x-side*.067+dx,.631,-1.942)],.001,chrome)
+    cube('Rear turn signal section',(.061,.066,.025),(x+side*.030,.606,-1.932),red,bevel=.006)
+    cube('Rear bumper top tread',(.27,.012,.13),(side*.60,.714,-1.804),rubber,bevel=.004)
 
 # Ladder chassis, axles and suspension remain visible beneath the body.
 for x in [-.47,.47]:
@@ -520,14 +889,50 @@ for z in [-1.295,1.295]:
         tube('Coil suspension spring',pts,.006,gunmetal)
 
 
+def wheel_turn(name, profile, centre, side, mat, group, segments=48):
+    """Turn a machined section without smoothing a flat lip into its barrel.
+
+    Each segment owns its vertices. Circumferential normals remain smooth,
+    while a deliberate bevel/chamfer must exist in the profile itself. This
+    prevents the swollen torus highlights of the old four-ring smooth mesh.
+    Profile coordinates are (outward axial distance, radius), in metres.
+    """
+    x,h,z=centre;vertices=[];faces=[]
+    for first,last in zip(profile,profile[1:]):
+        start=len(vertices)
+        for axial,radius in [first,last]:
+            for i in range(segments):
+                angle=i/segments*math.tau
+                vertices.append((x+side*axial,h+math.cos(angle)*radius,z+math.sin(angle)*radius))
+        for i in range(segments):
+            j=(i+1)%segments
+            faces.append((start+i,start+j,start+j+segments,start+i+segments))
+    if side<0:faces=[tuple(reversed(face)) for face in faces]
+    return geometry(name,vertices,faces,mat,group,smooth=True)
+
+
+def wheel_disc(name,radius,depth,at,mat,group,segments=48):
+    obj=cylinder(name,radius,depth,at,mat,'side',group,segments)
+    # A wheel hub is a flat casting, not a softly shaded sphere.
+    for polygon in obj.data.polygons:
+        if len(polygon.vertices)>4:polygon.use_smooth=False
+    normals=obj.modifiers.new('Flat hub face normals','WEIGHTED_NORMAL')
+    normals.keep_sharp=True;normals.weight=70
+    return obj
+
+
 def wheel(group,x,h,z,r=.3465,offroad=False):
     half=.1175 if offroad else .0975
     side=-1 if x<0 else 1
     rim=.1905
-    profile=[(rim,-half*.84),(.205,-half*.95),(r*.68,-half*1.02),(r*.82,-half*1.035),
-             (r*.93,-half*.94),(r*.985,-half*.76),(r,-half*.59),
-             (r,half*.59),(r*.985,half*.76),(r*.93,half*.94),
-             (r*.82,half*1.035),(r*.68,half*1.02),(.205,half*.95),(rim,half*.84)]
+    # The casing ends at the groove bed, not the top of the tread. Previously
+    # the full-radius casing filled almost every channel, leaving a slick
+    # doughnut with thin marks instead of actual blocks and open shoulders.
+    # Nominal outside diameter/section width are unchanged by this revision.
+    groove=.008 if offroad else .005
+    cross=[(rim,half*.84),(.207,half*.93),(r*.71,half*.99),(r*.87,half),
+           (r*.955,half*.90),(r-groove-.004,half*.72),(r-groove-.001,half*.45)]
+    profile=[(radius,-axial) for radius,axial in cross]+[(r-groove,0)]+list(reversed(cross))
     vs=[];faces=[];steps=80
     for radius,axial in profile:
         for i in range(steps):
@@ -539,51 +944,95 @@ def wheel(group,x,h,z,r=.3465,offroad=False):
             faces.append((n,j,j+steps,n+steps))
     geometry('Rounded tyre carcass',vs,faces,rubber,group,smooth=True)
     for offset in [-1,1]:
-        for radius,thickness in [(rim+.011,.001),(r*.89,.001),(r*.91,.0008)]:
-            ring('Moulded sidewall rib',radius,radius-thickness,.001,(x+offset*half*(1.02 if radius<r*.85 else .975),h,z),rubber,'side',group,64)
-    # Each tread block follows the tyre radius and has narrow grooves between it and
-    # its neighbours. This avoids the old rectangular paddles around the silhouette.
-    count=48 if offroad else 64
+        # Two fine mould seams, seated on the carcass rather than floating
+        # radial hoops. The outer mould seam does not substitute for tread.
+        for radius,axial,thickness in [(rim+.011,half*.915,.0009),(r*.865,half*1.003,.0007)]:
+            ring('Fine tyre mould seam',radius,radius-thickness,.0008,(x+offset*axial,h,z),rubber,'side',group,64)
+    # Five staggered tread rows with genuinely recessed longitudinal and
+    # transverse channels. Crown falloff rounds the shoulder without growing
+    # the rolling radius or adding rectangular paddle-like silhouettes.
+    count=44 if offroad else 60
     for i in range(count):
         for row in range(5):
             axial=(row-2)*half*.34
-            angle=(i+(row%2)*.40)/count*math.tau
-            width=half*(.29 if offroad else .30)
-            length=math.tau/count*(.73 if offroad else .88)
-            radius=r-(.004 if abs(row-2)==2 else 0)
+            angle=(i+(row%2)*.44+(i%3)*.025)/count*math.tau
+            shoulder=abs(row-2)==2
+            width=half*((.38 if shoulder else .29) if offroad else .29)
+            length=math.tau/count*(.74 if offroad else .87)
             vertices=[]
-            for radial in [radius-.004,radius+.0025 if offroad else radius+.0008]:
+            for layer in [-groove,0]:
                 for u,v in [(-width/2,-length/2),(width/2,-length/2),(width/2,length/2),(-width/2,length/2)]:
-                    a=angle+v+u*(.20 if row%2 else -.20)
+                    a=angle+v+u*(.60 if row%2 else -.60)
+                    radial=r-(abs(axial+u)/half)**4*(.012 if offroad else .010)+layer
                     vertices.append((x+axial+u,h+math.cos(a)*radial,z+math.sin(a)*radial))
-            geometry('Rounded AT tread block' if offroad else 'Fine road tread block',vertices,
+            geometry('Staggered AT tread block' if offroad else 'Road tread rib segment',vertices,
                      [(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],rubber,group)
+        if offroad:
+            # Alternating open-shoulder lugs wrap down the sidewall. They are
+            # integrated wedges with roots inside the casing, not floating
+            # blocks glued onto a smooth tube. No branded tread is copied.
+            for flank in [-1,1]:
+                angle=(i+(.34 if flank>0 else .04))/count*math.tau
+                sweep=math.tau/count*(.66 if i%2 else .74)
+                contour=[(half*.965,r*.922),(half*1.018,r*.928),
+                         (half*.79,r*.988),(half*.72,r*.979)]
+                vertices=[]
+                for delta in [-sweep/2,sweep/2]:
+                    for axial,radial in contour:
+                        a=angle+delta
+                        vertices.append((x+flank*axial,h+math.cos(a)*radial,z+math.sin(a)*radial))
+                geometry('AT open shoulder wrap lug',vertices,
+                         [(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],rubber,group)
     outer=x+side*(half*.88)
-    ring('Open wheel barrel',rim,rim-.012,.15,(x,h,z),gunmetal,'side',group)
-    cylinder('Brake disc',.152,.012,(x+side*.025,h,z),brake,'side',group)
-    for radius in [.111,.133,.147]:
-        ring('Brake disc machining groove',radius,radius-.0012,.002,(x+side*.033,h,z),gunmetal,'side',group)
-    cube('Brake caliper',(.041,.09,.052),(x+side*.046,h+.03,z+.135),caliper,group,bevel=.01)
-    ring('Alloy outer lip',rim,rim-.009,.015,(outer,h,z),gunmetal if offroad else alloy,'side',group)
-    ring('Inner rim chamfer',.171,.165,.012,(outer+side*.002,h,z),alloy,'side',group)
-    spoke=[(-.018,.048),(-.026,.097),(-.057,.165),(-.049,.180),(-.031,.176),
-           (0,.122),(.031,.176),(.049,.180),(.057,.165),(.026,.097),(.018,.048)]
-    if offroad:spoke=[(-.024,.048),(-.023,.172),(.023,.172),(.024,.048)]
+    # Deep bead seat, drop centre and front lip are one credible open rim,
+    # rather than several coplanar shiny hoops. Interior stays dark when the
+    # user changes the visible powder-coated wheel finish.
+    face=half*.88
+    wheel_turn('Recessed wheel barrel',[(-.073,.186),(-.060,.177),
+               (-.018,.162),(.012,.162),(face-.015,.177)],
+               (x,h,z),side,wheel_barrel,group,32)
+    if z>0:
+        wheel_turn('Front brake rotor annulus',[(.016,.145),(.027,.145),(.027,.087),(.016,.087),(.016,.145)],
+                   (x,h,z),side,brake,group)
+        wheel_disc('Recessed brake rotor hat',.087,.023,(x+side*.012,h,z),wheel_barrel,group)
+        for radius in [.109,.132,.142]:
+            wheel_turn('Brake disc machining groove',[(.0273,radius),(.0273,radius-.00055)],
+                       (x,h,z),side,caliper,group,32)
+        cube('Front brake caliper',(.040,.085,.048),(x+side*.037,h+.027,z+.130),caliper,group,bevel=.007)
+        cube('Caliper bridge rib',(.043,.014,.050),(x+side*.037,h+.027,z+.131),caliper,group,bevel=.003)
+    else:
+        wheel_disc('Rear drum brake',.129,.065,(x,h,z),wheel_barrel,group)
+    wheel_turn('Turned alloy flange',[(face-.009,.1905),(face+.003,.1905),
+               (face+.005,.1885),(face+.005,.1835),(face+.002,.1805),
+               (face-.012,.1765),(face-.017,.1765)],(x,h,z),side,gunmetal if offroad else alloy,group)
+    # The factory wheel is five broad Y castings, not five thin jewellery-like
+    # forks. The centre cap and five recessed nuts fill the inner third.
+    spoke=[(-.027,.071),(-.030,.111),(-.058,.164),(-.047,.178),(-.022,.178),
+           (0,.133),(.022,.178),(.047,.178),(.058,.164),(.030,.111),(.027,.071)]
+    if offroad:spoke=[(-.021,.058),(-.016,.090),(-.014,.145),(-.022,.176),
+                     (.022,.176),(.014,.145),(.016,.090),(.021,.058)]
     for i in range(6 if offroad else 5):
         a=i/(6 if offroad else 5)*math.tau
         vertices=[]
-        for depth in [-.015,.009]:
+        for depth in [-.014,.002]:
             for u,v in spoke:
-                axial=outer+side*(depth-.023*(1-v/.19))
+                axial=outer+side*(depth-.030*(1-v/.19))
                 vertices.append((axial,h+math.cos(a)*v-math.sin(a)*u,z+math.sin(a)*v+math.cos(a)*u))
         n=len(spoke)
         faces=[tuple(range(n)),tuple(reversed(range(n,n*2)))]+[(j,(j+1)%n,(j+1)%n+n,j+n) for j in range(n)]
-        geometry('Forged concave spoke' if offroad else 'Sculpted factory split spoke',vertices,faces,gunmetal if offroad else alloy,group,bevel=.003)
+        geometry('Cast concave spoke' if offroad else 'Sculpted factory split spoke',vertices,faces,gunmetal if offroad else alloy,group,bevel=.0012)
+    wheel_disc('Five bolt wheel hub',.081,.019,(outer-side*.017,h,z),gunmetal if offroad else alloy,group)
     for i in range(5):
         a=i/5*math.tau
-        cylinder('Chrome wheel nut',.008,.013,(outer+side*.02,h+math.cos(a)*.044,z+math.sin(a)*.044),chrome,'side',group,vertices=6)
-    cylinder('Five bolt wheel hub',.055,.031,(outer,h,z),gunmetal if offroad else alloy,'side',group,32)
-    cylinder('Wheel centre cap',.027,.034,(outer,h,z),trim,'side',group,32)
+        at=(outer-side*.006,h+math.cos(a)*.06985,z+math.sin(a)*.06985)
+        wheel_disc('Recessed wheel nut well',.0105,.002,at,black,group,24)
+        wheel_disc('Wheel nut',.0075,.008,(outer-side*.003,at[1],at[2]),gunmetal,group,6)
+    wheel_turn('Wheel centre cap rim',[(face-.006,.046),(face+.002,.046),
+               (face+.003,.044),(face+.003,.042)],(x,h,z),side,gunmetal,group,48)
+    wheel_disc('Wheel centre cap',.042,.009,(outer-side*.002,h,z),gunmetal,group)
+    if not offroad:
+        vs=[(outer+side*.003,h-(v-123.45)*.00029,z+(u-185.53)*.00029) for u,v in suzuki_outline]
+        geometry('Moulded centre cap Suzuki badge',vs,[tuple(range(len(vs)))],alloy,group)
     # Small moulded size markings and the valve give the wheel a believable scale.
     for label,base_angle in [('ALL TERRAIN' if offroad else 'RADIAL',-.24),('235/75 R15' if offroad else '195/80 R15',math.pi-.28)]:
         radius=r*.79
@@ -592,45 +1041,192 @@ def wheel(group,x,h,z,r=.3465,offroad=False):
             data=bpy.data.curves.new('Moulded tyre size','FONT');data.body=letter;data.font=font_block
             data.size=.017;data.extrude=.0005;data.resolution_u=3;data.align_x='CENTER'
             obj=bpy.data.objects.new('Moulded tyre size',data);bpy.context.collection.objects.link(obj);obj.parent=groups[group];data.materials.append(rubber)
-            tangent=Vector((0,side*math.cos(angle),-side*math.sin(angle)))
-            radial=Vector((0,math.sin(angle),math.cos(angle)));normal=tangent.cross(radial)
+            tangent=Vector((0,side*math.cos(angle),side*math.sin(angle)))
+            radial=Vector((0,-math.sin(angle),math.cos(angle)));normal=tangent.cross(radial)
             obj.rotation_euler=Matrix((tangent,radial,normal)).transposed().to_euler()
-            obj.location=pos(x+side*half*1.039,h+math.cos(angle)*radius,z+math.sin(angle)*radius)
+            obj.location=pos(x+side*half*.998,h+math.cos(angle)*radius,z+math.sin(angle)*radius)
     cylinder('Tyre valve stem',.004,.018,(outer+side*.007,h-.133,z+.098),trim,'side',group,12)
 
-for x in [-.705,.705]:
-    for z in [-1.295,1.295]:wheel('StockWheels',x,.3465,z)
+for side in [-1,1]:
+    for z in [-1.295,1.295]:wheel('StockWheels',side*(.6975 if z>0 else .7025),.3465,z)
 for x in [-.750,.750]:
     for z in [-1.295,1.295]:wheel('AllTerrainWheels',x,.368,z,.368,True)
 # Spare wheel is modelled in wheel coordinates, then rotated onto the tailgate.
 wheel('SpareWheel',0,0,0)
 groups['SpareWheel'].rotation_euler.z=math.pi/2
-groups['SpareWheel'].location=pos(.12,.995,-1.948)
+groups['SpareWheel'].location=pos(0,.995,-1.870)
 
 # India-spec right-hand-drive cabin, real dashboard volumes and separately shaped seats.
-cube('Cabin floor',(1.32,.055,2.39),(0,.65,-.48),trim,'Cabin',bevel=.014)
-cube('Dashboard moulding',(1.35,.15,.24),(0,1.108,.485),trim,'Cabin',bevel=.035)
+cube('Cabin floor',(1.43,.065,2.57),(0,.645,-.43),carpet,'Cabin',bevel=.014)
+# A closed passenger tub, including the sill/footwell joins and firewall. A
+# single narrow flat slab left daylight/terrain visible beside the footwells.
+cube('Cabin firewall',(1.43,.47,.065),(0,.87,.817),dash,'Cabin',bevel=.018)
+cube('Lower dashboard knee panel',(1.33,.19,.18),(0,.957,.56),dash,'Cabin',bevel=.025)
+for side in [-1,1]:
+    # Keep the sill inside the narrowest lower door section. Its outer edge
+    # (.720m) overlaps the floor (.715m) without piercing the .740m body skin.
+    cube('Cabin sealed sill',(.090,.15,2.57),(side*.675,.696,-.43),trim,'Cabin',bevel=.018)
+    cube('Front footwell mat',(.48,.009,.51),(side*.37,.682,.38),rubber,'Cabin',bevel=.012)
+    for line in range(12):cube('Floor mat rib',(.43,.003,.004),(side*.37,.689,.16+line*.037),trim,'Cabin',bevel=.001)
+    cube('Rear load area wheel tub',(.14,.27,.54),(side*.64,.78,-1.27),carpet,'Cabin',bevel=.045)
+cube('Cabin headliner',(1.35,.025,2.12),(0,1.645,-.56),seat,'Cabin',bevel=.018)
+for side in [-1,1]:
+    for z,length in ([(0,1.20)] if SHORT_BODY else [(.10,.88),(-.84,.74)]):
+        cube('Inner door card',(.032,.40,length),(side*.699,.91,z),trim,'Cabin',bevel=.025)
+        cube('Door armrest',(.075,.044,.29),(side*.660,1.005,z-.06),seat,'Cabin',bevel=.018)
+    tube('Front seat belt webbing',[(side*.675,1.52,-.36),(side*.628,1.03,-.30),(side*.64,.75,-.29)],.009,seat,'Cabin')
+cube('Dashboard moulding',(1.35,.15,.24),(0,1.108,.485),dash,'Cabin',bevel=.025)
+cube('Dashboard upper crash pad',(1.35,.060,.25),(0,1.205,.515),dash,'Cabin',bevel=.018)
+window_frame('Passenger fascia fine perimeter',.465,.128,.020,.002,.004,(-.365,1.172,.354),black,'Cabin')
+rounded_flat_plate('Inset passenger fascia panel',.456,.119,.014,.019,(-.365,1.172,.357),dash,'Cabin')
+for side in [-1,1]:
+    cube('Demister grille',(.31,.005,.035),(side*.36,1.240,.576),black,'Cabin',bevel=.004)
+    for line in range(9):cube('Demister slat',(.004,.003,.031),(side*.36-.13+line*.033,1.244,.576),dash,'Cabin',bevel=.001)
+cube('Passenger glovebox',(.48,.175,.15),(-.36,1.002,.47),trim,'Cabin',bevel=.021)
+cube('Glovebox latch recess',(.105,.034,.010),(-.36,1.021,.390),black,'Cabin',bevel=.005)
+cube('Glovebox release lip',(.081,.014,.018),(-.36,1.027,.380),gunmetal,'Cabin',bevel=.004)
+# Broad grab rail and recessed shelf, guided by the NEXA cabin photograph.
+cube('Passenger open shelf shadow',(.44,.052,.012),(-.38,1.086,.369),black,'Cabin',bevel=.006)
+cube('Passenger grab rail',(.465,.046,.055),(-.38,1.126,.318),gunmetal,'Cabin',bevel=.021)
+for x in [-.59,-.17]:
+    cylinder('Grab rail end boss',.025,.055,(x,1.126,.321),gunmetal,group='Cabin',vertices=24)
+    cylinder('Grab rail bolt',.007,.006,(x,1.126,.290),black,group='Cabin',vertices=12)
+cube('Centre console fascia',(.272,.335,.075),(0,1.075,.365),trim,'Cabin',bevel=.018)
 cube('Centre infotainment screen',(.206,.133,.017),(0,1.22,.355),black,'Cabin',bevel=.012)
 cube('Screen glass',(.183,.103,.019),(0,1.224,.344),glass,'Cabin',bevel=.007)
+for x in [-.062,.062]:
+    cube('Centre rectangular vent',(.105,.045,.02),(x,1.119,.315),black,'Cabin',bevel=.005)
+    for y in [1.105,1.119,1.133]:cube('Centre vent louvre',(.089,.004,.008),(x,y,.301),gunmetal,'Cabin',bevel=.001)
+cube('Hazard switch red insert',(.015,.043,.012),(0,1.119,.299),red,'Cabin',bevel=.003)
+tube('Hazard warning triangle',[(-.004,1.112,.291),(0,1.125,.291),(.004,1.112,.291),(-.004,1.112,.291)],.0007,badgewhite,'Cabin')
+for x in [-.083,0,.083]:
+    cylinder('Climate control rim',.028,.014,(x,1.040,.305),steering_satin,group='Cabin',vertices=32)
+    cylinder('Climate control knob',.025,.025,(x,1.040,.295),trim,group='Cabin',vertices=24)
+    cube('Climate knob index',(.003,.010,.004),(x,1.055,.280),badgewhite,'Cabin',bevel=.001)
+    cylinder('Climate knob face',.019,.004,(x,1.040,.280),black,group='Cabin',vertices=32)
+    for j in range(12):
+        a=j*math.tau/12
+        tube('Climate ring grip',[(x+math.cos(a)*.026,1.040+math.sin(a)*.026,.286),(x+math.cos(a)*.028,1.040+math.sin(a)*.028,.286)],.0008,gunmetal,'Cabin')
+for x in [-.095,-.047,0,.047,.095]:
+    cube('Lower dashboard switch',(.033,.026,.019),(x,.965,.304),trim,'Cabin',bevel=.004)
+    cube('Switch legend',(.009,.003,.003),(x,.971,.293),badgewhite,'Cabin',bevel=.001)
 for x in [-.55,.55]:
-    cylinder('Round dash air vent',.045,.018,(x,1.15,.354),trim,group='Cabin',vertices=32)
+    cylinder('Round dash air vent',.045,.018,(x,1.15,.354),black,group='Cabin',vertices=32)
+    ring('Air vent bright rim',.048,.042,.013,(x,1.15,.343),chrome,group='Cabin',segments=32)
     for j in [-1,0,1]:cube('Vent grille',(.065,.005,.008),(x,1.15+j*.015,.342),gunmetal,'Cabin',bevel=.001)
-for x in [.30,.46]:cylinder('Instrument dial',.057,.021,(x,1.18,.36),black,group='Cabin',vertices=32)
-ring('RHD steering wheel',.132,.113,.025,(.38,1.16,.26),trim,group='Cabin',segments=40)
-cube('Steering airbag hub',(.10,.066,.041),(.38,1.16,.255),trim,'Cabin',bevel=.018)
+rounded_flat_plate('Integrated instrument fascia',.321,.145,.014,.014,(.38,1.223,.337),trim,'Cabin')
+for x in [.30,.46]:
+    # The Jimny has square instrument hoods, not two solid rounded blocks.
+    # Model a thin open shell around each circular dial, with a recessed back.
+    outlines=[]
+    for half,radius in [(.069,.012),(.063,.009)]:
+        outline=[]
+        for cx,cy,start in [(half-radius,half-radius,0),(-half+radius,half-radius,90),(-half+radius,-half+radius,180),(half-radius,-half+radius,270)]:
+            for step in range(5):
+                a=math.radians(start+step*90/4)
+                outline.append((cx+radius*math.cos(a),cy+radius*math.sin(a)))
+        outlines.append(outline)
+    n=len(outlines[0]);vertices=[(x+u,1.223+v,z) for z in [.326,.373] for outline in outlines for u,v in outline];faces=[]
+    for i in range(n):
+        j=(i+1)%n
+        faces.extend([(i,j,n+j,n+i),(2*n+i,3*n+i,3*n+j,2*n+j),(i,2*n+i,2*n+j,j),(n+i,n+j,3*n+j,3*n+i)])
+    geometry('Thin squared instrument hood',vertices,faces,trim,'Cabin',bevel=.0015)
+    cube('Instrument recessed back plate',(.127,.127,.008),(x,1.223,.345),black,'Cabin',bevel=.009)
+    cylinder('Instrument dial',.057,.021,(x,1.223,.326),black,group='Cabin',vertices=32)
+    ring('Instrument chrome bezel',.060,.055,.006,(x,1.223,.314),chrome,group='Cabin',segments=32)
+    for tick in range(13):
+        a=math.radians(215-tick*23)
+        tube('Gauge graduation',[(x+math.cos(a)*r,1.223+math.sin(a)*r,.309) for r in [.044,.050]],.0012,badgewhite,'Cabin')
+    tube('Instrument needle',[(x,1.223,.306),(x-.028,1.198,.306)],.0015,red,'Cabin')
+# Padded rounded grip, not an extruded rectangular ring. Exact outer/inner
+# radii, centre and depth remain compatible with runtime steering extraction.
+vertices=[];faces=[];around=72;section=12
+for i in range(around):
+    a=i*math.tau/around
+    for j in range(section):
+        b=j*math.tau/section;r=.159+.011*math.cos(b)
+        vertices.append((.38+r*math.cos(a),1.16+r*math.sin(a),.26+.014*math.sin(b)))
+for i in range(around):
+    for j in range(section):faces.append((i*section+j,((i+1)%around)*section+j,((i+1)%around)*section+(j+1)%section,i*section+(j+1)%section))
+geometry('Rounded padded steering rim',vertices,faces,trim,'Cabin',smooth=True)
+# A gently crowned airbag face catches light like a moulded cover rather than
+# the former straight-sided cylinder. The hub/emblem remains in the same plane.
+hub_profile=[(0,.229),(.025,.229),(.047,.231),(.061,.237),(.065,.246),(.065,.268),(0,.274)]
+vertices=[(.38+r*math.cos(i*math.tau/48),1.16+r*math.sin(i*math.tau/48),z) for r,z in hub_profile for i in range(48)]
+faces=[(row*48+i,row*48+(i+1)%48,(row+1)*48+(i+1)%48,(row+1)*48+i) for row in range(len(hub_profile)-1) for i in range(48)]
+geometry('Crowned circular steering airbag hub',vertices,faces,trim,'Cabin',smooth=True)
+ring('Steering hub satin surround',.067,.063,.008,(.38,1.16,.232),gunmetal,group='Cabin',segments=48)
+emblem_count=len(suzuki_outline)
+emblem_vertices=[(.38-(x-185.53)*.00032,1.16-(y-123.45)*.00032,z) for z in [.227,.225] for x,y in suzuki_outline]
+geometry('Steering wheel Suzuki emblem',emblem_vertices,[tuple(range(emblem_count)),tuple(reversed(range(emblem_count,emblem_count*2)))]+[(i,(i+1)%emblem_count,(i+1)%emblem_count+emblem_count,i+emblem_count) for i in range(emblem_count)],chrome,'Cabin',.0003)
+def steering_plate(name,outline,front,depth,mat,bevel=.003):
+    n=len(outline);vertices=[(.38+x,1.16+h,z) for z in [front,front+depth] for x,h in outline]
+    faces=[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    return geometry(name,vertices,faces,mat,'Cabin',bevel)
 for side in [-1,1]:
-    cube('Front seat cushion',(.46,.12,.47),(side*.37,.80,.08),seat,'Cabin',bevel=.042)
-    obj=cube('Contoured seat back',(.45,.43,.125),(side*.37,1.035,-.14),seat,'Cabin',bevel=.045)
-    obj.rotation_euler.x=math.radians(-8)
-    cube('Seat head restraint',(.265,.14,.10),(side*.37,1.338,-.19),seat,'Cabin',bevel=.036)
-    for xoffset in [-.18,.18]:cube('Seat side bolsters',(.055,.30,.06),(side*.37+xoffset,1.04,-.054),seat,'Cabin',bevel=.022)
+    mirror=lambda shape:[(side*x,h) for x,h in shape]
+    # Broad sculpted horizontal spokes integrate black switch pods. All wheel
+    # geometry stays in the existing 218–282mm extraction/animation envelope.
+    steering_plate('Sculpted steering side spoke',mirror([(.044,.035),(.145,.030),(.151,.010),(.141,-.027),(.058,-.041),(.043,-.020)]),.239,.031,trim,.006)
+    steering_plate('Steering spoke satin perimeter',mirror([(.065,.030),(.140,.025),(.144,.008),(.134,-.021),(.065,-.031),(.061,-.023),(.127,-.015),(.134,.009),(.133,.018),(.066,.023)]),.232,.008,steering_satin,.0015)
+    steering_plate('Steering black switch pod',mirror([(.069,.020),(.131,.016),(.134,.004),(.123,-.014),(.069,-.022)]),.228,.009,black,.003)
+    # Small distinct switches and neutral icon strokes, not invented large text.
+    for dx,dy in [(.083,.008),(.108,.007),(.084,-.010),(.109,-.009)]:
+        cube('Steering tactile switch',(.017,.011,.004),(.38+side*dx,1.16+dy,.226),trim,'Cabin',bevel=.002)
+        cube('Steering switch icon stroke',(.006,.0012,.001),(.38+side*dx,1.16+dy,.223),badgewhite,'Cabin',bevel=.0003)
+    # Buttons at the inner side include a small directional rocker.
+    tube('Steering rocker chevron',[(.38+side*.086,1.175,.223),(.38+side*.089,1.178,.223),(.38+side*.092,1.175,.223)],.0007,badgewhite,'Cabin')
+lower_v=[(-.053,-.049),(-.045,-.100),(-.024,-.150),(.024,-.150),(.045,-.100),(.053,-.049),(.037,-.060),(.028,-.105),(.012,-.132),(-.012,-.132),(-.028,-.105),(-.037,-.060)]
+steering_plate('Open V lower steering spoke',lower_v,.239,.027,trim,.004)
+steering_plate('Lower steering open V satin inlay',[(x*.90,h*.97) for x,h in lower_v],.233,.007,steering_satin,.002)
+for side in [-1,1]:
+    tube('Column stalk',[(.38+side*.055,1.16,.30),(.38+side*.17,1.18,.31)],.010,trim,'Cabin')
+for side in [-1,1]:
+    x=side*.37
+    upholstered_loft('Sculpted front seat cushion',[(.742,.39,.37,.08),(.755,.445,.445,.08),(.805,.46,.47,.08),(.832,.44,.445,.08),(.840,.40,.405,.08)],x,seat)
+    upholstered_loft('Seat cushion woven insert',[(.840,.285,.315,.07),(.851,.315,.352,.07),(.864,.305,.34,.07),(.869,.285,.31,.07)],x,seat_insert)
+    upholstered_loft('Shouldered seat back',[(.822,.38,.115,-.105),(.87,.435,.135,-.111),(.99,.45,.13,-.13),(1.12,.438,.12,-.152),(1.205,.39,.105,-.171),(1.245,.325,.08,-.184),(1.255,.27,.060,-.188)],x,seat)
+    upholstered_loft('Contoured woven seat back insert',[(.886,.25,.018,-.043),(.92,.302,.024,-.040),(1.03,.31,.028,-.064),(1.13,.29,.025,-.084),(1.191,.245,.017,-.105)],x,seat_insert)
+    upholstered_loft('Rounded tapered head restraint',[(1.267,.205,.070,-.19),(1.282,.25,.10,-.19),(1.335,.265,.113,-.198),(1.386,.245,.098,-.207),(1.407,.195,.065,-.208)],x,seat)
+    for xoffset in [-.18,.18]:
+        upholstered_loft('Sculpted seat side bolster',[(.865,.045,.040,-.030),(.91,.063,.075,-.028),(1.025,.067,.073,-.043),(1.14,.055,.060,-.069),(1.195,.025,.030,-.095)],x+xoffset,seat)
+    for xoffset in [-.155,.155]:
+        tube('Seat upholstery seam',[(side*.37+xoffset,.885,-.06),(side*.37+xoffset,1.17,-.095)],.0013,stitch,'Cabin')
+        tube('Seat cushion seam',[(side*.37+xoffset,.873,-.075),(side*.37+xoffset,.873,.225)],.0013,stitch,'Cabin')
+    for xoffset in [-.155,.155]:cube('Seat runner',(.026,.035,.46),(side*.37+xoffset,.708,.02),gunmetal,'Cabin',bevel=.005)
+    cube('Seatbelt buckle',(.028,.052,.04),(side*.37-side*.255,.855,-.05),trim,'Cabin',bevel=.004)
+    cube('Seatbelt release',(.023,.010,.032),(side*.37-side*.255,.881,-.05),red,'Cabin',bevel=.003)
     for offset in [-.07,.07]:cylinder('Headrest post',.008,.08,(side*.37+offset,1.25,-.18),chrome,'up','Cabin',12)
 cube('Rear bench cushion',(1.18,.11,.43),(0,.82,-.83),seat,'Cabin',bevel=.035)
 cube('Rear bench back',(1.18,.40,.11),(0,1.03,-1.055),seat,'Cabin',bevel=.035)
 for x in [-.37,.37]:cube('Rear head restraint',(.25,.13,.09),(x,1.29,-1.09),seat,'Cabin',bevel=.025)
 cube('Transmission console',(.21,.17,.45),(0,.77,.24),trim,'Cabin',bevel=.024)
+for z in [-.15,-.32]:
+    cylinder('Console cup holder',.036,.012,(0,.747,z),black,'up','Cabin',32)
+    ring('Cup holder lip',.041,.035,.008,(0,.755,z),trim,'up','Cabin',segments=32)
 cylinder('Gear lever',.012,.16,(0,.92,.26),trim,'up','Cabin',12)
 cylinder('Transfer lever',.012,.11,(.07,.90,.15),trim,'up','Cabin',12)
+for x,y,z in [(0,1.01,.26),(.07,.965,.15)]:
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=20,ring_count=12,radius=.024,location=pos(x,y,z))
+    obj=bpy.context.object;obj.scale=(.85,1,1.15);finish(obj,'Gear selector grip',trim,'Cabin',smooth=True)
+for side in [-1,1]:
+    cube('Sun visor',(.32,.025,.14),(side*.40,1.604,.49),seat,'Cabin',bevel=.015)
+    for z in ([.08] if SHORT_BODY else [.08,-.78]):
+        cube('Door handle bezel',(.027,.07,.13),(side*.671,1.076,z+.19),black,'Cabin',bevel=.012)
+        cube('Interior door release',(.032,.018,.09),(side*.649,1.081,z+.19),chrome,'Cabin',bevel=.005)
+        cube('Door storage pocket',(.06,.085,.32),(side*.654,.77,z),trim,'Cabin',bevel=.014)
+interior_mirror=cube('Interior rear-view mirror',(.20,.072,.025),(0,1.522,.545),trim,'Cabin',bevel=.012)
+mirror_recess=rounded_flat_plate('Interior mirror recess cutter',.183,.058,.020,.010,(0,1.522,.530),black,'Cabin')
+subtract(interior_mirror,mirror_recess)
+rounded_flat_plate('Interior rounded mirror glass',.18,.055,.004,.009,(0,1.522,.536),chrome,'Cabin')
+
+# Reproducible, reference-guided detail pass before batching/export.
+with open(os.path.join(ROOT,'modeling','accuracy_revision.py')) as revision:
+    exec(compile(revision.read(),'accuracy_revision.py','exec'),globals())
+
+# +Z is forward, so the driver's right is -X when sitting inside. Mirror the
+# symmetric cabin's dashboard layout into the India-market right-hand position.
+groups['Cabin'].scale.x=-1
 
 # Apply the modelling stack and batch by material within functional groups.
 # This keeps GPU draw calls small while preserving all configurator switching groups.
@@ -648,12 +1244,39 @@ for obj,data in evaluated:
         obj=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(obj);obj.parent=parent;obj.matrix_local=matrix
     else:
         obj.modifiers.clear();obj.data=data
+if SHORT_BODY:
+    # Remove 340 mm only from the centre of the platform. The cut is between
+    # the wheel arches, so wheel/arch radii, bonnet and both end assemblies
+    # retain their dimensions. Authored SWB doors/windows above bridge it.
+    # Use world coordinates: the spare wheel and cabin have rotated parents.
+    bpy.context.view_layer.update()
+    for obj in bpy.context.scene.objects:
+        if obj.type!='MESH':continue
+        world=obj.matrix_world.copy();inverse=world.inverted()
+        rigid_cabin=obj.parent==groups['Cabin'] and not any(s in obj.name.lower() for s in ['floor','headliner','inner door card','sealed sill'])
+        centre_z=sum(-(world@v.co).y for v in obj.data.vertices)/max(1,len(obj.data.vertices))
+        for vertex in obj.data.vertices:
+            p=world@vertex.co;z=-p.y
+            if rigid_cabin:
+                z+=.17 if centre_z<-.65 else -.17
+            else:
+                z=(z+.17 if z<=-.82 else z-.17 if z>=-.48 else -.65)
+            p.y=-z;vertex.co=inverse@p
+        bm=bmesh.new();bm.from_mesh(obj.data)
+        bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=.000001)
+        bmesh.ops.dissolve_degenerate(bm,edges=list(bm.edges),dist=.000001)
+        bm.to_mesh(obj.data);bm.free();obj.data.update()
+    groups['BodyShell']['body_style']='3-door JB74 wide-body'
+    groups['BodyShell']['wheelbase_m']=2.250
+else:
+    groups['BodyShell']['body_style']='5-door long wheelbase'
+    groups['BodyShell']['wheelbase_m']=2.590
 # Authored surface coordinates let the web paint/plastic microtexture actually
 # follow the mesh. Previously these materials had maps but no UV coordinates.
 for obj in bpy.context.scene.objects:
     if obj.type!='MESH':continue
     mesh=obj.data
-    if mesh.materials[0].name not in {'BodyPaint','RoofPaint','TyreRubber','MouldedPlastic'}:continue
+    if mesh.materials[0].name not in {'BodyPaint','RoofPaint','TyreRubber','MouldedPlastic','WovenCabinFabric','CabinSeatInsert','CabinCarpet','CabinDashboard'}:continue
     if mesh.uv_layers:continue
     uv=mesh.uv_layers.new(name='SurfaceMetres')
     for polygon in mesh.polygons:
@@ -667,6 +1290,7 @@ print('Batching materials for mobile',flush=True)
 for root in groups.values():
     by_material={}
     for obj in list(root.children):
+        if obj.name == 'JimnyTailgateWordmark':continue
         if obj.type=='MESH':by_material.setdefault(obj.data.materials[0].name,[]).append(obj)
     for name,items in by_material.items():
         bpy.ops.object.select_all(action='DESELECT')
@@ -674,11 +1298,53 @@ for root in groups.values():
         bpy.context.view_layer.objects.active=items[0]
         if len(items)>1:bpy.ops.object.join()
         items[0].name=root.name+'__'+name
+
+# Bake local cavity occlusion into vertex colour. This is geometry-derived,
+# not a photograph or a prepainted body texture: owners can still change paint.
+# A short 18cm ray range captures seams, grille recesses and wheel barrels
+# without baking a rack/other optional part's shadow into the stock body.
+print('Baking local surface occlusion for the real-time model',flush=True)
+hidden_groups={'AllTerrainWheels','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille'}
+transparent={'WindowGlass','LampLens','OpticalGlass'}
+occluders=[];triangles=[]
+bpy.context.view_layer.update()
+for obj in bpy.context.scene.objects:
+    if obj.type!='MESH' or obj.parent.name in hidden_groups or obj.data.materials[0].name in transparent|{'IntakeShadow'}:continue
+    start=len(occluders);obj.data.calc_loop_triangles()
+    occluders.extend(obj.matrix_world@v.co for v in obj.data.vertices)
+    triangles.extend(tuple(start+i for i in t.vertices) for t in obj.data.loop_triangles)
+bvh=BVHTree.FromPolygons(occluders,triangles,all_triangles=True)
+directions=[]
+for i in range(12):
+    r=math.sqrt((i+.5)/12);a=i*2.39996323
+    directions.append((r*math.cos(a),r*math.sin(a),math.sqrt(1-r*r)))
+for obj in bpy.context.scene.objects:
+    # The browser deliberately disables vertex AO on machined alloy. Its flat
+    # faces should read through geometry/PBR reflections, not baked blotches.
+    # Omit that unused stream (and fixed dark barrel AO) instead of reducing
+    # the precision of visible hard-edged wheel faces to hit the web budget.
+    if obj.type!='MESH' or obj.data.materials[0].name in transparent|{'MachinedAlloy','WheelBarrelDark'}:continue
+    data=obj.data;col=data.color_attributes.new(name='CavityOcclusion',type='BYTE_COLOR',domain='POINT')
+    data.color_attributes.active_color=col
+    normal_matrix=obj.matrix_world.to_3x3().inverted().transposed()
+    for vertex,value in zip(data.vertices,col.data):
+        n=(normal_matrix@vertex.normal).normalized()
+        if n.length<.1:value.color=(1,1,1,1);continue
+        helper=Vector((0,0,1)) if abs(n.z)<.9 else Vector((0,1,0))
+        tangent=n.cross(helper).normalized();bitangent=n.cross(tangent)
+        origin=obj.matrix_world@vertex.co+n*.002
+        obscured=0
+        for dx,dy,dz in directions:
+            hit,_,_,distance=bvh.ray_cast(origin,tangent*dx+bitangent*dy+n*dz,.18)
+            if hit is not None:obscured+=1-distance/.18
+        ao=max(.30,1-.72*obscured/len(directions))
+        value.color=(ao,ao,ao,1)
 bpy.ops.object.select_all(action='DESELECT')
 for obj in bpy.context.scene.objects:obj.select_set(True)
 print('Exporting web model',flush=True)
-bpy.ops.export_scene.gltf(filepath=os.path.join(OUT,'jimny-lwb-blender.glb'),export_format='GLB',export_yup=True,
+bpy.ops.export_scene.gltf(filepath=os.path.join(OUT,MODEL_STEM+'-blender.glb'),export_format='GLB',export_yup=True,
                           export_apply=True,export_extras=True,export_cameras=False,export_lights=False,
+                          export_vertex_color='ACTIVE',export_all_vertex_colors=False,
                           export_meshopt_compression_enable=True,export_meshopt_extension='EXT_meshopt_compression')
 
 # Native editable project contains each replaceable assembly plus a reproducible studio scene.
@@ -687,7 +1353,7 @@ for name in ['AllTerrainWheels','BlockGrille','RhinoGrille','ScriptGrille','Glos
     for obj in groups[name].children:obj.hide_render=True;obj.hide_viewport=True
 world=bpy.data.worlds.new('Poly Haven studio environment');bpy.context.scene.world=world;world.use_nodes=True
 env=world.node_tree.nodes.new('ShaderNodeTexEnvironment')
-hdr=os.path.join(ROOT,'assets','environments','studio-small-09-1k.hdr')
+hdr=os.path.join(ROOT,'assets','environments','rostock-laage-airport-1k.hdr')
 if os.path.exists(hdr):
     env.image=bpy.data.images.load(hdr)
     world.node_tree.links.new(env.outputs['Color'],world.node_tree.nodes['Background'].inputs['Color'])
@@ -697,11 +1363,22 @@ for name,at,power,size in [('Main softbox',(3.5,5.0,4.5),700,5),('Fill softbox',
     light.rotation_euler=(Vector(pos(0,.8,0))-light.location).to_track_quat('-Z','Y').to_euler()
 bpy.ops.object.camera_add(location=pos(4.25,1.98,5.35))
 camera=bpy.context.object;camera.rotation_euler=(Vector(pos(0,.90,-.02))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.lens=48;bpy.context.scene.camera=camera
-scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=True
+scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=48;scene.cycles.use_denoising=True
 scene.render.resolution_x=1100;scene.render.resolution_y=850;scene.render.resolution_percentage=100
 scene.render.film_transparent=True
 scene.render.image_settings.file_format='PNG';scene.render.filepath=os.path.join(ROOT,'modeling','jimny-blender-preview.png')
+# Reference stays in the editable project only, outside the web export.
+reference=bpy.data.objects.new('Real Jimny reference — Captainmorlypogi1959 CC BY-SA 4.0',None)
+bpy.context.collection.objects.link(reference);reference.empty_display_type='IMAGE'
+reference.data=bpy.data.images.load(os.path.join(ROOT,'modeling','references','jimny-stock-reference.jpg'))
+reference.empty_display_size=4;reference.location=(4,0,1.5);reference.hide_render=True
+for screen in bpy.data.screens:
+    for area in screen.areas:
+        if area.type=='VIEW_3D':
+            area.spaces.active.region_3d.view_perspective='CAMERA'
+            area.spaces.active.shading.type='MATERIAL'
 bpy.ops.file.pack_all()
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT,'modeling','jimny-lwb.blend'))
-print('MODEL_EXPORT',os.path.getsize(os.path.join(OUT,'jimny-lwb-blender.glb')))
-bpy.ops.render.render(write_still=True)
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT,'modeling',MODEL_STEM+'.blend'))
+print('MODEL_EXPORT',os.path.getsize(os.path.join(OUT,MODEL_STEM+'-blender.glb')))
+if '--skip-render' not in __import__('sys').argv:
+    bpy.ops.render.render(write_still=True)

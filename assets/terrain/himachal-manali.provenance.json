@@ -1,0 +1,48 @@
+{
+  "name": "East Manali / Hamta, Himachal Pradesh, India",
+  "accessed": "2026-10-21",
+  "dataset": "Mapzen Terrain Tiles, Terrarium encoding",
+  "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/12/2927/1660.png",
+  "tile": {
+    "z": 12,
+    "x": 2927,
+    "y": 1660
+  },
+  "sourceHeader": "srtm/N32E077.tif",
+  "sourceLastModified": "Sat, 18 Nov 2017 17:55:19 GMT",
+  "sourceBytes": 61092,
+  "sourceSHA256": "e671e9aae059877fcc6b8974e041d09cda8766d8c9670d7d7a3a4f7396d46801",
+  "gridSHA256": "f38b73bad4657ae69888a8bdf35420803307ae9294b7ef75b3c7f34753a33d7e",
+  "boundsPixelCentresWGS84": {
+    "west": 77.25603103637695,
+    "east": 77.34357833862305,
+    "north": 32.249829276904,
+    "south": 32.17575777598967
+  },
+  "centre": {
+    "longitude": 77.2998046875,
+    "latitude": 32.21279352644684
+  },
+  "approximateWidthMeters": 8245.602794155402,
+  "approximateHeightMeters": 8245.602794155402,
+  "rawRangeMeters": [
+    2892,
+    5279
+  ],
+  "derivedRangeMeters": [
+    2894,
+    5279
+  ],
+  "size": 128,
+  "processing": "Decoded RGB to elevation metres before bilinear resampling from256x256 to128x128; rounded to nearest metre. Row0=north, column0=west. No smoothing, synthetic peaks or visual height exaggeration baked into data.",
+  "license": "SRTM public-domain US government data; preserve USGS attribution and identify modifications. Dataset provider attribution documentation applies.",
+  "credit": "Mapzen Terrain Tiles. SRTM terrain data courtesy of the U.S. Geological Survey.",
+  "sources": [
+    "https://registry.opendata.aws/terrain-tiles/",
+    "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+    "https://github.com/tilezen/joerd/blob/master/docs/data-sources.md",
+    "https://github.com/tilezen/joerd/blob/master/docs/formats.md",
+    "https://science.data.nasa.gov/about/license"
+  ],
+  "usage": "Distant visual scenery only. Not playable terrain, navigation, survey data or an exact recreation of the driving course."
+}

@@ -1,0 +1,79 @@
+{
+  "manali-leh": {
+    "local": "assets/trips/manali-leh.jpg",
+    "alt": "Baralacha La towards Leh Jul19 D72 10848",
+    "author": "Timothy Gonsalves",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Baralacha_La_towards_Leh_Jul19_D72_10848.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/54/Baralacha_La_towards_Leh_Jul19_D72_10848.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "changes": "Displayed with responsive cropping; no content edits.",
+    "checked": "2026-10-23"
+  },
+  "srinagar-leh": {
+    "local": "assets/trips/srinagar-leh.jpg",
+    "alt": "Moonscape, Lunar landscape, Lamayuru, Ladakh, India",
+    "author": "Vyacheslav Argenberg",
+    "licence": "CC BY 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Moonscape,_Lunar_landscape,_Lamayuru,_Ladakh,_India.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Moonscape%2C_Lunar_landscape%2C_Lamayuru%2C_Ladakh%2C_India.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "changes": "Displayed with responsive cropping; no content edits.",
+    "checked": "2026-10-23"
+  },
+  "spiti": {
+    "local": "assets/trips/spiti.jpg",
+    "alt": "NH505 Spiti Kaza Losar Jun18 D72 7800",
+    "author": "Timothy Gonsalves",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:NH505_Spiti_Kaza_Losar_Jun18_D72_7800.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/dc/NH505_Spiti_Kaza_Losar_Jun18_D72_7800.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "changes": "Displayed with responsive cropping; no content edits.",
+    "checked": "2026-10-23"
+  },
+  "rajasthan": {
+    "local": "assets/trips/rajasthan.jpg",
+    "alt": "Sam Dunes Jaisalmer 03",
+    "author": "Schwiki",
+    "licence": "CC BY-SA 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Sam_Dunes_Jaisalmer_03.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Sam_Dunes_Jaisalmer_03.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "changes": "Displayed with responsive cropping; no content edits.",
+    "checked": "2026-10-23"
+  },
+  "kutch": {
+    "local": "assets/trips/kutch.jpg",
+    "alt": "Rann of Kutch - White Desert 2",
+    "author": "Superfast1111",
+    "licence": "CC BY-SA 3.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Rann_of_Kutch_-_White_Desert_2.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Rann_of_Kutch_-_White_Desert_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "changes": "Displayed with responsive cropping; no content edits.",
+    "checked": "2026-10-23"
+  },
+  "konkan": {
+    "local": "assets/trips/konkan.jpg",
+    "alt": "GANPATIPULE BEACH (1)",
+    "author": "Sanjaybhagwat",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:GANPATIPULE_BEACH_(1).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/60/GANPATIPULE_BEACH_%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "changes": "Displayed with responsive cropping; no content edits.",
+    "checked": "2026-10-23"
+  },
+  "tawang": {
+    "local": "assets/trips/tawang.jpg",
+    "alt": "Tawang Monastery view",
+    "author": "Kingshuk Mondal",
+    "licence": "CC BY 2.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Tawang_Monastery_view.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Tawang_Monastery_view.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "changes": "Displayed with responsive cropping; no content edits.",
+    "checked": "2026-10-23"
+  }
+}

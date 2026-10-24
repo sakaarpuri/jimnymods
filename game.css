@@ -1,0 +1,301 @@
+@font-face{font-family:Outfit;src:url('assets/fonts/outfit.ttf') format('truetype');font-display:swap;font-weight:100 900}
+/* Rally workbench: opaque, high-contrast instruments over the live world. */
+:root{font-family:Outfit,system-ui,sans-serif;color:#172623;background:#eaece5;font-synthesis:none;--paper:#f8f8f1;--ink:#172623;--muted:#52615a;--line:#cdd2c6;--accent:#d7e395}*{box-sizing:border-box}body{margin:0}button,select,a{touch-action:manipulation}button,select{font:inherit;font-size:14px}button,a,select{-webkit-tap-highlight-color:transparent}button{min-height:44px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:7px;padding:10px 16px;cursor:pointer}button:hover{border-color:#667654;background:#eef1e3}button:active{transform:scale(.98)}button:disabled{opacity:.55;cursor:wait}button[aria-pressed=true],.primary{background:var(--ink);border-color:var(--ink);color:#f3f5df}button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #50791b;outline-offset:3px}a{color:inherit;text-underline-offset:4px}select{min-height:44px;width:100%;padding:8px;border:1px solid #9eaa9c;border-radius:6px;color:var(--ink);background:#fff}label{font-size:13px;font-weight:650;display:grid;gap:6px}h1,h2,p{margin-top:0}h1{font-size:clamp(32px,4vw,51px);letter-spacing:-.045em;line-height:1.05;margin-bottom:12px}h2{font-size:23px;letter-spacing:-.025em}p,li,dd{line-height:1.55}small,.fine{font-size:12px;line-height:1.55;color:var(--muted)}.eyebrow{font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:750;color:#526543}.game-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;background:var(--paper);border-bottom:1px solid var(--line)}.brand{display:flex;gap:10px;align-items:center;text-decoration:none;font-size:18px}.game-name{letter-spacing:.13em;font-size:12px;font-weight:750;display:flex;gap:14px;align-items:center}.game-name small{letter-spacing:0;font-weight:400}.game-header button{padding:7px 16px;min-height:38px}#game{position:relative;height:calc(100dvh - 64px);min-height:540px;overflow:hidden}#stage{position:absolute;inset:0 0 148px;background:#bac6bd}#stage canvas{display:block;width:100%;height:100%}#loadStatus{position:absolute;inset:42% 20px auto;text-align:center;background:var(--paper);padding:18px;z-index:1}#hud{pointer-events:none}.mission,.telemetry,#map,.coach,#quick{position:absolute}.mission{left:26px;top:22px;width:230px;display:grid;gap:5px;text-shadow:0 1px 5px #f8f8f1;background:#f8f8f1e8;padding:13px 16px;border-radius:8px}.mission>span{font-size:12px;color:#52615a}.mission>strong{font-size:17px}.mission progress{width:100%;height:4px;accent-color:#526b26}.telemetry{top:22px;right:26px;display:flex;gap:18px;align-items:center;background:var(--ink);color:#f8f8f1;border-radius:8px;padding:12px 18px}.telemetry>div{display:flex;align-items:baseline;gap:7px}.telemetry strong{font-size:38px;font-variant-numeric:tabular-nums;line-height:1}.telemetry span{font-size:12px;color:#d5decb}.telemetry p{margin:0;display:grid;font-size:15px}#map{right:26px;top:110px;width:124px;height:124px;border:1px solid #778575;border-radius:50%;background:#172623dd}.coach{left:26px;bottom:214px;max-width:360px;background:#f8f8f1f2;border-left:3px solid #687e36;padding:13px 17px;border-radius:0 6px 6px 0}.coach>span:first-child{font-size:10px;font-weight:800;letter-spacing:.13em;color:#566d33}.coach p{font-size:15px;font-weight:550;margin:5px 0;line-height:1.4}.coach>span:last-child{font-size:11px;color:#52615a}#quick{left:26px;right:26px;bottom:162px;display:flex;gap:6px}#quick button{font-size:12px;min-height:38px;padding:7px 12px;background:#f8f8f1ec}#console{position:absolute;inset:auto 0 0;background:var(--paper);border-top:1px solid #b4bfa7;min-height:148px;padding:15px 26px 8px;display:grid;grid-template-columns:1fr auto;gap:8px 24px}.drive-controls{display:flex;gap:22px;align-items:center}fieldset{border:0;padding:0;margin:0}legend{font-size:11px;color:#52615a;margin-bottom:6px}.segments{display:flex;gap:4px}.segments button{min-width:50px;font-weight:750}.gear-label{min-width:112px;font-size:11px}.assist-controls{display:flex;gap:6px}.assist-controls button{font-size:12px;max-width:126px}.pedals{display:flex;gap:7px;align-items:center}.pedals button{min-width:80px;height:64px;font-weight:650;user-select:none;touch-action:none}.pedals small{display:block;font-size:10px;color:inherit;font-weight:400}.pedals .steering{display:flex;gap:4px}.steering button{min-width:52px;font-size:21px}.pedals .accelerator{background:#dce6b0;border-color:#91a466}.pedals button.held{background:#b4c876;transform:scale(.97)}.key-hint{grid-column:1/-1;margin:0;font-size:11px;color:#52615a}[hidden]{display:none!important}dialog{border:1px solid #bdc6b5;border-radius:16px;background:var(--paper);color:var(--ink);padding:32px;max-width:min(660px,calc(100vw - 28px));max-height:calc(100dvh - 36px);overflow:auto;box-shadow:0 24px 100px #17262355}dialog::backdrop{background:#1828236b;backdrop-filter:blur(5px)}dialog button{margin:3px 4px 3px 0}#lobby{width:930px;max-width:calc(100vw - 38px)}.lobby-heading{padding-bottom:22px;border-bottom:1px solid var(--line)}.lobby-heading>p:last-child{margin-bottom:0;color:var(--muted)}.lobby-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:35px;padding:25px 0}.lobby-grid h2{font-size:18px;margin-bottom:14px}.course-list{display:grid}.course-list button{background:transparent;display:grid;grid-template-columns:1fr auto;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:15px 10px;margin:0;gap:6px}.course-list button strong{font-size:16px}.course-list button small{grid-column:1/-1;font-size:12px}.course-list button[aria-pressed=true]{background:#e3e8d4;color:var(--ink);box-shadow:inset 3px 0 #687e36}.course-list button span{font-size:11px;font-weight:400}.briefing>p{color:var(--muted);font-size:14px}.briefing ul{padding-left:18px;font-size:13px;color:var(--ink);margin:10px 0 20px}.choices{display:grid;gap:12px}.briefing .primary{width:100%;margin:8px 0}.briefing .fine{margin:12px 0 0}.disclosure{border-top:1px solid var(--line);padding:14px 0}.disclosure summary{cursor:pointer;font-size:13px;font-weight:650}.disclosure p{font-size:12px;max-width:100%;margin-top:14px}.back-link{font-size:13px}.result-stats{display:flex;gap:35px;border-block:1px solid var(--line);padding:20px 0;margin-bottom:20px}.result-stats strong{display:block;font-size:28px}.result-stats span{font-size:12px;color:var(--muted)}dt{font-weight:750;margin:14px 0 5px}dd{margin:0;font-size:14px;color:#52615a}#help{max-width:650px}#help>p{font-size:14px}#results a{display:block;margin-top:20px;font-size:13px}
+@media(max-width:1100px){#console{padding-inline:16px;gap:8px}.drive-controls{gap:12px}.assist-controls{display:grid;gap:4px}.assist-controls button{padding:5px 10px;min-height:31px;max-width:none}.pedals button{min-width:67px}.steering button{min-width:43px}.key-hint{font-size:10px}}
+@media(max-width:700px){.game-header{height:54px;padding:0 14px}.brand{font-size:15px}.brand img{width:26px;height:26px}.game-name{font-size:10px;letter-spacing:.07em}.game-name small{display:none}.game-header button{font-size:12px;padding:7px 10px}#game{height:calc(100dvh - 54px);min-height:600px}#stage{bottom:217px}.mission{left:12px;top:12px;width:165px;padding:9px 12px}.mission>span{font-size:10px}.mission>strong{font-size:13px}.telemetry{right:12px;top:12px;padding:10px;gap:9px}.telemetry strong{font-size:27px}.telemetry p{font-size:12px}.telemetry span{font-size:9px}#map{right:12px;top:85px;width:75px;height:75px}.coach{left:12px;right:12px;bottom:265px;max-width:none;padding:8px 12px}.coach p{font-size:12px;line-height:1.35;margin:4px 0}.coach>span:first-child{font-size:9px}.coach>span:last-child{font-size:10px}#quick{left:12px;right:12px;bottom:224px;gap:4px}#quick button{font-size:10px;min-height:32px;padding:6px 7px;flex:1}#console{min-height:217px;padding:10px 12px max(10px,env(safe-area-inset-bottom));grid-template-columns:1fr;gap:9px}.drive-controls{gap:10px;justify-content:space-between}.segments button{min-width:39px;padding:8px 10px;font-size:13px}.gear-label{min-width:60px;max-width:73px;font-size:10px}.assist-controls button{font-size:10px;padding:5px 6px;max-width:108px}.pedals{justify-content:space-between}.pedals button{min-width:79px;height:59px}.steering button{min-width:48px}.pedals small{font-size:9px}.key-hint{display:none}dialog{padding:22px;max-height:calc(100dvh - 22px)}#lobby{max-width:calc(100vw - 20px)}.lobby-heading{padding-bottom:16px}.lobby-heading>p:last-child{font-size:14px}.lobby-grid{grid-template-columns:1fr;gap:24px;padding:20px 0}.course-list button{padding:12px 10px}.course-list button strong{font-size:14px}.course-list button small{font-size:11px}.lobby-heading .eyebrow{font-size:9px}.result-stats{gap:24px}}
+@media(max-height:600px) and (min-width:701px){#game{min-height:460px}.coach{bottom:207px;max-width:290px}.coach p{font-size:12px}#map{width:86px;height:86px}dialog{padding:20px}.lobby-heading h1{font-size:32px}.lobby-grid{padding:16px 0}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}button:active{transform:none}}
+.player-setup{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:12px}.player-setup legend{font-size:14px;font-weight:700;padding-top:18px}.player-setup input[type=text],#playerName{font:inherit;padding:11px;border:1px solid #9eaa9c;border-radius:6px;width:100%;background:#fff;color:var(--ink)}.check-label{display:flex;align-items:center;gap:10px;line-height:1.4;min-height:44px}.check-label input{width:20px;height:20px;accent-color:#526b26}.player-setup .fine{margin:0}input:focus-visible{outline:3px solid #50791b;outline-offset:3px}#shareRun{width:820px;max-width:calc(100vw - 24px)}.share-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.export-preview{display:block;width:100%;max-height:48dvh;object-fit:contain;background:#152922;border-radius:8px;margin:16px 0}#recapProgress{width:100%;height:8px;accent-color:#687e36}.share-actions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}.download-link{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;background:#d7e395;border-radius:7px;font-size:14px;text-decoration:none}#recapStatus{font-size:14px;line-height:1.5;min-height:22px}@media(max-width:600px){.share-options{grid-template-columns:1fr}.share-actions>*{flex:1 1 42%}.export-preview{max-height:35dvh}}
+.player-options{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}.player-options summary{font-size:14px;font-weight:700;cursor:pointer;min-height:32px}.player-options .player-setup{border-top:0}.player-options legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.coach{pointer-events:auto}.coach-actions{display:flex;gap:5px;margin-top:9px}.coach-actions button{min-height:40px;padding:7px 10px;font-size:11px;flex:1}.coach #condition{font-size:11px;color:#52615a}#spokenStatus:empty{display:none}#spokenStatus{display:block;margin-top:6px;font-size:11px;line-height:1.4}.voice-start{margin-top:16px;font-size:13px}.coach-focus{outline:3px solid #9d641f!important;outline-offset:3px}#inspection{width:1000px;max-width:calc(100vw - 24px)}#inspectionCanvas{display:block;width:100%;max-height:48dvh;object-fit:contain;background:#b6c3b5;border-radius:8px}.inspection-angles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:12px 0}.inspection-angles button{margin:0;padding:9px 5px;font-size:12px}.inspection-footer{display:flex;gap:10px;align-items:center;flex-wrap:wrap}#inspectionEvidence{font-size:14px;line-height:1.5}#inspectionAdvice{font-size:15px;line-height:1.5}.player-options>label{margin-top:14px}@media(max-width:700px){.coach-actions{margin-top:7px}.coach-actions button{min-height:44px;font-size:11px;padding:5px}.inspection-angles{grid-template-columns:repeat(3,minmax(0,1fr))}#inspection{padding:18px}#inspectionCanvas{max-height:34dvh}#inspectionAdvice{font-size:13px}.inspection-footer>button{flex:1}.inspection-footer>span{width:100%}.coach #condition{font-size:10px}}
+.inspection-angles{grid-template-columns:repeat(7,minmax(0,1fr))}#inspectionVoiceStatus:empty{display:none}@media(max-width:700px){.inspection-angles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){#stage{bottom:var(--coach-space,380px)}}
+.coach{display:grid;grid-template-columns:minmax(0,1fr) 148px;column-gap:12px;max-width:470px}.coach>#coachKicker,.coach>#coachText,.coach>#condition{grid-column:1}.coach-actions,#spokenStatus{grid-column:1/-1}#cabinPreview{grid-column:2;grid-row:1/4;align-self:start;min-width:0;padding:0;overflow:hidden;background:#263331;color:#f3f5df;border-color:#65716a;text-align:left}#cabinThumbnail{display:block;width:100%;height:auto;background:#28322e}#cabinPreview>span{display:block;font-size:10px;line-height:1.3;padding:5px 7px 0}#cabinState{display:block;font-size:9px;line-height:1.3;padding:3px 7px 6px;color:#dce6d4}#quick select{width:126px;min-height:38px;font-size:12px;background:#f8f8f1;padding:6px 8px}@media(max-width:700px){.coach{max-width:none;grid-template-columns:minmax(0,1fr) 116px;column-gap:9px}#quick select{width:78px;min-width:0;font-size:10px;min-height:32px;padding:4px;flex:1.15}#cabinPreview>span{font-size:9px}#cabinState{font-size:8px}}
+.coach{grid-template-columns:minmax(0,1fr) 190px;max-width:520px}@media(max-width:700px){.coach{grid-template-columns:minmax(0,1fr) 116px;max-width:none}}
+/* The instrument layer never competes with the terrain for contrast. */
+:root{--paper:#222629;--ink:#f3f1e8;--muted:#bcc1c1;--line:#4c5254;--accent:#db804f;background:#181c1f;color:var(--ink)}
+body{background:#181c1f}button,select,input{border-radius:4px}button:hover{background:#363c3f;border-color:#b1b7b7}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #e29465;outline-offset:3px}select,input{background:#2b3033;color:var(--ink)}button[aria-pressed=true],.primary{background:#d58051;color:#171c1f;border-color:#d58051;font-weight:800}.game-header{background:#191e21;border-color:#454b4d}.brand img{border-radius:5px}.game-name{color:#ec9c6e}.game-name small,.eyebrow,legend,.key-hint{color:#bcc1c1}.game-header #menuButton{border-color:#6c7476}.mission{background:#20272bf2;color:#f5f2e8;text-shadow:none;border-radius:3px;border-left:3px solid #dd8856}.mission>span{color:#c4cbcb}.mission progress{accent-color:#dd8856}.telemetry{background:#20272bf2;border-radius:3px}.telemetry strong{font-family:ui-monospace,monospace}.coach{background:#20272bf2;border-left-color:#dd8856;border-radius:0 3px 3px 0}.coach p{font-weight:600}.coach>span:first-child{color:#efa778}.coach>span:last-child,#condition{color:#c1c7c8}.coach button{background:#30383c;color:#f4f2ea}.coach-focus{outline-color:#ec9c6e!important}#quick button,#quick select{background:#20272bf2;color:#f2f2e9;border-color:#777e80}#console{background:#202629;border-color:#5b6568}.pedals .accelerator{background:#d58051;color:#171c1f;border-color:#e49b72}.pedals button.held{background:#f2ba95;color:#171c1f}dialog{background:#22282b;color:#f5f2e9;border:1px solid #667074;border-radius:8px;box-shadow:0 24px 100px #11182088}dialog::backdrop{background:#10171c8c;backdrop-filter:blur(3px)}.lobby-heading{border-color:#515a5e}.lobby-heading>p:last-child{color:#c1c8c9}.course-list button[aria-pressed=true]{background:#39322d;color:#f7f0e3;box-shadow:inset 3px 0 #dc8a59}.briefing{border-left:1px solid #50585b;padding-left:28px}.briefing .primary{width:100%}.fine,small{color:#bdc4c5}.result-stats>div,.player-setup,.player-options,.disclosure{background:transparent;border-color:#50595e}.audio-settings{border-top:1px solid #566063;margin-top:20px;padding-top:14px}.audio-settings label{grid-template-columns:150px 1fr;align-items:center;margin:12px 0}.audio-settings input{accent-color:#dd8856}.mission-picker{margin:14px 0}.mission-description{font-size:13px;color:#c1c8c9;margin-top:6px}#map.map-expanded{width:min(380px,65vw);height:min(380px,65vw);border-radius:6px;background:#192126f5}.key-hint kbd{color:#f7bf91}.world-preview{width:100%;aspect-ratio:16/7;object-fit:cover;background:#353e42;border:1px solid #697271;margin:0 0 15px}.course-list button{transition:background .15s}.loading-world{opacity:.7;pointer-events:none}
+@media(min-width:1100px){#lobby{width:1080px}.lobby-grid{grid-template-columns:.85fr 1.15fr}.coach{max-width:460px}.lobby-heading h1{font-size:48px}.game-header{padding-inline:28px}}
+@media(max-width:700px){.briefing{border-left:0;border-top:1px solid #50585b;padding:20px 0 0}.game-name small{display:none}.mission{left:12px;top:12px}.telemetry{right:12px;top:12px}.coach{left:10px;right:10px;max-width:none}#quick{gap:4px}#quick button,#quick select{font-size:11px;padding:6px}.audio-settings label{grid-template-columns:1fr}.key-hint{font-size:10px}dialog{padding:20px}.world-preview{aspect-ratio:16/8}}
+@media(prefers-reduced-motion:reduce){button,.course-list button{transition:none}}
+
+/* Expedition menu. Course art is captured from the game, never concept art. */
+#lobby.adventure-lobby{width:1220px;max-width:calc(100vw - 48px);max-height:calc(100dvh - 80px);padding:26px 32px;border:1px solid #6c7167;border-radius:7px;background:#ecece2;color:#232d27;box-shadow:0 30px 120px #0d171c99;scrollbar-width:thin;scrollbar-color:#727d67 #ecece2}
+#lobby.adventure-lobby::backdrop{background:#0d1a22b0;backdrop-filter:blur(8px)}
+.adventure-lobby .lobby-heading{padding-bottom:17px;border:0;position:relative}
+.adventure-lobby .expedition-links{display:flex;justify-content:space-between;align-items:center;font-size:10px;line-height:1.4;color:#5c695a;margin:0 0 22px}
+.expedition-links a{text-decoration:none;font-weight:800;letter-spacing:1px}.expedition-links span{font-size:9px}
+.adventure-lobby .lobby-heading .eyebrow{font-size:9px;color:#8c4b2d;letter-spacing:1.6px;margin:0 0 8px}
+.adventure-lobby #lobbyTitle{font-size:clamp(29px,3.6vw,48px);font-weight:900;letter-spacing:-2px;line-height:1.04;margin:0 0 8px;font-style:italic;max-width:780px}
+.adventure-lobby .lobby-heading>p:last-of-type{font-size:12px;color:#54604f;line-height:1.5;margin:0}
+.expedition-stamp{position:absolute;right:0;bottom:21px;display:grid;gap:2px;border-left:3px solid #cb6b38;padding-left:12px;transform:rotate(-3deg);color:#525f4e;font-size:8px;letter-spacing:1px;font-weight:800}
+.adventure-lobby .lobby-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:30px;padding:12px 0 14px;align-items:start}
+.play-mode-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:4px 0 18px}
+.play-mode-picker button{display:grid;gap:4px;text-align:left;margin:0;padding:12px 16px;min-height:65px;font-size:16px;font-weight:800;background:transparent;color:#29372a;border:1px solid #b7bfac}
+.play-mode-picker button small{font-size:11px;font-weight:500;color:#52615a}
+.play-mode-picker button[aria-pressed=true]{background:#2e4233;color:#fffdf0;border-color:#2e4233;box-shadow:inset 3px 0 #e19355}
+.play-mode-picker button[aria-pressed=true] small{color:inherit;opacity:.85}
+.training-overview{min-width:0}.training-map{overflow:hidden;border-radius:5px;background:#384d40;color:#f6efe1}
+.training-overview>summary{cursor:pointer;min-height:44px;padding:10px 0;font-size:13px;font-weight:750;color:#29372a}.training-overview>summary span{font-weight:400;font-size:11px;margin-left:8px}
+[data-ui-theme=rally] .training-overview>summary{color:#f0eee7}
+.training-map svg{display:block;width:100%;height:auto;max-height:260px}.training-map>span{display:block;padding:0 18px 15px;font-size:13px;font-weight:850;letter-spacing:.5px}
+.training-overview>p{font-size:13px;line-height:1.6;margin:13px 0;color:#52615a}.training-overview>.training-hint{font-size:12px;color:#29372a}
+[data-ui-theme=rally] .play-mode-picker button{color:#f0eee7;border-color:#59686f;background:#2b343a}
+[data-ui-theme=rally] .play-mode-picker button[aria-pressed=true]{background:#49372c;border-color:#e59a6c}
+[data-ui-theme=rally] .play-mode-picker button small,[data-ui-theme=rally] .training-overview>p{color:#c2ccd0}
+@media(max-width:700px){.play-mode-picker{gap:6px;margin-bottom:10px}.play-mode-picker button{padding:10px;min-height:64px;font-size:14px}.play-mode-picker button small{font-size:10px}.training-map svg{max-height:170px}.training-map>span{font-size:11px;padding-bottom:10px}.training-overview>p{font-size:12px;margin:9px 0}.training-overview>.training-hint{margin-bottom:0}}
+.adventure-lobby .lobby-grid>section>h2:first-child,.event-kicker{font-size:10px;font-weight:850;letter-spacing:1.5px;color:#68715f;margin:0 0 11px}
+.adventure-lobby .course-list{display:grid;gap:10px}
+.adventure-lobby .course-list button{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;width:100%;height:135px;padding:17px 19px;border:2px solid transparent;overflow:hidden;gap:3px;border-radius:4px;margin:0;background:#394738;box-shadow:none;color:#fffdf0;transition:border-color .16s,transform .16s}
+.adventure-lobby .course-list button::before{content:'';position:absolute;inset:0;z-index:-2;background-color:#49513b;background-size:cover;background-position:center 58%;transition:transform .5s ease}
+.adventure-lobby .course-list button::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#10231c92,transparent 80%),linear-gradient(0deg,#101e18df,transparent 95%)}
+.adventure-lobby .course-list button[data-course=mountain]::before{background-image:var(--world-mountain-preview,url('assets/previews/world-mountain.webp'))}
+.adventure-lobby .course-list button[data-course=sand]::before{background-image:var(--world-sand-preview,url('assets/previews/world-sand.webp'))}
+.adventure-lobby .course-list button[data-course=urban]::before{background-image:var(--world-urban-preview,url('assets/previews/world-urban.webp'))}
+.adventure-lobby .course-list button:hover::before{transform:scale(1.045)}
+.adventure-lobby .course-list button.terrain-selected{border-color:#e7985c;box-shadow:0 0 0 2px #b35c31;background:#394738}
+.adventure-lobby .course-list button.terrain-selected::after{background:linear-gradient(90deg,#18271d8a,transparent 90%),linear-gradient(0deg,#132017eb,transparent 95%)}
+.adventure-lobby .course-list button strong{position:relative;z-index:1;font-size:29px;font-weight:900;letter-spacing:-.9px;font-style:italic;line-height:1.15;color:#fffdf0}
+.adventure-lobby .course-list button small{font-size:10px;color:#eef2e3;font-weight:550;line-height:1.4}
+.adventure-lobby .course-list button>span{position:absolute;top:12px;left:17px;font-size:9px;font-weight:700;color:#fff9e4;background:#15251da6;border:1px solid #d7dfc76b;padding:3px 7px;border-radius:2px}
+.terrain-marker{position:absolute;right:17px;bottom:17px;font-size:49px;font-style:normal;letter-spacing:-3px;font-weight:900;line-height:1;color:#f5f2d859}
+.adventure-lobby .briefing{border-left:0;padding:0 0 0 20px;border-left:1px solid #c7cbbd;min-width:0}
+.adventure-lobby #coursePlace{display:block;color:#7b5037;font-size:8px;letter-spacing:.65px;margin:0 0 5px}
+.adventure-lobby #briefTitle{font-size:24px;letter-spacing:-.8px;font-weight:850;color:#29372a;margin:0 0 8px;line-height:1.2}
+.adventure-lobby #briefDescription{font-size:11px;line-height:1.5;color:#5c6954;margin-bottom:10px}
+.adventure-lobby #lessonList{display:none}
+.adventure-lobby .mission-picker{margin:0 0 10px}
+.adventure-lobby .mission-picker{font-size:0;gap:0}
+.adventure-lobby #missionChoice{display:none}
+.adventure-lobby .mission-description{display:block;color:#515e49;font-size:10px;line-height:1.5;padding:8px 0 0;margin:0;min-height:38px}
+.event-kicker{margin:14px 0 9px}
+.mission-event-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.mission-event-grid button{position:relative;display:grid;gap:5px;text-align:left;min-width:0;min-height:89px;margin:0;padding:12px 25px 11px 12px;border:1px solid #b7bfac;background:#f8f8ef;color:#33442f;border-radius:3px}
+.mission-event-grid .event-number{font-size:9px;color:#8d694e;font-weight:700;line-height:1}
+.mission-event-grid strong{font-size:11px;font-weight:850;line-height:1.25;letter-spacing:.1px;color:inherit}
+.mission-event-grid small{font-size:9px;line-height:1.35;color:#62705b;font-weight:500}
+.mission-event-grid .event-arrow{position:absolute;right:10px;top:10px;font-size:15px;color:#7d8f6f}
+.mission-event-grid button[aria-pressed=true]{background:#2e4233;color:#fffdf0;border-color:#2e4233;box-shadow:inset 3px 0 #e19355}
+.mission-event-grid button[aria-pressed=true] small{color:#d7dfcf}.mission-event-grid button[aria-pressed=true] .event-number,.mission-event-grid button[aria-pressed=true] .event-arrow{color:#efb982}
+.adventure-lobby .briefing>.check-label{font-size:11px;color:#42533b;min-height:32px;padding:0;margin:0 0 13px;line-height:1.4}
+.adventure-lobby .check-label input{accent-color:#b86634}
+.adventure-lobby .choices{gap:0}
+.adventure-lobby .difficulty-native{display:none}
+.difficulty-levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0 0 9px}
+.difficulty-levels button{display:grid;gap:3px;justify-items:center;min-height:52px;padding:8px 3px;margin:0;border:1px solid #bcc4b0;border-radius:3px;background:#e4e8dc;color:#3c4d34}
+.difficulty-levels span{font-size:10px;font-weight:850;letter-spacing:.5px}
+.difficulty-levels small{font-size:8px;color:#617155;line-height:1.3}
+.difficulty-levels button[aria-checked=true]{background:#c86c38;border-color:#ad542c;color:#fffdf0}
+.difficulty-levels button[aria-checked=true] small{color:#fff0d8}
+.adventure-lobby #buildNote{font-size:9px;color:#68755c;line-height:1.45;margin:2px 0 9px}
+.expedition-departure{position:sticky;bottom:-27px;padding-top:3px;background:#ecece2;z-index:2}
+.adventure-lobby #startButton{font-size:19px;font-weight:900;letter-spacing:.9px;font-style:italic;min-height:58px;width:100%;margin:0;background:#c86c38;border-color:#ab542b;color:#fffdf2;border-radius:3px;text-align:left;padding:12px 20px;box-shadow:0 3px 0 #94552e}
+.adventure-lobby #startButton:hover{background:#b65c30}
+.adventure-lobby #startButton:disabled{background:#b7bba8;color:#4c5945;border-color:#9da88e;box-shadow:none}
+.expedition-departure p{font-size:8px;line-height:1.5;color:#68735d;margin:8px 0 0}
+.adventure-lobby #resumeButton{font-size:11px;background:#344830;color:white;border-color:#344830;min-height:38px;padding:8px 10px;width:100%;margin-top:8px}
+.adventure-lobby #best{font-size:9px;color:#6c765f;margin:10px 0 0}
+.expedition-settings{border-top:1px solid #bdc5b0;margin-top:17px;padding:11px 0 0;color:#44553b}
+.expedition-settings>summary{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:10px;letter-spacing:.9px;font-weight:850;min-height:32px;list-style:none}
+.expedition-settings>summary::after{content:'+';font-size:20px;font-weight:500}.expedition-settings[open]>summary::after{content:'−'}
+.expedition-settings>summary span{margin-left:auto;margin-right:14px;font-size:9px;letter-spacing:0;font-weight:500;color:#64745a}
+.expedition-settings-content{padding:12px;background:#e3e7da;border:1px solid #c4cbb8;border-radius:4px;margin-top:8px}
+.adventure-lobby .player-options,.adventure-lobby .audio-settings{border-color:#b6c0a9;margin-top:12px;padding-top:12px}
+.adventure-lobby .player-options summary,.adventure-lobby .audio-settings summary{font-size:11px;color:#36482f}
+.adventure-lobby .player-options label,.adventure-lobby .expedition-body-choice,.adventure-lobby .voice-start{font-size:11px;color:#3c5034}
+.adventure-lobby .player-options p,.adventure-lobby .audio-settings p{font-size:10px;color:#5d6e52}
+.adventure-lobby select,.adventure-lobby #playerName{background:#fffef6;color:#283824;border-color:#a2b093;font-size:12px;min-height:40px}
+.adventure-lobby .voice-start{margin:10px 0 0}.adventure-lobby .player-setup{padding-top:5px}
+.adventure-lobby>.disclosure{border-color:#c6ceba;padding:10px 0 5px;margin-top:3px}
+.adventure-lobby>.disclosure summary{font-size:10px;color:#526347;min-height:25px}
+.adventure-lobby>.disclosure p{color:#586a4c;font-size:10px}
+.adventure-lobby>.fine,.adventure-lobby>.back-link{display:none}
+.coach #condition{color:#d7deda!important}.player-setup #playerName{color:var(--ink);background:#2b3033}
+@media(min-width:1400px){#lobby.adventure-lobby{max-height:calc(100dvh - 100px)}.adventure-lobby .course-list button{height:144px}.adventure-lobby .lobby-heading{padding-bottom:20px}}
+@media(max-width:900px) and (min-width:701px){#lobby.adventure-lobby{max-width:calc(100vw - 24px);padding:22px}.adventure-lobby .lobby-grid{gap:18px;grid-template-columns:1fr 1fr}.adventure-lobby .briefing{padding-left:18px}.adventure-lobby .course-list button{height:145px;padding:14px}.adventure-lobby .course-list button strong{font-size:24px}.adventure-lobby .course-list button small{font-size:9px}.expedition-stamp{display:none}.mission-event-grid strong{font-size:10px}}
+@media(max-width:700px){
+ #lobby.adventure-lobby{max-width:calc(100vw - 14px);width:100%;max-height:calc(100dvh - 14px);padding:18px 16px;border-radius:5px}
+ .adventure-lobby .expedition-links{margin-bottom:17px;font-size:9px}.expedition-links span{font-size:7px;max-width:165px;text-align:right}
+ .adventure-lobby .lobby-heading{padding-bottom:6px}.adventure-lobby .lobby-heading .eyebrow{font-size:8px;letter-spacing:.8px;margin-bottom:6px}.adventure-lobby #lobbyTitle{font-size:32px;letter-spacing:-1.4px;max-width:320px}.adventure-lobby .lobby-heading>p:last-of-type{font-size:10px;max-width:285px}.expedition-stamp{display:none}
+ .adventure-lobby .lobby-grid{grid-template-columns:1fr;padding:9px 0 0;gap:17px}.adventure-lobby .lobby-grid>section>h2:first-child,.event-kicker{font-size:8px;letter-spacing:1px;margin-bottom:8px}
+ .adventure-lobby .course-list{gap:7px}.adventure-lobby .course-list button{height:80px;padding:11px 12px;gap:2px;border-width:1px}.adventure-lobby .course-list button strong{font-size:22px;letter-spacing:-.6px}.adventure-lobby .course-list button small{font-size:8px}.adventure-lobby .course-list button>span{top:9px;right:9px;left:auto;font-size:7px;padding:2px 4px}.terrain-marker{font-size:26px;bottom:10px;right:11px;letter-spacing:-1px}
+ .adventure-lobby .briefing{border:0;padding:0}.adventure-lobby #coursePlace{display:none}.adventure-lobby #briefTitle{font-size:18px;margin-bottom:5px}.adventure-lobby #briefDescription{display:none}
+ .event-kicker{margin:7px 0}.mission-event-grid{gap:6px}.mission-event-grid button{min-height:75px;padding:9px 20px 8px 10px;gap:3px}.mission-event-grid strong{font-size:9px}.mission-event-grid small{font-size:8px}.mission-event-grid .event-number{font-size:8px}.mission-event-grid .event-arrow{font-size:12px;right:8px;top:8px}
+ .adventure-lobby .mission-description{font-size:9px;min-height:0;padding-top:7px}.adventure-lobby .mission-picker{margin-bottom:4px}.adventure-lobby .briefing>.check-label{font-size:10px;margin-bottom:9px;min-height:30px}.adventure-lobby .check-label input{width:17px;height:17px}
+ .difficulty-levels button{min-height:45px;padding:6px 3px}.difficulty-levels span{font-size:9px}.difficulty-levels small{font-size:7px}.adventure-lobby #buildNote{font-size:8px;margin:0 0 8px}
+ .expedition-departure{bottom:-19px;padding:7px 0 5px}.adventure-lobby #startButton{min-height:53px;font-size:19px;padding:12px 16px}.expedition-departure p{font-size:8px;margin-top:6px}
+ .expedition-settings{margin-top:8px;padding-top:5px}.expedition-settings>summary{min-height:28px;font-size:8px}.expedition-settings>summary span{font-size:8px}.adventure-lobby>.disclosure{margin-top:10px}.adventure-lobby>.disclosure summary{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.adventure-lobby .course-list button::before{transition:none}.adventure-lobby .course-list button:hover::before{transform:none}}
+
+/* The driving surface must fit the actual viewport, including phone landscape.
+   Keep the compact HUD beside, not on top of, the main driving view. */
+@media(max-width:700px){
+ .coach{bottom:280px}
+ #stage{bottom:calc(var(--coach-space,380px) + 15px)}
+}
+@media(min-width:701px) and (max-height:600px){
+ body{height:100dvh;overflow:hidden}
+ .game-header{height:44px;padding:5px 12px}.game-header .brand{font-size:14px;gap:7px}.game-header .brand img{width:26px;height:26px}.game-header .game-name{font-size:10px}.game-header .game-name small{display:none}.game-header button{min-height:32px;padding:5px 10px;font-size:11px}
+ #game{height:calc(100dvh - 44px);min-height:0;overflow:hidden}
+ #stage{inset:0 234px 98px 0}
+ .mission{left:8px;top:8px;width:166px;padding:7px 10px;gap:3px}.mission>span{font-size:9px}.mission>strong{font-size:12px}.mission progress{height:3px}
+ .telemetry{top:8px;right:242px;padding:8px 10px;gap:10px}.telemetry strong{font-size:25px}.telemetry span{font-size:9px}.telemetry p{font-size:11px}
+ #map{right:242px;top:77px;width:69px;height:69px}
+ #map.map-expanded{top:77px;width:min(210px,40dvh);height:min(210px,40dvh)}
+ .coach{left:auto;right:8px;top:8px;bottom:auto;width:218px;max-width:218px;max-height:calc(100% - 114px);overflow-y:auto;padding:8px;display:grid;grid-template-columns:minmax(0,1fr) 82px;column-gap:7px}
+ .coach>#coachKicker{font-size:8px;letter-spacing:.6px}.coach p{font-size:10px;line-height:1.4;margin:5px 0}.coach #condition{font-size:8px;line-height:1.4}.coach-actions{gap:3px;margin-top:7px}.coach-actions button{font-size:9px;min-height:33px;padding:4px 3px}.coach #spokenStatus{font-size:8px}
+ #cabinPreview>span{font-size:8px;padding:3px 4px 0}#cabinState{font-size:7px;padding:2px 4px 4px}
+ #quick{left:8px;right:242px;bottom:106px;gap:4px}#quick button,#quick select{min-width:0;min-height:31px;padding:5px 7px;font-size:10px;flex:1}#quick select{width:95px;flex:1.25}
+ #console{min-height:98px;height:98px;padding:9px 12px 7px;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+ .drive-controls{gap:10px;align-items:center}.drive-controls legend{font-size:8px;margin-bottom:4px}.segments{gap:3px}.segments button{min-width:36px;min-height:39px;padding:6px 7px;font-size:11px}
+ .gear-label{min-width:54px;max-width:65px;font-size:8px;gap:4px}.gear-label select{min-height:39px;padding:5px 7px;font-size:12px}
+ .assist-controls{gap:4px}.assist-controls button{min-height:39px;max-width:85px;font-size:9px;padding:5px 6px}
+ .pedals{gap:5px}.pedals button{min-width:65px;height:55px;padding:6px 8px;font-size:12px}.pedals .steering{gap:3px}.steering button{min-width:42px;font-size:19px}.pedals small{font-size:8px}
+ .key-hint{display:none}
+}
+
+/* Shared presentation choice. No effect on terrain, simulation or car paint. */
+/* The main cockpit is already the controls view; do not cover it with a second
+   large cabin picture. Keep spoken/text coaching and camera controls available. */
+@media(min-width:701px) and (min-height:601px){
+ #game:is([data-camera=interior],[data-camera=dashboard],[data-camera=controls]) .coach{max-width:300px;grid-template-columns:minmax(0,1fr)}
+ #game:is([data-camera=interior],[data-camera=dashboard],[data-camera=controls]) #cabinPreview{display:none}
+}
+.ui-theme-picker{display:flex;align-items:center;gap:7px;margin-left:auto;flex-shrink:0;font-size:11px;font-weight:700;color:#d0d6d7}
+.ui-theme-picker select{width:114px;min-height:40px;margin:0;padding:7px 8px;border:1px solid #657177;border-radius:4px;background:#293135;color:#f2f0e9;font:inherit;font-size:12px;cursor:pointer}
+html[data-ui-theme] button{transition:transform .18s}
+.game-header .ui-theme-picker{margin-left:0}.lobby-style-row{display:flex;justify-content:flex-end;margin:-8px 0 6px}
+.lobby-style-row .ui-theme-picker{color:#485644}.lobby-style-row select{background:#fffef6;color:#283824;border-color:#84927b}
+html[data-ui-theme=rally]{color-scheme:dark}
+[data-ui-theme=rally] #lobby.adventure-lobby{background:#20272b;color:#f3f0e7;border-color:#59666d;scrollbar-color:#748188 #20272b;box-shadow:0 30px 120px #10161bbb}
+[data-ui-theme=rally] .adventure-lobby .lobby-heading{border-bottom:1px solid #4c585f}
+[data-ui-theme=rally] .adventure-lobby :is(.expedition-links,.lobby-heading>p:last-of-type,.expedition-stamp,.lobby-grid>section>h2:first-child,.event-kicker,#briefDescription,.mission-description,.briefing>.check-label,#buildNote,#best,.expedition-departure p,.expedition-settings>summary span){color:#bcc8cd}
+[data-ui-theme=rally] .adventure-lobby :is(#lobbyTitle,#briefTitle){color:#f4f0e7}
+[data-ui-theme=rally] .adventure-lobby :is(.lobby-heading .eyebrow,#coursePlace,.expedition-links a){color:#efb58d}
+[data-ui-theme=rally] .adventure-lobby .briefing{border-color:#4e5b62}
+[data-ui-theme=rally] .mission-event-grid button{background:#2b343a;color:#f0eee7;border-color:#59686f}
+[data-ui-theme=rally] .mission-event-grid :is(small,.event-number,.event-arrow){color:#c2ccd0}
+[data-ui-theme=rally] .mission-event-grid button[aria-pressed=true]{background:#49372c;border-color:#e59a6c;box-shadow:inset 3px 0 #e59a6c;color:#fff3e7}
+[data-ui-theme=rally] .mission-event-grid button[aria-pressed=true] :is(small,.event-number,.event-arrow){color:#f5c09c}
+[data-ui-theme=rally] .difficulty-levels button{background:#2b343a;color:#f0eee7;border-color:#59686f}
+[data-ui-theme=rally] .difficulty-levels small{color:#c0cbd0}
+[data-ui-theme=rally] .difficulty-levels button[aria-checked=true]{background:#e59a6c;color:#1b2023;border-color:#e59a6c}
+[data-ui-theme=rally] .difficulty-levels button[aria-checked=true] small{color:#2c2925}
+[data-ui-theme=rally] .expedition-departure{background:#20272b}
+[data-ui-theme=rally] .adventure-lobby #startButton{background:#e59a6c;color:#192125;border-color:#e59a6c;box-shadow:0 3px 0 #8a5737}
+[data-ui-theme=rally] .adventure-lobby #startButton:hover:not(:disabled){background:#f1ad81}
+[data-ui-theme=rally] .adventure-lobby #startButton:disabled{background:#465056;color:#c1cbce;border-color:#59686f;box-shadow:none}
+[data-ui-theme=rally] .adventure-lobby #resumeButton{background:#303b40;border-color:#738087;color:#f2f0e9}
+[data-ui-theme=rally] .adventure-lobby :is(.expedition-settings,.player-options,.audio-settings,.disclosure){border-color:#526168;color:#e3e7e6}
+[data-ui-theme=rally] .expedition-settings-content{background:#293237;border-color:#526168}
+[data-ui-theme=rally] .adventure-lobby :is(.player-options summary,.audio-settings summary,.player-options label,.expedition-body-choice,.voice-start,.disclosure summary){color:#e3e7e6}
+[data-ui-theme=rally] .adventure-lobby :is(.player-options p,.audio-settings p,.disclosure p){color:#bdc9cd}
+[data-ui-theme=rally] .adventure-lobby :is(select,#playerName){background:#303b40;color:#f2f0e9;border-color:#7c898f}
+[data-ui-theme=rally] .lobby-style-row .ui-theme-picker{color:#d0d6d7}
+[data-ui-theme=rally] .adventure-lobby .check-label input{accent-color:#e59a6c}
+[data-ui-theme=rally] :is(button,a,input,select,summary):focus-visible{outline-color:#ffc08e}
+/* Help and sharing are on the dark instrument layer in both presentations. */
+#help dd{color:#c5cdd0}.download-link{color:#1d3027}.adventure-lobby a{color:#5b402d}[data-ui-theme=rally] .adventure-lobby a{color:#efb58d}
+@media(max-width:700px){.game-header .game-name{display:none}.game-header .ui-theme-picker>span{display:none}.game-header .ui-theme-picker select{width:100px;min-height:36px;font-size:11px}.lobby-style-row{margin:-7px 0 9px}.lobby-style-row .ui-theme-picker select{min-height:36px;width:112px}.game-header{gap:8px}}
+@media(min-width:701px) and (max-height:600px){.game-header .ui-theme-picker select{min-height:32px;font-size:11px}.lobby-style-row{margin:0 0 7px}}
+
+/* Mobile coaching is a caption first; extra teaching instruments are optional. */
+/* Terrain creation is a single map workbench, not another destination gallery. */
+.terrain-editor[hidden]{display:none!important}
+.terrain-editor{min-width:0;color:#2c3b30}
+.terrain-editor label{display:grid;gap:5px;font-size:11px;font-weight:700;min-width:0}
+.terrain-editor :is(input,select){width:100%;min-width:0;min-height:38px;padding:7px 9px;background:#fffdf5;color:#283329;border:1px solid #8d9b86;border-radius:4px;font:inherit;font-size:12px}
+.terrain-editor .terrain-name{margin-bottom:12px}
+.terrain-palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.terrain-palette button{min-height:43px;margin:0;padding:7px 8px;text-align:left;font-size:11px;background:#e1e4d6;color:#293b2f;border-color:#9ca991;line-height:1.25}
+.terrain-palette button[aria-pressed=true]{background:#cb8251;color:#192621;border-color:#815134}
+.terrain-editor .terrain-hint{font-size:12px;line-height:1.45;min-height:35px;margin:12px 0;color:#455448}
+.terrain-workspace{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(150px,1fr);gap:12px;align-items:start}
+#terrainMap{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none;border:1px solid #8a9a88;border-radius:4px;user-select:none;cursor:crosshair}
+#terrainMap [data-element-id]{cursor:grab}
+.terrain-inspector{display:grid;gap:10px;min-width:0}.terrain-inspector .fine{margin:0;font-size:11px;min-height:45px}
+.terrain-coordinates{display:grid;grid-template-columns:1fr 1fr;gap:8px}.terrain-coordinates label:last-child{grid-column:1/-1}
+.terrain-editor button{min-width:0}.terrain-inspector button{margin:0;font-size:11px;min-height:36px;padding:7px 8px}
+.terrain-status{min-height:34px;font-size:12px;line-height:1.4;margin:12px 0 6px;color:#3d5140}.terrain-status[data-error=true]{color:#9e2f20;font-weight:650}
+.terrain-actions{display:flex;flex-wrap:wrap;gap:6px}.terrain-actions button{margin:0;font-size:11px;padding:7px 9px;min-height:36px}
+.terrain-sharing{margin-top:14px;border-top:1px solid #9da993;padding-top:10px}.terrain-sharing summary{cursor:pointer;font-size:12px;font-weight:700;min-height:30px}.terrain-sharing label{margin-top:9px}
+.terrain-sharing input{padding:7px;overflow:hidden}.terrain-sharing button{font-size:12px;min-height:38px}
+#lobby[data-play-mode=create] .lobby-grid{grid-template-columns:minmax(0,1.7fr) minmax(235px,.8fr)}
+#lobby[data-play-mode=create] :is(.mission-picker,.mission-event-grid,.event-kicker,.difficulty-levels,.difficulty-native,#lessonList){display:none!important}
+#lobby[data-play-mode=create] .briefing{align-self:start}
+#lobby[data-play-mode=create] .briefing>.choices:empty{display:none}
+#lobby[data-play-mode=create] #briefTitle{font-size:24px;overflow-wrap:anywhere}
+#lobby[data-play-mode=create] .expedition-departure{position:static}
+#lobby[data-play-mode=create]{padding-block:18px}
+#lobby[data-play-mode=create] .lobby-heading{padding-bottom:8px}
+#lobby[data-play-mode=create] .lobby-heading :is(.eyebrow,.expedition-stamp){display:none}
+#lobby[data-play-mode=create] .expedition-links{margin-bottom:7px}
+#lobby[data-play-mode=create] #lobbyTitle{font-size:30px;letter-spacing:-1px;margin-bottom:5px}
+#lobby[data-play-mode=create] .play-mode-picker{margin-bottom:8px}
+#lobby[data-play-mode=create] .play-mode-picker button{min-height:48px;padding:7px 12px}
+#lobby[data-play-mode=create] .lobby-grid>section>h2:first-child{display:none}
+#lobby[data-play-mode=create] .terrain-workspace{grid-template-columns:minmax(260px,320px) minmax(150px,1fr)}
+#lobby[data-play-mode=create] .terrain-palette button{min-height:35px}
+#lobby[data-play-mode=create] .terrain-hint{min-height:0;margin:8px 0}
+[data-ui-theme=rally] .terrain-editor{color:#edf0e8}
+[data-ui-theme=rally] .terrain-editor :is(input,select){background:#303b40;color:#f2f0e9;border-color:#7c898f}
+[data-ui-theme=rally] .terrain-palette button{background:#2b343a;color:#f0eee7;border-color:#59686f}
+[data-ui-theme=rally] .terrain-palette button[aria-pressed=true]{background:#49372c;border-color:#e59a6c;color:#fff2e6}
+[data-ui-theme=rally] .terrain-editor :is(.terrain-hint,.terrain-status,.fine){color:#c1cdd0}
+[data-ui-theme=rally] .terrain-status[data-error=true]{color:#ffb6a1}
+[data-ui-theme=rally] .terrain-sharing{border-color:#526168}
+@media(max-width:700px){
+ #lobby[data-play-mode=create] .lobby-grid{grid-template-columns:minmax(0,1fr)}
+ #lobby[data-play-mode=create] .terrain-workspace{grid-template-columns:minmax(0,1fr)}
+ #lobby[data-play-mode=create] .play-mode-picker button{min-height:58px;padding:8px}
+ #lobby[data-play-mode=create] #lobbyTitle{font-size:27px}
+ #lobby[data-play-mode=create] .terrain-palette button{min-height:44px}
+ .terrain-workspace{grid-template-columns:minmax(0,1fr)}
+ #terrainMap{max-height:340px;max-width:340px;justify-self:center}
+ .terrain-inspector{grid-template-columns:1fr 1fr;gap:8px}.terrain-inspector>label,.terrain-inspector>.fine,.terrain-coordinates{grid-column:1/-1}
+ .terrain-inspector>.fine{min-height:0}.terrain-coordinates{grid-template-columns:repeat(3,minmax(0,1fr))}.terrain-coordinates label:last-child{grid-column:auto}
+ .terrain-palette button{font-size:10px}.play-mode-picker button small{font-size:9px}
+ #lobby[data-play-mode=create] .briefing{border-top:1px solid #7a8783;padding-top:15px}
+}
+.coach .coach-toggle{grid-column:1/-1;min-height:32px;padding:5px 9px;font-size:11px;justify-self:start;margin:7px 0 0;border-color:#79868b}
+.coach #thumbnailToggle{grid-column:2;grid-row:4;justify-self:start;min-height:28px;padding:4px 7px;font-size:10px;margin-top:5px}
+.coach[data-thumbnail=collapsed]{grid-template-columns:minmax(0,1fr)}
+.coach[data-thumbnail=collapsed] #thumbnailToggle{grid-column:1;grid-row:auto}
+.coach #cabinPreview[hidden]{display:none!important}
+#game[data-camera=interior] .coach[data-wheel-preview=true]:not([data-thumbnail=collapsed]) #cabinPreview{display:block}
+#game[data-camera=interior] .coach[data-wheel-preview=true]{grid-template-columns:minmax(0,1fr) 148px;max-width:460px}
+.coach[data-coaching=compact] #thumbnailToggle{display:none}
+.gear-steps{display:flex;gap:4px}.gear-steps button{flex:1;min-height:24px;padding:2px 7px;font-size:11px;line-height:1.3}
+.sound-start{margin:12px 0;font-size:13px}.sound-start input{accent-color:#d58051}
+@media(max-width:700px){.gear-steps{display:none}.coach #thumbnailToggle{font-size:10px;min-height:32px}#game[data-camera=interior] .coach[data-wheel-preview=true]{max-width:none;grid-template-columns:minmax(0,1fr) 116px}.segments button{font-size:11px;padding:8px 6px}}
+.badge-entry{min-height:44px;margin:12px 8px 12px 0;border-color:#ed9a65;color:#f4bf99;background:#293136;font-weight:750}
+#badges{width:min(1020px,calc(100vw - 32px));max-width:1020px;max-height:calc(100dvh - 32px);padding:28px;overflow:auto}
+.badge-heading{display:flex;align-items:start;justify-content:space-between;gap:16px}.badge-heading h2{font:800 clamp(26px,4vw,40px)/1.1 Impact,'Arial Narrow',sans-serif;text-transform:uppercase;letter-spacing:.7px;margin:10px 0}.badge-heading button{min-height:44px}
+.badge-layout{display:grid;grid-template-columns:minmax(240px,.9fr) minmax(0,1.1fr);gap:30px;margin-top:24px}
+.badge-rank{display:grid;grid-template-columns:58px minmax(0,1fr);column-gap:14px;text-align:left;width:100%;padding:12px;border:0;border-bottom:1px solid #59656b;background:transparent;border-radius:0;min-height:90px;color:#f2eee4}
+.badge-rank svg{grid-row:1/3;width:58px;height:64px}.badge-rank strong{align-self:end;font-size:16px}.badge-rank span{font-size:12px;color:#c1cbce}.badge-rank[aria-pressed=true]{background:#3b3129;border-left:3px solid #ed9a65;color:#fff0e2}.badge-rank:active{transform:translateY(1px)}
+.badge-detail{border-left:1px solid #59656b;padding-left:30px}.badge-detail #badgeEmblem{float:right;width:135px;margin:0 0 12px 12px}.badge-detail h3{font-size:28px;margin:8px 0}.badge-detail #badgeRequirement{font-size:14px;line-height:1.6}.badge-detail progress{width:100%;height:9px;accent-color:#ed9a65;clear:both}.badge-detail label{display:grid;gap:7px;font-size:13px;margin:14px 0}.badge-detail :is(input,select){min-height:44px;width:100%;padding:10px;background:#30393d;color:#f2eee4;border:1px solid #819097}.badge-actions{display:flex;flex-wrap:wrap;gap:8px}.badge-actions button{min-height:44px;font-size:12px;margin:0}.badge-actions button:disabled{opacity:.5;cursor:not-allowed}.badge-footnote{font-size:12px;line-height:1.6;color:#c1cbce;border-top:1px solid #59656b;padding-top:20px;margin-top:24px}.badge-unlocked{border-left:3px solid #ed9a65;padding:12px 16px;background:#3b3129;color:#ffe2c9}.badge-print-frame{position:fixed;left:-10000px;top:0;width:794px;height:1123px;border:0}#badgeExportStatus{font-size:13px;line-height:1.5;color:#f4bf99;min-height:40px}
+@media(max-width:700px){#badges{padding:18px;width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.badge-layout{grid-template-columns:minmax(0,1fr);gap:22px}.badge-detail{border-left:0;border-top:1px solid #59656b;padding:20px 0 0}.badge-rank{min-height:74px;padding:8px}.badge-rank svg{width:48px;height:56px}.badge-detail #badgeEmblem{width:110px}.badge-heading .eyebrow{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.badge-rank{transition:none}}
+@media(max-width:700px){.badge-detail{grid-row:1}.badge-heading{position:sticky;top:-18px;background:#22282b;z-index:1;padding-block:8px}.badge-detail #badgeDetailTitle{scroll-margin-top:100px}}
+.pro-picker{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:16px 0}.pro-picker[hidden]{display:none}.pro-picker strong{grid-column:1/-1;font-size:12px;color:#edbb79;letter-spacing:.07em}.pro-picker button{min-height:44px;padding:9px 12px;text-align:left;background:#293538;border:1px solid #6c7978;color:#f0eee5;border-radius:5px;font-size:14px}.pro-picker button[aria-pressed=true]{background:#eab67b;border-color:#eab67b;color:#172123}.pro-picker button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.coach[data-coaching=compact]{grid-template-columns:minmax(0,1fr) auto;row-gap:3px}
+.coach[data-coaching=compact] :is(#cabinPreview,#condition,#coachKicker,#coachVoice,#hearAgain,#spokenStatus){display:none}
+.coach[data-coaching=compact] .coach-toggle{grid-column:1;grid-row:1;margin:0;min-height:32px}
+.coach[data-coaching=compact] .coach-actions{grid-column:2;grid-row:1;margin:0;display:block}
+.coach[data-coaching=compact] #showMe{min-height:32px;padding:5px 9px;font-size:11px}
+.coach[data-coaching=compact] #coachText{grid-column:1/-1;grid-row:2;font-size:12px;line-height:1.4;margin:3px 0 0}
+.coach[data-coaching=compact][data-wheel-preview=true]:not([data-thumbnail=collapsed]) #cabinPreview{display:block;grid-column:1/-1;grid-row:3;width:160px;max-width:100%}
+.coach[data-coaching=compact][data-wheel-preview=true] #thumbnailToggle{display:block;grid-column:1/-1;grid-row:4}
+@media(min-width:701px) and (max-height:600px){
+ #game[data-coaching=compact] #stage{right:0}
+ #game[data-coaching=compact] #quick{right:8px}
+ #game[data-coaching=compact] .coach{top:8px;bottom:auto;max-height:calc(100% - 150px)}
+ #game[data-coaching=compact] .coach #coachText{font-size:10px}
+ #game[data-coaching=compact] .coach :is(.coach-toggle,#showMe){font-size:10px;min-height:32px;padding:4px 6px}
+ #game[data-coaching=compact] #map{right:8px;top:132px;width:52px;height:52px}
+ #game[data-coaching=compact] #map.map-expanded{right:242px;top:77px;width:min(210px,40dvh);height:min(210px,40dvh)}
+}
+/* Optional mixed-control expedition: preparation is part of the briefing. */
+.expedition-prep{margin:14px 0;padding:16px;border:1px solid #c79a4c;border-radius:12px;background:#292b26;color:#f4eee0;font-size:14px;line-height:1.5}.expedition-prep[hidden]{display:none}.expedition-prep strong{font-size:17px}.expedition-prep ol{padding-left:22px;margin:10px 0}.expedition-prep p{margin:10px 0}.expedition-prep [data-kit-status]{font-weight:750;color:#ffd58b}.expedition-prep[data-ready=true] [data-kit-status]{color:#b7e3b6}.expedition-prep a{display:inline-block;padding:9px 0;color:#fff0b3;text-decoration:underline;text-underline-offset:3px}

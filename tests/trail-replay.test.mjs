@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {TrailReplay,sampleReplay,recapShot,cleanPlayerName,playerProfile} from '../src/trail/replay.js';
+import {exportSize} from '../src/media-export.js';
+import {createDriver} from '../src/trail/player.js';
+import {Box3} from 'three';
+const state=(elapsed,x=0)=>({elapsed,x,y:0,z:elapsed,yaw:0,pitch:.1,roll:.2,steer:.3,speed:6,rpm:1000,wheelHeights:[0,.1,.2,.3],range:'4H',gear:'D'});
+test('replay retains at most two minutes at 20Hz, with independent wheel samples',()=>{const r=new TrailReplay();let s;for(let i=0;i<60*130;i++){s=state(i/60);r.add(s,1);}assert.equal(r.frames.length,2401);assert.ok(r.duration<=120.01);s.wheelHeights[0]=99;assert.equal(r.frames.at(-1).wheelHeights[0],0);assert.ok(r.clip(15).length<=301);assert.ok(r.frames.at(-1).wheelTravel>770);});
+test('replay interpolates actual recorded motion and does not bridge recovery teleports',()=>{const frames=[{...state(0,0),segment:0,wheelTravel:0},{...state(1,10),segment:0,wheelTravel:6}];assert.equal(sampleReplay(frames,.5).x,5);assert.equal(sampleReplay(frames,.5).wheelTravel,3);frames[1].segment=1;assert.equal(sampleReplay(frames,.5).x,0);assert.equal(sampleReplay(frames,1).x,10);});
+test('camera edits include wheel closeups and retain a continuous chase option',()=>{assert.equal(recapShot('cinematic',6.5),'front-wheel');assert.equal(recapShot('cinematic',12.5),'rear-wheel');assert.equal(recapShot('wheels',0),'front-wheel');assert.equal(recapShot('chase',16),'chase');});
+test('names and driver choice are bounded, unicode-friendly and opt-in',()=>{assert.equal(cleanPlayerName('  Maya <script> 🚗  '),'Maya script');assert.equal(cleanPlayerName('हिमाचल Trail'),'हिमाचल Trail');assert.equal(cleanPlayerName('a'.repeat(100)).length,20);assert.deepEqual(playerProfile({name:'  Asha  ',driver:'woman',decal:true}),{name:'Asha',driver:'woman',decal:true});assert.equal(playerProfile({driver:'unknown',decal:'true'}).driver,'none');assert.equal(playerProfile({decal:'true'}).decal,false);});
+test('export frame sizes cover social formats without unbounded dimensions',()=>{assert.deepEqual(exportSize('portrait'),[720,1280]);assert.deepEqual(exportSize('square'),[960,960]);assert.deepEqual(exportSize('unknown'),[1280,720]);});
+test('both original drivers fit below the cabin roof and in the right-hand seat',()=>{for(const body of ['3door','5door'])for(const kind of ['man','woman']){const driver=createDriver(kind,body),bounds=new Box3().setFromObject(driver);assert.ok(bounds.max.y<1.6);assert.ok(bounds.min.y>.4);assert.ok(bounds.max.x<0);assert.ok(bounds.min.x>-.7);}assert.equal(createDriver('none','5door').children.length,0);});

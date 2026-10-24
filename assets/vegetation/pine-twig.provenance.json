@@ -1,0 +1,38 @@
+{
+  "asset": "pine_tree_01",
+  "authors": [
+    "Rico Cilliers",
+    "Rob Tuytel"
+  ],
+  "license": "CC0-1.0",
+  "source": "https://polyhaven.com/a/pine_tree_01",
+  "licenseSource": "https://polyhaven.com/license",
+  "metadata": "https://api.polyhaven.com/files/pine_tree_01",
+  "processing": "1K twig maps only, resized to1024px width, WebP quality90 (alpha100). No full tree model downloaded.",
+  "files": [
+    {
+      "source": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_twig_diff_1k.png",
+      "sourceMd5": "a4fa4a55aab9231915a4023ea9841577",
+      "sourceBytes": 3208228,
+      "file": "assets/vegetation/pine-twig-diff.webp",
+      "bytes": 254330,
+      "sha256": "058e58fc94ef4355a6fd8ad3a416e39267539dc8fbfdd85dd3dab8cf9ccdb64d"
+    },
+    {
+      "source": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_twig_alpha_1k.png",
+      "sourceMd5": "641911a5a3f543911dad04ebb26e7bca",
+      "sourceBytes": 351928,
+      "file": "assets/vegetation/pine-twig-alpha.webp",
+      "bytes": 90092,
+      "sha256": "3022a31e2fca25ac8a1a85b7bc3c19231ef97ddff1b794d8496260a92173a373"
+    },
+    {
+      "source": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_tree_01/pine_tree_01_twig_nor_gl_1k.png",
+      "sourceMd5": "1c437201b679e4b5e6a10af8e9b9b523",
+      "sourceBytes": 3021524,
+      "file": "assets/vegetation/pine-twig-nor_gl.webp",
+      "bytes": 278820,
+      "sha256": "15a8cf351e47891a1d3f24c9ed2d933b823a1594dbb43286567344b2666af467"
+    }
+  ]
+}

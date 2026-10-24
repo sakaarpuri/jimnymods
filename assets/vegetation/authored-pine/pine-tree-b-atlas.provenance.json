@@ -1,0 +1,153 @@
+{
+  "asset": "pine_tree_01",
+  "variant": "pine_tree_01_b_LOD2",
+  "authors": [
+    "Rico Cilliers",
+    "Rob Tuytel"
+  ],
+  "license": "CC0-1.0",
+  "source": "https://polyhaven.com/a/pine_tree_01",
+  "licenseSource": "https://polyhaven.com/license",
+  "sourceMaster": {
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/blend/1k/pine_tree_01/pine_tree_01_1k.blend",
+    "md5": "e6d9e76cc8dfb58e23813c264f7736e6",
+    "bytes": 570739325
+  },
+  "views": [
+    {
+      "index": 0,
+      "azimuthDegrees": 0,
+      "uvRect": [
+        0,
+        0,
+        0.25,
+        0.5
+      ]
+    },
+    {
+      "index": 1,
+      "azimuthDegrees": 45,
+      "uvRect": [
+        0.25,
+        0,
+        0.25,
+        0.5
+      ]
+    },
+    {
+      "index": 2,
+      "azimuthDegrees": 90,
+      "uvRect": [
+        0.5,
+        0,
+        0.25,
+        0.5
+      ]
+    },
+    {
+      "index": 3,
+      "azimuthDegrees": 135,
+      "uvRect": [
+        0.75,
+        0,
+        0.25,
+        0.5
+      ]
+    },
+    {
+      "index": 4,
+      "azimuthDegrees": 180,
+      "uvRect": [
+        0,
+        0.5,
+        0.25,
+        0.5
+      ]
+    },
+    {
+      "index": 5,
+      "azimuthDegrees": 225,
+      "uvRect": [
+        0.25,
+        0.5,
+        0.25,
+        0.5
+      ]
+    },
+    {
+      "index": 6,
+      "azimuthDegrees": 270,
+      "uvRect": [
+        0.5,
+        0.5,
+        0.25,
+        0.5
+      ]
+    },
+    {
+      "index": 7,
+      "azimuthDegrees": 315,
+      "uvRect": [
+        0.75,
+        0.5,
+        0.25,
+        0.5
+      ]
+    }
+  ],
+  "tile": [
+    512,
+    1024
+  ],
+  "orthoHeight": 16.3,
+  "treeHeight": 14.880114,
+  "treeGroundOffset": 0.0867645442,
+  "cameraTargetHeight": 7.65,
+  "nearParts": [
+    {
+      "material": "Pine dry branches",
+      "before": 4660,
+      "after": 250
+    },
+    {
+      "material": "Pine needles",
+      "before": 209250,
+      "after": 35000
+    },
+    {
+      "material": "Pine trunk",
+      "before": 39387,
+      "after": 1999
+    },
+    {
+      "material": "Pine bark",
+      "before": 14046,
+      "after": 14046
+    }
+  ],
+  "lighting": "diffuse + 40% local ambient occlusion, no directional light",
+  "bytes": 1274372,
+  "sha256": "a135214b469b833e0f17dc3f731a5314c8c2fb111b511dba84b561079e910c96",
+  "status": "experimental-not-integrated",
+  "usage": {
+    "geometry": "Camera-facing quad; choose nearest 45-degree azimuth in tree-local space.",
+    "dimensions": [
+      8.15,
+      16.3
+    ],
+    "quadCentreAboveGround": 7.65,
+    "uvOrigin": "top-left image coordinates; invert V as required by renderer.",
+    "limitations": [
+      "Eight discrete azimuths can pop; crossfade adjacent angles for production.",
+      "Horizontal orthographic bake is suitable for distant tree crowns, not close views or steep look-down.",
+      "Diffuse + local AO only; runtime illumination and shadows remain integration concerns.",
+      "One irregular mature pine, not a full conical fir."
+    ]
+  },
+  "normalAtlas": {
+    "file": "pine-tree-b-atlas-normal.webp",
+    "bytes": 1538640,
+    "sha256": "819a3e26a5bbb2284d977d6fb4c2bdfdcc26969d3276a629ea5ec076f5b3972b",
+    "space": "Object-space XYZ in Three.js Y-up, signed normals remapped 0..1, raw/non-color texture. Rotate by tree azimuth, then view matrix; not tangent-space normalMap."
+  }
+}
