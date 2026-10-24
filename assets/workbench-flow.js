@@ -1,14 +1,7 @@
 /* One navigation system and one editable build, across looks, parts and sources. */
 (() => {
  'use strict';
- const $=id=>document.getElementById(id),esc=escHtml,main=document.querySelector('.planner-main'),nav=document.querySelector('.workbench-nav');
- nav.id='primaryNavigation';nav.setAttribute('aria-label','Main navigation');
- const menu=document.createElement('button');menu.type='button';menu.className='primary-menu-toggle';menu.textContent='Menu';menu.setAttribute('aria-expanded','false');menu.setAttribute('aria-controls',nav.id);nav.before(menu);
- function closeMenu(){document.body.classList.remove('primary-menu-open');menu.setAttribute('aria-expanded','false');}
- menu.onclick=()=>{const on=!document.body.classList.contains('primary-menu-open');document.body.classList.toggle('primary-menu-open',on);menu.setAttribute('aria-expanded',String(on));};
- nav.addEventListener('click',e=>{if(e.target.closest('button,a'))closeMenu();});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('primary-menu-open')){closeMenu();menu.focus();}});
- document.addEventListener('pointerdown',e=>{if(!nav.contains(e.target)&&!menu.contains(e.target))closeMenu();});
+ const $=id=>document.getElementById(id),esc=escHtml,main=document.querySelector('.planner-main'),nav=document.getElementById('siteNav');
  document.querySelector('.resource-nav')?.remove();
  // Move the already-bound scenery selector into the visible viewer toolbar.
  // Keeping the same node preserves the renderer's change listener and state.

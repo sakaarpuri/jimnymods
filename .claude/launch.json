@@ -4,8 +4,26 @@
     {
       "name": "jimnygami",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8735", "--directory", "/Volumes/ThatSUVMod/jimnymods"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8735",
+        "--directory",
+        "/Volumes/ThatSUVMod/jimnymods"
+      ],
       "port": 8735
+    },
+    {
+      "name": "jimnygami-brief2",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8736",
+        "--directory",
+        "/Volumes/ThatSUVMod/jimnymods"
+      ],
+      "port": 8736
     }
   ]
 }

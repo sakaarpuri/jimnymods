@@ -50,12 +50,15 @@ for(const body of ['lwb','swb'])test(`${body} tailgate wordmark preserves the of
 test('jimnygami identity changes do not abandon saved builds or the configured website address',async()=>{
   const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
   assert.match(html,/<title>jimnygami —/);
-  assert.match(html,/aria-label="jimnygami home"/);
-  assert.match(html,/jimnygami-logo\.webp/);
+  // The logo lives in the shared header that every page renders.
+  const header=await readFile(new URL('../assets/site-header.js',import.meta.url),'utf8');
+  assert.match(header,/aria-label="jimnygami Garage"/);
+  assert.match(header,/jimnygami-logo\.webp/);
+  assert.match(html,/<header data-site-header data-page="garage">/);
   assert.match(html,/readJSON\("thatsuvmod-build"/);
   assert.match(html,/rel="canonical" href="https:\/\/thatsuvmod.com\/"/);
   assert(!html.includes('that SUV Mod'));
   const game=await readFile(new URL('../game.html',import.meta.url),'utf8');
-  assert.match(game,/jimnygami-logo\.webp/);
+  assert.match(game,/<header data-site-header data-page="drive">/);
   assert(!game.includes('jimny<strong>life'));
 });

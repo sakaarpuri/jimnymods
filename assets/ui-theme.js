@@ -18,9 +18,8 @@
     label.append(title,select);return label;
   }
   document.addEventListener('DOMContentLoaded',()=>{
-    const nav=document.querySelector('.workbench-nav');
-    if(nav){nav.querySelector('.workshop-nav-note')?.remove();nav.append(picker());}
-    const header=document.querySelector('.game-header');if(header)header.insertBefore(picker(),document.getElementById('menuButton'));
+    // The shared site header carries the Style setting on every page.
+    document.querySelectorAll('.site-setup-theme').forEach(slot=>slot.append(picker()));
     // Modal dialogs make the header inert, so keep a synchronized control inside.
     const lobby=document.getElementById('lobby');if(lobby){const row=document.createElement('div');row.className='lobby-style-row';row.append(picker());lobby.prepend(row);}
   },{once:true});
