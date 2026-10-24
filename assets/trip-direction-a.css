@@ -1,0 +1,84 @@
+/* Trip planner in Direction A (Brief 2, task 4b).
+   Keeps the planner's photography and generous spacing; takes the shared tokens,
+   type and buttons. Covers the full page (trip-planner.html) and the planner
+   dialog inside the Garage. The html[data-ui-theme] prefix outranks
+   trip-page.css and trip-planner.css, which load in either order. */
+html[data-ui-theme] .trip-planner{--trip-ink:var(--a-text);--trip-muted:var(--a-muted);--trip-line:var(--a-line);--trip-paper:var(--a-ground);--trip-accent:var(--a-panel2);font-family:var(--font-body)}
+html[data-ui-theme] body.trip-page{background:var(--a-ground);color:var(--a-text);font:16px/1.6 var(--font-body)}
+:root[data-ui-theme=rally]:has(body.trip-page){color-scheme:dark}
+html[data-ui-theme] .trip-planner:not(.trip-page .trip-planner){background:var(--a-ground);border-color:var(--a-line)}
+html[data-ui-theme] .trip-planner::backdrop{background:rgba(5,8,8,.7)}
+
+/* Type: Outfit headings, DM Sans body. */
+html[data-ui-theme] :is(.trip-page,.trip-planner) :is(h1,h2,h3){font-family:var(--font-display);color:var(--a-text)}
+html[data-ui-theme] .trip-header h1{font-weight:800;letter-spacing:-.04em}
+html[data-ui-theme] :is(.trip-page,.trip-planner) .trip-kicker{color:var(--a-accent-text);font:600 13px var(--font-body);letter-spacing:.14em}
+html[data-ui-theme] .trip-page :is(.trip-chooser-title span,.trip-destination-photo figcaption,.trip-destination-title>p:not(.trip-kicker),.trip-destination-stats small,.trip-map-section p,.trip-kit-products button small){color:var(--a-muted)}
+html[data-ui-theme] .trip-page .trip-destination-photo figcaption{font-size:13px}
+html[data-ui-theme] .trip-page .trip-disclaimer{color:var(--a-muted);font-size:14px}
+
+/* Links and focus. */
+html[data-ui-theme] :is(.trip-page main,.trip-page footer,.trip-planner) a{color:var(--a-text)}
+html[data-ui-theme] :is(.trip-page main,.trip-page footer,.trip-planner) a:hover{color:var(--a-accent-text)}
+html[data-ui-theme] :is(.trip-page,.trip-planner) :is(button,a,input,select,textarea,summary):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:3px}
+
+/* Step tabs: the same segmented look as Exterior / Cabin. */
+/* Sticky steps sit under the shared sticky header, not behind it. */
+html[data-ui-theme] .trip-page .trip-tabs{top:var(--site-header-h);background:color-mix(in srgb,var(--a-ground) 94%,transparent);border-bottom-color:var(--a-line)}
+html[data-ui-theme] .trip-planner .trip-tabs button{min-height:48px;border-radius:12px;color:var(--a-muted);font:600 16px var(--font-body)}
+html[data-ui-theme] .trip-planner .trip-tabs button[aria-current="step"]{background:var(--a-chip);color:var(--a-on-chip)}
+
+/* Buttons: primary lime, secondary outline, tertiary text. */
+html[data-ui-theme] .trip-planner button{min-height:44px;border:1px solid var(--a-line-strong);border-radius:12px;background:transparent;color:var(--a-text);font:600 15px var(--font-body)}
+html[data-ui-theme] .trip-planner button:hover{border-color:var(--a-text)}
+html[data-ui-theme] .trip-planner .trip-next{background:var(--a-lime)!important;border-color:var(--a-lime)!important;color:var(--a-on-lime)!important}
+html[data-ui-theme] .trip-page .trip-destination-title>button{background:var(--a-lime);border-color:var(--a-lime);color:var(--a-on-lime)}
+html[data-ui-theme] .trip-page .trip-call{background:var(--a-lime);color:var(--a-on-lime)!important;border-radius:12px;font-weight:700}
+
+/* Destination photos keep their colour; selection uses the lime outline. */
+html[data-ui-theme] .trip-planner .trip-route-gallery button{border:0;background:transparent;color:var(--a-text);font:500 15px/1.35 var(--font-body)}
+html[data-ui-theme] .trip-route-gallery img{border-radius:12px}
+html[data-ui-theme] .trip-route-gallery button[aria-pressed=true] img{border-color:var(--a-lime)}
+html[data-ui-theme] .trip-route-gallery button[aria-pressed=true]{color:var(--a-text)}
+html[data-ui-theme] .trip-page .trip-destination-photo>img{border-radius:16px;background:var(--a-panel)}
+
+/* Map, waypoints and sections. */
+html[data-ui-theme] .trip-page .trip-map-frame iframe{border-color:var(--a-line);border-radius:12px;background:var(--a-panel)}
+html[data-ui-theme] .trip-page .trip-waypoint-diagram{color:var(--a-accent-text);background:var(--a-panel);border-radius:12px}
+html[data-ui-theme] .trip-page .trip-waypoints b{border-color:var(--a-line-strong)}
+html[data-ui-theme] .trip-planner .trip-waypoints button{border-color:transparent;font-size:14px}
+html[data-ui-theme] .trip-page .trip-planner .trip-waypoints button[aria-pressed=true]{background:var(--a-panel2);border-color:var(--a-lime)}
+html[data-ui-theme] .trip-page :is(.trip-route-layout,.trip-map-section,.trip-national-emergency,.trip-contact,.trip-site-footer){border-color:var(--a-line)}
+html[data-ui-theme] .trip-page .trip-field-notes article{border-top-color:var(--a-line-strong)}
+html[data-ui-theme] .trip-page .trip-support-grid>section{border-top-color:var(--a-line)}
+html[data-ui-theme] .trip-page .trip-footer{background:var(--a-panel)}
+
+/* Form fields and checklists. */
+html[data-ui-theme] .trip-field :is(input,select,textarea){min-height:48px;border-color:var(--a-line-strong);border-radius:12px;background:var(--a-panel);color:var(--a-text);font:500 16px var(--font-body)}
+html[data-ui-theme] .trip-field :is(label,legend,span){color:var(--a-text)}
+html[data-ui-theme] .trip-check input{accent-color:var(--a-lime)}
+html[data-ui-theme] .trip-open-checks{background:var(--a-panel);border-radius:16px}
+html[data-ui-theme] .trip-reset{background:var(--a-panel2);border-color:var(--a-line);color:var(--a-text)}
+
+/* Kit products: a light tile keeps supplier photos on white readable in both styles. */
+html[data-ui-theme] .trip-kit-products button{background:var(--a-panel);border-color:var(--a-line);color:var(--a-text);font-size:14px}
+html[data-ui-theme] :is(.trip-kit-products button>img,.trip-garage-source .trip-source-photo){background:#f4f4ef;border-radius:8px}
+html[data-ui-theme] .trip-kit-products button>span{color:var(--a-text);font-size:15px}
+html[data-ui-theme] .trip-kit-products button span{color:var(--a-text)}
+
+/* Errors stay legible on the dark ground. */
+:root[data-ui-theme=rally] :is(.trip-field-error,.trip-inline-error){color:#ff9b82}
+:root[data-ui-theme=rally] .trip-field input[aria-invalid="true"]{border-color:#ff9b82}
+
+/* Footer. */
+html[data-ui-theme] .trip-site-footer{color:var(--a-muted);font-size:15px}
+html[data-ui-theme] .trip-site-footer p:first-child{color:var(--a-text);font-family:var(--font-display)}
+html[data-ui-theme] .trip-skip{background:var(--a-chip);color:var(--a-on-chip)}
+@media(max-width:700px){
+  html[data-ui-theme] .trip-page .trip-tabs{padding:8px 16px;gap:6px}
+  html[data-ui-theme] .trip-planner .trip-tabs button{min-height:44px;padding:6px 10px;font-size:14px;line-height:1.25}
+}
+/* Anchors to a section land below both sticky bars. */
+html[data-ui-theme] .trip-page [id]{scroll-margin-top:calc(var(--site-header-h) + 72px)}
+:root[data-ui-theme=daylight] .trip-route-gallery button[aria-pressed=true] img{border-color:var(--a-accent-text)}
+:root[data-ui-theme=daylight] .trip-page .trip-planner .trip-waypoints button[aria-pressed=true]{border-color:var(--a-accent-text)}

@@ -20,7 +20,9 @@
     try{const value=JSON.parse(localStorage.getItem(CONTEXT_KEY));if(value&&typeof value==='object')return value;}catch{/* Storage can be unavailable. */}
     return {};
   }
-  function contextLabel(context){return `${context.region||'Your region'} · ${context.body==='3door'?'3-door':'5-door'}`;}
+  // Before a first Garage visit nothing is saved yet; the Garage itself defaults to India.
+  const DEFAULT_REGION='India';
+  function contextLabel(context){return `${context.region||DEFAULT_REGION} · ${context.body==='3door'?'3-door':'5-door'}`;}
   function navItem(item,page){
     if(page==='garage'){
       if(item.primaryMode)return `<button type="button" data-primary-mode="${item.primaryMode}" class="active">${esc(item.label)}</button>`;
@@ -40,7 +42,7 @@
       ?`<button type="button" class="site-build" data-build-open><span class="site-build-label">My build</span> <span class="site-build-count" id="headerBuildCount">${count}</span></button>`
       :`<a class="site-build" href="index.html#garage" data-site-build-link><span class="site-build-label">My build</span> <span class="site-build-count">${count}</span></a>`;
     const fields=page==='garage'?'':
-      `<dl class="site-setup-summary"><div><dt>Region</dt><dd>${esc(context.region||'Not chosen yet')}</dd></div><div><dt>Your Jimny</dt><dd>${context.body==='3door'?'3-door / Sierra (JB74)':'5-door / XL / Nomade'}</dd></div></dl><a class="site-setup-change" href="index.html#garage" data-site-build-link>Change in the Garage</a>`;
+      `<dl class="site-setup-summary"><div><dt>Region</dt><dd>${esc(context.region||DEFAULT_REGION)}</dd></div><div><dt>Your Jimny</dt><dd>${context.body==='3door'?'3-door / Sierra (JB74)':'5-door / XL / Nomade'}</dd></div></dl><a class="site-setup-change" href="index.html#garage" data-site-build-link>Change in the Garage</a>`;
     // Page-specific controls (such as Drive's Courses button) keep their place in the bar.
     const slots=[...header.querySelectorAll('[data-site-header-slot]')];
     header.classList.add('site-header');
