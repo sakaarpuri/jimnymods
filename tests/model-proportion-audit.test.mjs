@@ -16,4 +16,7 @@ for(const body of ['lwb','swb'])test(`${body} accuracy audit measures actual sto
  assert(m.widthIncludingMirrors>m.widthBelowBeltline+250,'Mirror span is not the manufacturer body-width figure');
  assert(m.overallLengthWithoutOptionalSpareCover>3500&&m.overallLengthWithoutOptionalSpareCover<4300);
  assert(result.limits.some(s=>s.includes('not certify')));
+ assert(Math.abs(m.groundClearance-r.groundClearance)<5,'unladen ground clearance');
+ for(const k of ['approachAngle','departureAngle','breakoverAngle'])assert(m[k]>15&&m[k]<70,`${k} measured from body vertices`);
+ if(r.breakoverAngle)assert(Math.abs(m.breakoverAngle-r.breakoverAngle)<1.5,'breakover angle');
 });
