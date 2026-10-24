@@ -541,7 +541,7 @@
   <footer>
     <div class="footer-brand"><span class="logo-art"><img src="assets/jimnygami-logo-original.png" width="1774" height="887" alt="jimnygami"></span><span>Ideas and resources for modifying your Jimny</span><a href="#workspace">Back to exploring ↑</a></div>
     <p>jimnygami is an independent platform and is not affiliated with, endorsed by, or sponsored by Suzuki Motor Corporation or Maruti Suzuki India Limited. Suzuki and Jimny are trademarks of their respective owners.</p>
-    <p>jimnygami is not a seller, installer or agent for any listed business and is not responsible for their prices, policies or work. Prices in ₹ are Indian planning estimates (July 2026), not local quotes or currency conversions. Actual prices, shipping, duties and installation are set by sellers.</p>
+    <p>jimnygami is not a seller, installer or agent for any listed business and is not responsible for their prices, policies or work. Prices are Indian planning estimates (July 2026) shown in ₹; other regions see approximate converted ranges. Neither is a local quote or currency conversions. Actual prices, shipping, duties and installation are set by sellers.</p>
     <div class="footer-links"><button type="button" data-footer-note="checking">How resources are checked</button><button type="button" data-footer-note="privacy">Privacy & saved builds</button></div>
     <div class="footer-note" id="footerNote" hidden></div>
   </footer>
@@ -959,7 +959,9 @@ const favorites = new Set(readJSON("thatsuvmod-favorites",readJSON("thatsuvlab-f
 const compareIds = new Set();
 
 /* ---------------- render mods ---------------- */
-const fmt = n => n===0 ? "₹0" : "₹" + (n>=100000 ? (n/100000).toFixed(1).replace(/\.0$/,"")+"L" : n>=1000 ? (n/1000).toFixed(n%1000?1:0).replace(/\.0$/,"")+"k" : Math.round(n));
+const fmtInr = n => n===0 ? "₹0" : "₹" + (n>=100000 ? (n/100000).toFixed(1).replace(/\.0$/,"")+"L" : n>=1000 ? (n/1000).toFixed(n%1000?1:0).replace(/\.0$/,"")+"k" : Math.round(n));
+// India shows the planning estimate in ₹; every other region shows an approximate converted range in its own currency.
+const fmt = n => window.jimnyRegion==='IN'?fmtInr(n):window.JimnyMoney.approx(n);
 const escHtml = value => String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const POPULAR_MOD_IDS=["autostylenn_big_suzuki_grille","market_8087496753377","bimbra_snorkel","market_stedi_spot","market_dd_dual","tires","mats","dashcam"];
 const PART_PREVIEW_ANGLES={suzuki_nomade_flatrack:'roof',suzuki_nomade_steelwheel:'wheel-detail',skinnyjim_backbone:'rear',skinnyjim_jerry_tray:'rear',fr_slimline2:'roof',fr_slimline2_tall:'roof',ladder:'rear',sparecover:'rear',mudflaps:'rear',spoiler:'rear',drawer:'cargo',molle:'cabin',shelf:'cargo',seats:'cabin',mats:'cabin',headunit:'interior',steering:'interior',armrest:'cabin',dashcam:'interior',ambient:'interior',sliders:'side',cladding:'side',visors:'side',hingecovers:'side',skid:'underside'};
@@ -1170,7 +1172,7 @@ PACKAGES.forEach(p=>{
       <div class="lookline">${packageLookMarkup(p)}</div>
       <div class="parts">${p.parts.length} parts: ${names}</div>
       <div class="row">
-        <span class="pprice">${fmt(lo)} – ${fmt(hi)}</span>
+        <span class="pprice" data-inr="${lo},${hi}">${fmt(lo)} – ${fmt(hi)}</span>
         <span class="pkg-actions"><button class="apply" data-apply="${p.id}">Add build</button><button class="look-apply" data-look-apply="${p.id}">Apply look</button><button class="replace" data-replace="${p.id}">Replace</button></span>
       </div>
       ${packageResourceMarkup(p)}
@@ -1514,10 +1516,10 @@ function update(){
     totalEl.textContent = on.some(m=>m.market||m.quote)?'Quote required':`${fmt(lo)} – ${fmt(hi)}`;
     countEl.textContent = `${selectionCount} item${selectionCount>1?"s":""} selected`;
   } else {
-    totalEl.textContent = "₹0";
+    totalEl.textContent = fmt(0);
     countEl.textContent = "Your build starts here";
   }
-  document.getElementById("buildFab").innerHTML=`<span>My build · ${selectionCount} item${selectionCount===1?"":"s"}</span><span class="fab-total">${selectionCount?`${fmt(lo)} – ${fmt(hi)}`:"₹0"}</span>`;
+  document.getElementById("buildFab").innerHTML=`<span>My build · ${selectionCount} item${selectionCount===1?"":"s"}</span><span class="fab-total">${selectionCount?`${fmt(lo)} – ${fmt(hi)}`:fmt(0)}</span>`;
   document.getElementById("headerBuildCount").textContent=selectionCount;
   document.getElementById('customPaint').value=selectedPaint;
   if(on.some(m=>m.market||m.quote))document.querySelector('#buildFab .fab-total').textContent='Quote required';
