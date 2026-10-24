@@ -339,27 +339,20 @@
 </style>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="assets/jimnygami-brand.css">
+<link rel="stylesheet" href="assets/direction-a.css">
 <script src="assets/ui-theme.js"></script>
 <script src="assets/surface-style-state.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#workspace">Skip to explore</a>
 
-<header>
-  <div class="brandline"><a class="brand-lockup" href="#explore" aria-label="jimnygami home"><span class="brand-copy"><span class="logo-art"><img src="assets/jimnygami-logo.webp" width="560" height="280" alt="jimnygami"></span><small>Fold your own adventure</small></span></a><div class="header-actions"><a class="trail-entry" href="game.html">Drive & learn <span>Free game · beta</span></a><button class="header-build" type="button" data-build-open>My build <span id="headerBuildCount">0</span></button></div></div>
-  <div class="hero-intro"><div><p class="eyebrow">A little SUV. A lot of possibility.</p><h1>Small car.<br><em>Big possibilities.</em></h1><p class="site-promise">Ideas and resources for modifying your Jimny</p></div><div class="hero-aside"><p>Find a look you love. Pick the upgrades that suit you. Know where to start.</p><a class="hero-cta" href="#explore">Explore the possibilities <span aria-hidden="true">↗</span></a><span class="hero-footnote">Looks, parts & fitting help. All in one place.</span></div></div>
-</header>
+<header data-site-header data-page="garage"></header>
+<script src="assets/site-header.js"></script>
+<div class="hero-intro" hidden><div><p class="eyebrow">A little SUV. A lot of possibility.</p><h1>Small car.<br><em>Big possibilities.</em></h1><p class="site-promise">Ideas and resources for modifying your Jimny</p></div><div class="hero-aside"><p>Find a look you love. Pick the upgrades that suit you. Know where to start.</p><a class="hero-cta" href="#explore">Explore the possibilities <span aria-hidden="true">↗</span></a><span class="hero-footnote">Looks, parts & fitting help. All in one place.</span></div></div>
 
 <div class="wrap" id="build">
   <section class="market-bar" aria-label="Your region and Jimny"><label for="regionSelect">Your region<select id="regionSelect" aria-describedby="regionNote"></select></label><label for="bodySelect">Your Jimny<select id="bodySelect"><option value="5door">5-door / XL / Nomade</option><option value="3door">3-door / Sierra (JB74)</option></select></label><details class="market-context"><summary>Region & pricing notes</summary><p id="regionNote"></p><p id="priceRegionNote">Planning estimates in INR. Ask sellers for current local quotes.</p></details><button type="button" id="layoutChoice" aria-pressed="false">Try Studio layout ↗</button></section>
-  <nav class="workbench-nav" id="workspace" aria-label="Choose what to explore">
-    <button class="active" type="button" data-mode-select="explore"><span aria-hidden="true">01</span> Looks</button>
-    <button type="button" data-mode-select="build"><span aria-hidden="true">02</span> Purpose builds</button>
-    <button type="button" data-mode-select="parts"><span aria-hidden="true">03</span> Parts</button>
-    <button type="button" data-mode-select="fitters"><span aria-hidden="true">04</span> Local help</button>
-    <button type="button" data-mode-select="tools"><span aria-hidden="true">05</span> Owner tools</button>
-  </nav>
-<div class="workbench">
+<div class="workbench" id="workspace" tabindex="-1">
 <aside class="planner-rail">
   <div class="rail-heading"><span class="eyebrow">The live build studio</span><span class="live-indicator">Live 3D</span></div>
 
@@ -1730,7 +1723,7 @@ function resetWorkbenchScroll(){
   });
 }
 window.addEventListener('popstate',()=>setWorkbenchMode(Object.entries(MODE_TARGETS).find(([,id])=>location.hash==='#'+id)?.[0]||'explore',{history:false,scroll:true}));
-document.querySelector(".workbench-nav").addEventListener("click",e=>{const button=e.target.closest("[data-mode-select]");if(!button)return;setWorkbenchMode(button.dataset.modeSelect,{scroll:true})});
+document.getElementById("siteNav").addEventListener("click",e=>{const button=e.target.closest("[data-mode-select]");if(!button)return;setWorkbenchMode(button.dataset.modeSelect,{scroll:true})});
 document.addEventListener("click",e=>{if(e.target.closest("[data-open-source]")){document.getElementById('shopSearch').value=homeCity.value;document.getElementById('shopType').value='all';filterShops();setWorkbenchMode("fitters",{scroll:true})}});
 document.addEventListener("click",e=>{
   const partSource=e.target.closest("[data-source-part]");
@@ -1848,21 +1841,18 @@ update();
 /* Rally Workshop: one persistent vehicle, one focused tray. The existing
    build, source and region handlers remain the single source of truth. */
 document.body.classList.add('rally-workshop');
-document.querySelector('.brand-copy small').textContent='Ideas and resources for modifying your Jimny';
-document.querySelector('.brand-lockup').setAttribute('href','#garage');
 document.querySelector('.rail-heading .eyebrow').textContent='Your Jimny / live garage';
 document.querySelector('.rail-review').textContent='Review, save & share build';
-const primaryNav=document.querySelector('.workbench-nav');
-primaryNav.innerHTML='<button type="button" data-primary-mode="garage" class="active">Garage</button><button type="button" data-mode-select="parts">Parts</button><button type="button" data-mode-select="sources">Vendors & Fitters</button><a href="game.html">Drive</a><a href="trip-planner.html" data-open-trip-planner>Trip planner</a><button type="button" data-mode-select="clubs">Clubs</button><button type="button" data-mode-select="tools">Owner tools</button>';
-const headerSetup=document.createElement('details');headerSetup.className='header-setup';
-headerSetup.innerHTML='<summary aria-label="Open setup: region, Jimny body and appearance"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/></svg><span class="setup-context">Setup</span><span class="setup-short">Setup</span><span aria-hidden="true">⌄</span></summary><div class="header-setup-panel"><div class="setup-heading"><strong>Your setup</strong><button type="button" data-close-setup>Close</button></div><div class="header-setup-fields"></div><div class="header-setup-theme"></div><p class="setup-note">Body and region shape the previews and sources. Appearance changes the interface and garage backdrop.</p></div>';
-function refreshHeaderContext(){const region=document.getElementById('regionSelect'),body=document.getElementById('bodySelect');headerSetup.querySelector('.setup-context').textContent=`${region.selectedOptions[0]?.textContent||'Your region'} · ${body.value==='3door'?'3-door':'5-door'}`;}
-headerSetup.querySelector('[data-close-setup]').onclick=()=>{headerSetup.open=false;headerSetup.querySelector('summary').focus();};
-document.addEventListener('pointerdown',e=>{if(headerSetup.open&&!headerSetup.contains(e.target))headerSetup.open=false;});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&headerSetup.open){headerSetup.open=false;headerSetup.querySelector('summary').focus();}});
+const primaryNav=document.getElementById('siteNav');
+const headerSetup=document.querySelector('.site-setup');
+function refreshHeaderContext(){const region=document.getElementById('regionSelect'),body=document.getElementById('bodySelect'),context={region:region.selectedOptions[0]?.textContent||'',body:body.value==='3door'?'3door':'5door',count:Number(document.getElementById('headerBuildCount').textContent)||0};JimnySiteHeader.setContext(context);JimnySiteHeader.saveContext(context);}
 document.addEventListener('change',e=>{if(['regionSelect','bodySelect'].includes(e.target.id))refreshHeaderContext();});
-document.addEventListener('DOMContentLoaded',()=>{const picker=primaryNav.querySelector('.ui-theme-picker');if(picker)headerSetup.querySelector('.header-setup-theme').append(picker);refreshHeaderContext();},{once:true});
+window.addEventListener('jimny-build-change',refreshHeaderContext);
+refreshHeaderContext();
+document.addEventListener('DOMContentLoaded',refreshHeaderContext,{once:true});
 window.addEventListener('jimny-model-change',refreshHeaderContext);
+// My build on the Trip planner and Drive pages lands here with the drawer open.
+try{if(sessionStorage.getItem('thatsuvmod-open-build')){sessionStorage.removeItem('thatsuvmod-open-build');addEventListener('load',()=>openDrawer(),{once:true});}}catch{}
 const garage=document.createElement('section');garage.id='garage';garage.dataset.mode='garage';
 garage.innerHTML=`<div class="garage-heading"><div><p class="eyebrow">A little box. A world of ideas.</p><h1>Make your own way.</h1></div><button type="button" class="garage-undo" data-garage-undo disabled>Undo</button></div><p class="garage-intro">Pick a part below or use the labels on your car. Tap a fitted part again to remove it.</p><div class="garage-categories" role="tablist" aria-label="Modification categories">${[['popular','Quick fits'],['paint','Paint'],['graphics','Decals'],['wheels','Wheels'],['grille','Grilles'],['bumpers','Bumpers'],['lighting','Lights'],['roof','Roof'],['rear','Rear & gear'],['cabin','Cabin']].map(([id,name])=>`<button type="button" role="tab" id="garage-tab-${id}" data-garage-category="${id}" aria-controls="garageChoices" aria-selected="${id==='popular'}" tabindex="${id==='popular'?0:-1}">${name}</button>`).join('')}</div><div id="garageChoices" role="tabpanel" aria-labelledby="garage-tab-popular"><div id="garagePartChoices"></div></div><div class="garage-next"><button type="button" data-mode-select="explore">Ready-made looks</button><button type="button" data-mode-select="build">Purpose builds</button><button type="button" data-mode-select="parts">All parts & products</button></div><p class="garage-honesty">3D previews show representative shapes, not exact manufacturer CAD. Check the real product, fitment and local rules before buying.</p>`;
 document.querySelector('.planner-main').prepend(garage);
@@ -1905,13 +1895,13 @@ const categoryIcons={popular:'M13 2 4 14h7l-1 8 10-12h-7z',paint:'M8 8h8v13H8z M
 garageCategoryStrip.querySelectorAll('button').forEach(button=>{button.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${categoryIcons[button.dataset.garageCategory]}"></path></svg>`);});
 const garageDesktop=matchMedia('(min-width:1100px)');
 function placeGarageNavigation(){
-  const brandline=document.querySelector('.brandline'),market=document.querySelector('.market-bar');
+  const market=document.querySelector('.market-bar');
   const focused=document.activeElement,movingFocusedTab=garageCategoryStrip.contains(focused);
   // Moving the focused tab from the desktop strip into the phone tray can
   // trigger native focus-reveal scrolling and crop the heading. Preserve focus
   // deliberately, without letting the browser choose a new tray offset.
   if(movingFocusedTab)focused.blur();
-  const buildButton=document.querySelector('.header-build');headerSetup.querySelector('.header-setup-fields').append(market);brandline.append(primaryNav,headerSetup,buildButton);brandline.querySelector('.header-actions')?.remove();
+  headerSetup.querySelector('.site-setup-fields').append(market);
   if(garageDesktop.matches){document.querySelector('.workbench').before(garageCategoryStrip);}
   else{garage.querySelector('.garage-intro').after(garageCategoryStrip);}
   if(movingFocusedTab)focused.focus({preventScroll:true});
@@ -2048,7 +2038,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-remove-wheel-finish]')){rememberUndo();designState.wheelFinish='oem';update();refreshGarage();return;}
   const wheel=e.target.closest('[data-wheel-choice]');if(wheel){const w=GARAGE_WHEELS.find(w=>w.id===wheel.dataset.wheelChoice);if(!w)return;rememberUndo();const on=(designState.wheelFinish||'oem')===w.finish;designState.wheelFinish=on?'oem':w.finish;const colours={...designState.partColours};delete colours.wheels;designState.partColours=colours;update();refreshGarage();window.jimny3D?.view('wheel-detail');return;}
   const primary=e.target.closest('[data-primary-mode]');if(primary){setWorkbenchMode(primary.dataset.primaryMode==='garage'?'garage':'sources');return;}
-  const mode=e.target.closest('[data-mode-select]');if(mode&&!mode.closest('.workbench-nav')){setWorkbenchMode(mode.dataset.modeSelect);return;}
+  const mode=e.target.closest('[data-mode-select]');if(mode&&!mode.closest('#siteNav')){setWorkbenchMode(mode.dataset.modeSelect);return;}
   const category=e.target.closest('[data-garage-category]');if(category){openGarageCategory(category.dataset.garageCategory);return;}
   const design=e.target.closest('[data-garage-design]');if(design){rememberUndo();chooseDesign(design.dataset.garageDesign,design.dataset.garageOption,true);return;}
   const fit=e.target.closest('[data-garage-fit]');if(fit){if(!window.jimny3D?.getState().detailedReady)return;rememberUndo();const id=fit.dataset.garageFit;if(setPartSelection(id,!state[id])===false)return;update();window.jimny3D.view(PART_PREVIEW_ANGLES[modById[id]?.visual||id]||'orbit');return;}

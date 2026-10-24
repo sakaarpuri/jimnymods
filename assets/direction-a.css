@@ -1,0 +1,99 @@
+/* Direction A, "Night Garage": one set of tokens and the shared site header
+   for the Garage, Trip planner and Drive. Loaded last on every page.
+   Rally dark is the default; Daylight keeps the same structure on a light ground. */
+@font-face{font-family:Outfit;src:url('fonts/outfit.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap}
+@font-face{font-family:'DM Sans';src:url('fonts/dm-sans.ttf') format('truetype');font-style:normal;font-weight:100 1000;font-display:swap}
+
+:root{
+  --a-ground:#111716;--a-panel:#1a2120;--a-panel2:#232c2a;--a-line:#34403d;--a-line-strong:#4b5955;
+  --a-text:#f1f3ea;--a-muted:#aab3ad;--a-accent-text:#e2f05a;
+  /* Lime is a fill for primary actions in both styles; text on it is always dark. */
+  --a-lime:#e2f05a;--a-on-lime:#151a0b;--a-chip:#f1f3ea;--a-on-chip:#111716;
+  --a-radius:12px;--a-radius-sm:8px;
+  --font-display:Outfit,'DM Sans',sans-serif;--font-body:'DM Sans',system-ui,sans-serif;
+  --site-header-h:72px;
+}
+:root[data-ui-theme=daylight]{
+  --a-ground:#f6f6f0;--a-panel:#fffffb;--a-panel2:#eeefe7;--a-line:#d6d9cf;--a-line-strong:#b9beb2;
+  --a-text:#18201d;--a-muted:#55605a;--a-accent-text:#4f6100;--a-chip:#18201d;--a-on-chip:#f6f6f0;
+}
+@media(max-width:1099px){:root{--site-header-h:64px}}
+
+/* Legacy tokens used across design.css, catalogue and owner tools. */
+:root[data-ui-theme=rally],:root[data-ui-theme=rally] body.rally-workshop{
+  --bg:var(--a-ground);--panel:var(--a-panel);--panel2:var(--a-panel2);--line:var(--a-line);
+  --text:var(--a-text);--muted:var(--a-muted);--accent:var(--a-lime);--accent2:#eef6a0;
+  --brand-acid:var(--a-lime);--brand-ink:var(--a-on-lime);
+}
+:root[data-ui-theme=daylight]{--brand-acid:var(--a-lime);--brand-ink:var(--a-on-lime)}
+:root[data-ui-theme=rally] body.rally-workshop{background:var(--a-ground)}
+body.rally-workshop :is(h1,h2,h3,.garage-heading h1){font-family:var(--font-display)}
+:root[data-ui-theme=rally] body.rally-workshop .garage-heading h1{text-transform:none;letter-spacing:-.02em}
+
+/* ---------- Shared site header ---------- */
+.site-header{position:sticky;top:0;z-index:50;background:var(--a-ground);color:var(--a-text);border-bottom:1px solid var(--a-line);font-family:var(--font-body)}
+/* Outranks the Garage's older `.rally-workshop header` rules (up to 0,2,2). */
+html[data-ui-theme] body header.site-header{position:sticky;top:0;z-index:50;width:100%;max-width:none;margin:0;padding:0;box-sizing:border-box;background:var(--a-ground);color:var(--a-text);border-bottom:1px solid var(--a-line);text-align:left}
+.site-bar{display:flex;align-items:center;gap:20px;height:var(--site-header-h);padding:0 20px;position:relative}
+.site-logo{display:flex;align-items:center;flex-shrink:0;min-height:44px;padding:0 10px;line-height:0;border-radius:10px}
+.site-logo:focus-visible,.site-header :is(a,button,summary,select):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+/* The white pill is drawn with a shadow so padding never shifts the logo crop. */
+.site-logo-art{position:relative;display:block;overflow:hidden;width:128px;aspect-ratio:1570/360;background:#fff;border-radius:3px;box-shadow:0 0 0 7px #fff,0 0 0 8px rgba(0,0,0,.04)}
+.site-logo-art img{position:absolute;left:-6.3694%;top:-69.4444%;width:112.9937%;height:auto;max-width:none;margin:0;display:block}
+.site-menu-panel{display:contents}
+.site-nav{flex:1;display:flex;justify-content:center;align-items:stretch;gap:4px;min-width:0;height:100%}
+.site-nav :is(a,button){position:relative;display:inline-flex;align-items:center;padding:0 12px;min-height:44px;border:0;background:transparent;color:var(--a-muted);font:500 15px/1.2 var(--font-body);text-decoration:none;white-space:nowrap;cursor:pointer;border-radius:0}
+.site-nav :is(a,button):hover{color:var(--a-text);background:transparent}
+.site-nav :is(a,button):is(.active,[aria-current=page]){color:var(--a-text);font-weight:600}
+.site-nav :is(a,button):is(.active,[aria-current=page])::after{content:'';position:absolute;left:12px;right:12px;bottom:0;height:2px;border-radius:2px;background:var(--a-accent-text)}
+.site-setup{position:relative;flex-shrink:0}
+.site-setup>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);list-style:none;cursor:pointer;font:500 15px var(--font-body);color:var(--a-text);white-space:nowrap}
+.site-setup>summary::-webkit-details-marker{display:none}
+.site-setup[open]>summary{background:var(--a-panel2)}
+.site-setup[open] .site-chevron{transform:rotate(180deg)}
+.site-setup-panel{position:absolute;right:0;top:calc(100% + 10px);z-index:60;width:340px;max-width:calc(100vw - 24px);max-height:calc(100dvh - var(--site-header-h) - 24px);overflow:auto;padding:18px;background:var(--a-panel);color:var(--a-text);border:1px solid var(--a-line);border-radius:var(--a-radius);box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.site-setup-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;font:600 17px var(--font-display)}
+.site-setup-heading button{min-height:40px;padding:6px 12px;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:transparent;color:var(--a-text);font:500 14px var(--font-body);cursor:pointer}
+.site-setup-fields,.site-setup .market-bar{display:grid;gap:14px}
+.site-setup .market-bar{margin:0;padding:0;border:0;background:transparent;min-height:0;grid-template-columns:1fr}
+.site-setup :is(.market-bar label,.ui-theme-picker){display:grid;gap:6px;margin:0;font:600 14px var(--font-body);color:var(--a-text);text-transform:none;letter-spacing:0}
+.site-setup :is(.market-bar select,.ui-theme-picker select){width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:var(--a-panel2);color:var(--a-text);font:500 15px var(--font-body)}
+.site-setup .market-context{display:block;font-size:14px;line-height:1.5;color:var(--a-muted)}
+.site-setup .market-context summary{min-height:36px;cursor:pointer;color:var(--a-text)}
+.site-setup #layoutChoice{min-height:44px;padding:8px 12px;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:transparent;color:var(--a-text);font:500 14px var(--font-body)}
+.site-setup-summary{display:grid;gap:10px;margin:0}
+.site-setup-summary div{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.site-setup-summary dt{color:var(--a-muted)}.site-setup-summary dd{margin:0;font-weight:600;text-align:right}
+.site-setup-change{color:var(--a-accent-text);font-weight:600;font-size:15px}
+.site-setup-theme{margin-top:14px}
+.site-setup-note{margin:14px 0 0;font-size:14px;line-height:1.5;color:var(--a-muted)}
+.site-build{display:inline-flex;align-items:center;gap:10px;flex-shrink:0;min-height:44px;padding:0 8px 0 16px;border:0;border-radius:var(--a-radius-sm);background:var(--a-chip);color:var(--a-on-chip);font:600 15px var(--font-body);text-decoration:none;cursor:pointer;white-space:nowrap}
+.site-build:hover{filter:brightness(.96)}
+.site-build-count{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:999px;background:var(--a-on-chip);color:var(--a-chip);font-weight:700;font-size:14px}
+:root[data-ui-theme=rally] .site-build-count{color:var(--a-lime)}
+.site-menu-toggle{display:none;place-items:center;flex-shrink:0;width:48px;height:48px;padding:0;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:transparent;color:var(--a-text);cursor:pointer}
+
+@media(max-width:1099px){
+  .site-bar{gap:10px;padding:0 16px}
+  .site-logo{padding:0 8px;margin-right:auto}
+  .site-logo-art{width:108px}
+  .site-menu-toggle{display:grid}
+  .site-menu-panel{display:none;position:absolute;left:0;right:0;top:100%;z-index:60;flex-direction:column;gap:14px;max-height:calc(100dvh - var(--site-header-h));overflow:auto;padding:12px 16px 20px;background:var(--a-panel);border-bottom:1px solid var(--a-line);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+  .site-header.menu-open .site-menu-panel{display:flex}
+  .site-nav{flex-direction:column;justify-content:flex-start;height:auto;gap:0}
+  .site-nav :is(a,button){justify-content:flex-start;min-height:52px;padding:0 4px;font-size:17px;color:var(--a-text);border-bottom:1px solid var(--a-line)}
+  .site-nav :is(a,button):is(.active,[aria-current=page])::after{left:auto;right:4px;top:50%;bottom:auto;width:8px;height:8px;border-radius:50%;transform:translateY(-50%)}
+  .site-setup>summary{justify-content:space-between;min-height:52px}
+  .site-setup-panel{position:static;width:auto;max-width:none;max-height:none;margin-top:10px;padding:14px;box-shadow:none;background:var(--a-panel2)}
+  .site-setup-heading button{display:none}
+  .site-setup :is(.market-bar select,.ui-theme-picker select){background:var(--a-panel)}
+}
+@media(max-width:380px){.site-build{padding-left:12px;gap:8px}.site-logo-art{width:96px}}
+/* Drive also carries Courses, so My build shrinks to its count on phones. */
+@media(max-width:480px){body.drive-page .site-build{padding:0 7px}body.drive-page .site-build-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}body.drive-page .site-bar>[data-site-header-slot]{padding:0 12px}}
+
+/* Drive: the game fills the space under the shared header. */
+html body.drive-page #game{height:calc(100dvh - var(--site-header-h))}
+body.drive-page .site-header{position:relative}
+.site-bar>[data-site-header-slot]{flex-shrink:0;min-height:44px;padding:0 14px;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:transparent;color:var(--a-text);font:500 15px var(--font-body);cursor:pointer}
+@media(min-width:701px) and (max-height:600px){:root{--site-header-h:52px}.site-bar>[data-site-header-slot],.site-build,.site-setup>summary{min-height:40px}.site-menu-toggle{width:42px;height:42px}}

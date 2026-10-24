@@ -42,7 +42,8 @@ for(const body of ['lwb','swb']){
 
 test('Jimnygami uses the supplied artwork, licensed rounded type and one accent without migrating saves',async()=>{
  const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
- for(const file of ['index.html','game.html']){const html=await read(file);assert.match(html,/jimnygami-logo\.webp/);assert.match(html,/assets\/jimnygami-brand\.css/);assert(!/jimny mods|jimnylife/.test(html));}
+ assert.match(await read('assets/site-header.js'),/jimnygami-logo\.webp/);
+ for(const file of ['index.html','game.html']){const html=await read(file);assert.match(html,/assets\/site-header\.js/);assert.match(html,/assets\/jimnygami-brand\.css/);assert(!/jimny mods|jimnylife/.test(html));}
  const css=await read('assets/jimnygami-brand.css');assert.match(css,/--brand-acid:#d4d9d6/);assert.doesNotMatch(css,/#dfff00/);assert.match(css,/outfit\.ttf/);assert.match(css,/focus-visible/);
  assert.match(await read('assets/fonts/outfit-OFL.txt'),/SIL OPEN FONT LICENSE/);
 });
