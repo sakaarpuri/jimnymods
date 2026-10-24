@@ -32,3 +32,10 @@ test('build cache-busting covers the shared header files on every page',()=>{
  assert.equal(build.match(/'assets\/site-header\.js'/g).length,3);
  assert.equal(build.match(/'assets\/direction-a\.css'/g).length,3);
 });
+
+test('off the Garage, the header defaults to India until a region is saved',()=>{
+ const header=read('assets/site-header.js');
+ assert.match(header,/const DEFAULT_REGION='India';/);
+ assert.doesNotMatch(header,/Your region'|Not chosen yet/);
+ assert.match(read('assets/regions.js'),/window\.jimnyRegion='IN';/,'matches the Garage default');
+});
