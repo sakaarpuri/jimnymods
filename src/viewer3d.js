@@ -24,6 +24,7 @@ import { loadBodyModel } from './model-loader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { LIGHT_PROFILES, resolvePreviewParts, activeLightProfiles } from './lighting.js';
 import { SCENERIES, validScenery, sceneryMessage, sceneryURL } from './scenery.js';
+import { applyMaterialProfile, paintFinish } from './physical-materials.js';
 import { projectBodyDecals } from './decals.js';
 import { slimlineRack, fittedVisors, mouldedSpareCover, extractFactoryBadge } from './refined-parts.js';
 
@@ -114,10 +115,9 @@ if(renderer){
   const road=new THREE.Group();scene.add(road);road.visible=false;
   const roadSurface=new THREE.Mesh(new THREE.PlaneGeometry(5.4,45),new THREE.MeshStandardMaterial({color:'#424747',roughness:.94}));roadSurface.rotation.x=-Math.PI/2;roadSurface.position.set(0,.002,16);road.add(roadSurface);
   for(let z=3;z<36;z+=3){for(const x of [-2.5,2.5]){const marker=new THREE.Mesh(new THREE.BoxGeometry(.035,.32,.05),new THREE.MeshStandardMaterial({color:'#e6e3cd',roughness:.5}));marker.position.set(x,.16,z);road.add(marker);}}
-  const finishMaterial=new THREE.MeshPhysicalMaterial({color:'#d9b744',roughness:.28,metalness:.025,clearcoat:.85,clearcoatRoughness:.10});
-  // Broad bright ceiling reflections must not erase the chosen bonnet colour.
-  // Metals/glass retain the full environment; lacquer uses a restrained response.
-  finishMaterial.envMapIntensity=.42;
+  // Glossy clear-coated paint at full environment strength: the lacquer carries
+  // the photographed reflections while the base coat keeps the chosen colour.
+  const finishMaterial=new THREE.MeshPhysicalMaterial({color:'#d9b744',roughness:.32,metalness:.025,clearcoat:1,clearcoatRoughness:.035});
   const roofMaterial=finishMaterial.clone();
   finishMaterial.userData.vehiclePaint=true;roofMaterial.userData.vehiclePaint=true;
   const surfaceStyler=createSurfaceStyler();
@@ -134,8 +134,9 @@ if(renderer){
   }
   const grain=surfaceMap('paint');
   finishMaterial.bumpMap=grain;finishMaterial.bumpScale=.00035;
-  mats.rubber.name='TyreRubber';mats.rubber.bumpMap=grain;mats.rubber.bumpScale=.0002;mats.rubber.color.set('#202222');mats.rubber.roughness=.96;
-  mats.glass=new THREE.MeshPhysicalMaterial({color:'#182323',roughness:.055,metalness:0,clearcoat:1,clearcoatRoughness:.04,ior:1.52,transparent:true,opacity:.76,depthWrite:false,side:THREE.DoubleSide});
+  mats.rubber.name='TyreRubber';mats.rubber.bumpMap=grain;mats.rubber.bumpScale=.0002;mats.rubber.color.set('#171919');mats.rubber.roughness=.9;
+  // Smooth tinted glass: a full-strength reflection over a partly see-through cabin.
+  mats.glass=new THREE.MeshPhysicalMaterial({color:'#101b1d',roughness:.02,metalness:0,ior:1.52,specularIntensity:1,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});
   mats.lens=new THREE.MeshPhysicalMaterial({color:'#e0e7e7',metalness:.05,roughness:.08,clearcoat:1,transparent:true,opacity:.40,depthWrite:false});
   mats.chrome=new THREE.MeshStandardMaterial({color:'#e8eeed',metalness:1,roughness:.17});
   mats.reflector=new THREE.MeshStandardMaterial({color:'#d4d9d7',metalness:1,roughness:.24});
@@ -430,12 +431,12 @@ if(renderer){
     if(!stock){if(parts.has('autostylenn_big_suzuki_grille'))design.grille='block';else if(parts.has('autostylenn_cursive_grille'))design.grille='script';else if(parts.has('autostylenn_s_grille'))design.grille='smesh';}
     effectiveDesign={...design};
     mats.upholstery.color.set(({tan:'#a38b69',saddle:'#854d31',olive:'#59624d',stone:'#b3b1a5',black:'#303332'})[design.cabin]||'#a38b69');
-    finishMaterial.color.set(colour);finishMaterial.roughness=design.finish==='matte'?.72:design.finish==='satin'?.42:.29;
+    const lacquer=paintFinish(design.finish);finishMaterial.color.set(colour);finishMaterial.roughness=lacquer.roughness;
     // Solid colours have a dielectric lacquer; silver retains a metallic base coat.
     finishMaterial.metalness=['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0;
-    finishMaterial.clearcoat=design.finish==='matte'?.04:design.finish==='satin'?.26:.7;finishMaterial.clearcoatRoughness=design.finish==='satin'?.34:.17;finishMaterial.bumpScale=design.finish==='matte'?.00055:.00008;
-    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');roofMaterial.envMapIntensity=.18;roofMaterial.roughness=.30;roofMaterial.clearcoat=.28;}
-    [finishMaterial,roofMaterial].forEach(mat=>{const cutaway=cutawayViews.has(cameraView);if(mat.transparent!==cutaway)mat.needsUpdate=true;mat.transparent=cutaway;mat.opacity=cutaway?.12:1;mat.depthWrite=!cutaway;});mats.glass.opacity=cutawayViews.has(cameraView)||isInside()?.12:.68;mats.glass.envMapIntensity=isInside()?.03:.32;
+    finishMaterial.clearcoat=lacquer.clearcoat;finishMaterial.clearcoatRoughness=lacquer.clearcoatRoughness;finishMaterial.bumpScale=design.finish==='matte'?.00055:.00008;
+    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');}
+    [finishMaterial,roofMaterial].forEach(mat=>{const cutaway=cutawayViews.has(cameraView);if(mat.transparent!==cutaway)mat.needsUpdate=true;mat.transparent=cutaway;mat.opacity=cutaway?.12:1;mat.depthWrite=!cutaway;});mats.glass.opacity=cutawayViews.has(cameraView)||isInside()?.12:.6;mats.glass.envMapIntensity=isInside()?.12:1;
     // Keep the overhead net/rails below 1.63 m, cut the authored headliner
     // (bottom 1.6325 m) as well as the exterior roof, not just the roof shell.
     renderer.clippingPlanes=cutawayViews.has(cameraView)?[new THREE.Plane(new THREE.Vector3(0,-1,0),cameraView==='headliner-cutaway'?1.631:1.48)]:[];
@@ -679,7 +680,7 @@ if(renderer){
     garageCabinControls?.dispose();garageCabinControls=null;
     clear(detailRig);detailed=null;modelBody=body;
     gltf.scene.traverse(obj=>{if(!obj.isMesh)return;obj.castShadow=true;obj.receiveShadow=true;
-      const material=obj.material;
+      const material=obj.material;applyMaterialProfile(material);
       // Millimetre-wide panel-gap tubes are already dark. Shadow-map texels
       // turn their self-shadow into a jagged zipper along otherwise clean doors.
       if(material.name==='IntakeShadow')obj.castShadow=false;
