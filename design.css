@@ -291,8 +291,8 @@ body.viewer-expanded .workbench-nav,body.viewer-expanded #buildFab{visibility:hi
 .lighting-night .night-studio-controls button.active{background:#263e33;color:white}
 .spin360.expanded.lighting-night #viewer3d{bottom:202px}
 .lighting-panel{border-block:1px solid var(--line);padding:12px 0;margin:12px 0;font-size:13px;line-height:1.5}
-.lighting-panel summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:#253c30}
-.lighting-panel p{font-size:max(12px,var(--fs-copy,0px));color:#465b50;margin:10px 0}
+.lighting-panel summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:var(--text)}
+.lighting-panel p{font-size:max(12px,var(--fs-copy,0px));color:var(--muted);margin:10px 0}
 .lighting-buttons{display:flex;flex-wrap:wrap;gap:6px}
 .lighting-buttons button{min-height:44px;border:1px solid #bcc9bf;border-radius:5px;background:#fffef8;color:#243c30;padding:8px;font:inherit;cursor:pointer}
 .lighting-buttons button.active{background:#263e33;color:white}
@@ -1001,3 +1001,6 @@ body.rally-workshop .garage-selected-item{flex-shrink:0}
 
 /* Phone type floor: labels never render under 12px, running copy under 14px. Declarations below 12px use max(size,var(--fs-floor)). */
 @media(max-width:700px){:root{--fs-floor:12px;--fs-copy:14px}}
+
+/* The Garage tagline belongs to the Garage only. */
+body[data-mode]:not([data-mode="garage"]) .workbench-purpose{display:none}
