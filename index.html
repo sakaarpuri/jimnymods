@@ -1140,6 +1140,9 @@ const PACKAGES = window.JIMNY_LOOK_PACKAGES || [
 ];
 const CORE_PACKAGE_IDS = new Set(PACKAGES.map(p=>p.id));
 const modById = Object.fromEntries(MODS.map(m=>[m.id,m]));
+// The tyre item has one name on every surface; the chosen tyre type is the only thing that changes it.
+Object.defineProperty(modById.tires,"name",{enumerable:true,configurable:true,get(){return designState.tyreType==="mudterrain"?"Mud-terrain tyres + alloy wheels":"All-terrain tyres + alloy wheels";}});
+document.querySelectorAll("[data-quick-mod]").forEach(b=>{const m=modById[b.dataset.quickMod];if(m)b.textContent=m.name;});
 const pkgsEl = document.getElementById("pkgs");
 function packageImage(id){return jimnyPreviewURL(`preset-${id}`,document.getElementById("bodySelect")?.value)}
 const PRESET_PAINTS={urban:'#797f7c',overland:'#6c785c',retro:'#d8ccab',stealth:'#202722',desert:'#c8af7e',monsoon:'#58726b',crawler:'#c17639',camp:'#d8ccab',creator:'#e8e8e2',family:'#8d1c25',weekend:'#5c6e60',safari:'#c2b28b',alpine:'#e8e8e2',tech:'#48525e',fullsend:'#6c785c'};
@@ -1867,7 +1870,7 @@ surfaceControls.innerHTML='<div class="surface-actions"><button type="button" da
 garage.querySelector('.garage-intro').after(surfaceControls);
 function surfaceTargets(){
  const rows=Object.entries(JimnySurfaceStyles.BASE).map(([id,name])=>({id,name})),seen=new Set(rows.map(r=>r.id));
- for(const m of MODS.filter(m=>state[m.id]&&!m.designOnly&&garageCanPreview(m.id)&&(!m.market||cataloguePreviewKind(m,bodyStyle)!=='research-only'))){const id=JimnySurfaceStyles.target(m.visual||m.id);if(seen.has(id)||['lift','seats','doortrim','mats','ambient','steering'].includes(id))continue;seen.add(id);rows.push({id,name:garageShortNames[m.id]||m.name});}return rows;
+ for(const m of MODS.filter(m=>state[m.id]&&!m.designOnly&&garageCanPreview(m.id)&&(!m.market||cataloguePreviewKind(m,bodyStyle)!=='research-only'))){const id=JimnySurfaceStyles.target(m.visual||m.id);if(seen.has(id)||['lift','seats','doortrim','mats','ambient','steering'].includes(id))continue;seen.add(id);rows.push({id,name:m.name});}return rows;
 }
 function surfaceTargetLabel(id){return JimnySurfaceStyles.BASE[id]||MODS.find(m=>JimnySurfaceStyles.target(m.visual||m.id)===id)?.name||id.replaceAll('_',' ');}
 let surfaceControlsMarkup='';
@@ -1953,13 +1956,13 @@ let garageCategory='popular';
 const GARAGE_WHEELS=[{id:'road-oem',name:'Factory alloy',at:false,finish:'oem'},{id:'at-graphite',name:'A/T · graphite',at:true,finish:'graphite'},{id:'at-bronze',name:'A/T · bronze',at:true,finish:'bronze'},{id:'at-silver',name:'A/T · silver',at:true,finish:'silver'},{id:'road-black',name:'Road · black',at:false,finish:'black'},{id:'road-bronze',name:'Road · bronze',at:false,finish:'bronze'}];
 window.getJimnyWheelPreviews=()=>GARAGE_WHEELS.map(w=>({id:w.id,file:'wheel-'+w.id,parts:w.at?['tires']:[],design:{finish:'oem',grille:'oem',decal:'none',wheelFinish:w.finish},angle:'wheel-detail'}));
 const garageParts=document.getElementById('garagePartChoices');
-const garageShortNames={tires:'All-terrain wheels',rack:'Expedition rack',bull:'Off-road bumper',snorkel:'Raised intake',led:'LED light bar',lift:'Suspension lift',autostylenn_bumper_v1:'Metal bumper V1',msga_roofbasket:'Genuine roof basket',prad_roofrack:'PRAD expedition rack',market_suzuki_nomade_flatrack:'Nomade compact flat rack',market_suzuki_nomade_steelwheel:'Nomade pressed-steel wheels',market_skinny_backbone:'Backbone rear-door mount',market_skinny_jerry:'Jerry+ tray · mount required'};
+/* One display name per part: every surface reads MODS[].name (tyres follow the chosen tyre type). */
 // Every visual choice comes from the same renderer as the large car. Static
 // thumbnails keep category switches instant and avoid extra WebGL contexts.
 const GARAGE_CABIN_COLOURS=[['tan','Sandstone'],['saddle','Saddle'],['olive','Olive'],['stone','Stone'],['black','Charcoal']];
 const studioPreviewPath=file=>`assets/previews/${bodyStyle==='3door'?'swb/':''}${file}.webp`;
 function garagePartImage(id){const m=modById[id];return `assets/previews/${bodyStyle==='3door'&&garageCanPreview(id)?'swb/':''}${m?.lightProfile?'lamp-':'part-'}${id}.webp`;}
-function garagePartCards(ids){return `<div class="garage-part-grid">${ids.map(id=>{const m=modById[id],supported=garageCanPreview(id);return `<article class="garage-part"><button type="button" class="garage-fit" data-garage-fit="${id}" aria-pressed="${!!state[id]}"${supported?'':' disabled'} aria-label="${state[id]?'Remove':'Fit'} ${escHtml(m.name)}"><img src="${garagePartImage(id)}" alt="${escHtml(m.name)} · actual representative 3D preview" width="800" height="600" loading="lazy"><span class="garage-part-name">${escHtml(garageShortNames[id]||m.name)}</span><span class="garage-fit-state">${supported?(state[id]?'Fitted · tap to remove':'Tap to fit'):'Research only for JB74'}</span></button><button type="button" class="garage-edit" data-edit-fitted="${id}"${state[id]?"":" hidden"} aria-label="Edit ${escHtml(m.name)} on the car">Edit</button><button type="button" class="garage-source" data-source-part="${id}">Details & buying options <span aria-hidden="true">↗</span></button></article>`;}).join('')}</div>`;}
+function garagePartCards(ids){return `<div class="garage-part-grid">${ids.map(id=>{const m=modById[id],supported=garageCanPreview(id);return `<article class="garage-part"><button type="button" class="garage-fit" data-garage-fit="${id}" aria-pressed="${!!state[id]}"${supported?'':' disabled'} aria-label="${state[id]?'Remove':'Fit'} ${escHtml(m.name)}"><img src="${garagePartImage(id)}" alt="${escHtml(m.name)} · actual representative 3D preview" width="800" height="600" loading="lazy"><span class="garage-part-name">${escHtml(m.name)}</span><span class="garage-fit-state">${supported?(state[id]?'Fitted · tap to remove':'Tap to fit'):'Research only for JB74'}</span></button><button type="button" class="garage-edit" data-edit-fitted="${id}"${state[id]?"":" hidden"} aria-label="Edit ${escHtml(m.name)} on the car">Edit</button><button type="button" class="garage-source" data-source-part="${id}">Details & buying options <span aria-hidden="true">↗</span></button></article>`;}).join('')}</div>`;}
 function renderVisualEditors(){
   for(const group of ['finish','grille']){
     const grid=document.querySelector(`[aria-label="${group==='finish'?'Paint finishes':'Grille choices'}"]`);grid.classList.add('visual-option-grid');
@@ -2007,7 +2010,7 @@ function refreshGarage(){
   document.querySelectorAll('[data-paint-choice]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.paintChoice===selectedPaint.toLowerCase()));b.disabled=!ready;});
   document.querySelectorAll('[data-cabin-colour]').forEach(b=>{b.setAttribute('aria-pressed',String(!!state.seats&&b.dataset.cabinColour===designState.cabin));b.disabled=!ready;});
   const selected=MODS.filter(m=>state[m.id]&&!m.designOnly);
-  const selectedPartName=m=>m.id==='tires'?(designState.tyreType==='mudterrain'?'Mud-terrain tyres':'All-terrain tyres'):(garageShortNames[m.id]||m.name);
+  const selectedPartName=m=>m.name;
   const designs=selectedDesignOptions().filter(o=>o.price[1]>0);
   const wheelChip=designState.wheelFinish&&designState.wheelFinish!=='oem'?`<span class="garage-selected-item"><button type="button" data-source-part="tires" aria-label="Buying options for wheel finish">${escHtml(designState.wheelFinish)} wheels</button><button type="button" data-remove-wheel-finish aria-label="Restore factory wheel finish">×</button></span>`:'';
   const colourChips=['grilleColour','badgeColour'].filter(k=>designState[k]&&designState[k]!=='original').map(k=>`<span class="garage-selected-item"><button type="button" data-source-design="grille">${k==='grilleColour'?'Grille':'Logo'} · ${designState[k]==='body'?'body match':escHtml(designState[k])}</button><button type="button" data-reset-grille-colour="${k}" aria-label="Reset ${k==='grilleColour'?'grille':'logo'} colour">×</button></span>`).join('');
