@@ -26,6 +26,7 @@ import { LIGHT_PROFILES, resolvePreviewParts, activeLightProfiles } from './ligh
 import { SCENERIES, validScenery, sceneryMessage, sceneryURL } from './scenery.js';
 import { applyMaterialProfile, paintFinish } from './physical-materials.js';
 import { createContactShadow } from './contact-shadow.js';
+import { stockHeadlampCentre } from './front-end-correction.js';
 import { browserQuality } from './quality.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -129,7 +130,7 @@ if(renderer){
   const bodyRig=new THREE.Group();car.add(bodyRig);
   const wheels=new THREE.Group();car.add(wheels);
   const accessoryRig=new THREE.Group();bodyRig.add(accessoryRig);
-  const beams=[-.550,.550].map(x=>{const light=new THREE.SpotLight('#fff2cd',0,35,.30,.7,1.3);light.position.set(x,.977,1.96);light.target.position.set(x,.05,13);bodyRig.add(light,light.target);return light;});
+  const beams=[-1,1].map(side=>{const {x,y}=stockHeadlampCentre(side);const light=new THREE.SpotLight('#fff2cd',0,35,.30,.7,1.3);light.position.set(x,y,1.96);light.target.position.set(x,.05,13);bodyRig.add(light,light.target);return light;});
   const lightingPrefs={headlights:true,auxiliary:true,dualAmber:true};
   const lightRig=new THREE.Group();bodyRig.add(lightRig);
   const auxiliaryBeams=Array.from({length:8},()=>{const light=new THREE.SpotLight('#fff',0,35,.3,.72,1.3);lightRig.add(light,light.target);return light;});
@@ -258,7 +259,7 @@ if(renderer){
   glowGradient.addColorStop(0,'rgba(255,251,222,1)');glowGradient.addColorStop(.18,'rgba(255,251,222,.6)');glowGradient.addColorStop(1,'rgba(255,251,222,0)');glowContext.fillStyle=glowGradient;glowContext.fillRect(0,0,64,64);
   const glowTexture=new THREE.CanvasTexture(glowCanvas);glowTexture.colorSpace=THREE.SRGBColorSpace;
   const glowMaterial=new THREE.SpriteMaterial({map:glowTexture,transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending});
-  for(const x of [-.550,.550]){const glow=new THREE.Sprite(glowMaterial);glow.position.set(x,.977,1.94);glow.scale.set(.19,.19,1);headlightGlow.add(glow);}headlightGlow.visible=false;
+  for(const side of [-1,1]){const {x,y}=stockHeadlampCentre(side);const glow=new THREE.Sprite(glowMaterial);glow.position.set(x,y,1.94);glow.scale.set(.19,.19,1);headlightGlow.add(glow);}headlightGlow.visible=false;
   const mesh=(geometry,material,parent,x=0,y=0,z=0)=>{const obj=new THREE.Mesh(geometry,material);obj.position.set(x,y,z);obj.castShadow=true;obj.receiveShadow=true;parent.add(obj);return obj;};
   const box=(parent,w,h,d,x,y,z,mat=mats.trim)=>mesh(Math.min(w,h,d)>.065?new RoundedBoxGeometry(w,h,d,2,Math.min(w,h,d)*.14):new THREE.BoxGeometry(w,h,d),mat,parent,x,y,z);
   const cylinder=(parent,rTop,rBottom,length,x,y,z,mat=mats.trim,axis='y',segments=24)=>{const obj=mesh(new THREE.CylinderGeometry(rTop,rBottom,length,segments),mat,parent,x,y,z);if(axis==='x')obj.rotation.z=Math.PI/2;if(axis==='z')obj.rotation.x=Math.PI/2;return obj;};
@@ -656,7 +657,7 @@ if(renderer){
       }
       if(angle==='grille-detail'){
         const front=modelBody==='3door'?1.79:1.96;
-        camera.position.set(.32,1.16,front+3.15);camera.lookAt(0,1.04,front-.1);
+        camera.position.set(.32,1.05,front+3.15);camera.lookAt(0,.93,front-.1);
       }
       if(angle==='seat-detail'){
         camera.position.set(1.35,1.90,1.00);camera.lookAt(.26,1.01,-.10);
@@ -674,7 +675,7 @@ if(renderer){
           mod_reardoor_molle:[[0,1.78,-.90],[0,.96,-1.73]],mod_halfmolly_5door:[[1.7,1.85,-2.5],[0,1.23,-1.36]],exploresetups_drawer_5door:[[1.55,2.10,-3.05],[0,.83,-1.43]],
           rack:[[2.8,3.4,-3.4],[0,1.85,-.3]],msga_roofbasket:[[2.8,3.4,-3.4],[0,1.85,-.3]],prad_roofrack:[[2.8,3.4,-3.4],[0,1.85,-.3]],
           bull:[[1.65,1.38,4.65],[0,.80,1.90]],autostylenn_bumper_v1:[[1.65,1.32,4.65],[0,.70,1.90]],winch:[[1.4,1.15,4.1],[0,.64,1.97]],
-          snorkel:[[-2.6,1.8,2.05],[-.76,1.36,.80]],led:[[1.4,2.6,3.8],[0,1.95,.55]],pods:[[1.65,1.65,4.2],[0,1.03,1.98]],headlamps:[[.35,1.2,4.85],[0,1.02,1.91]],
+          snorkel:[[-2.6,1.8,2.05],[-.76,1.36,.80]],led:[[1.4,2.6,3.8],[0,1.95,.55]],pods:[[1.65,1.65,4.2],[0,1.03,1.98]],headlamps:[[.35,1.09,4.85],[0,.91,1.91]],
           sparecover:[[-1.65,1.5,-4.3],[0,1.08,-1.98]],ladder:[[-2.4,2,-4.5],[-.5,1.2,-1.94]],spoiler:[[-2.0,2.5,-4.0],[0,1.65,-1.68]],
           seats:[[2.45,2.65,1.45],[0,.96,-.18]],molle:[[2.65,2.28,-1.45],[0,.93,-.30]],armrest:[[1.6,2.0,-1.35],[0,.85,-.18]],
           lift:[[2.7,.75,2.9],[.45,.52,1.18]],mudflaps:[[2.7,.8,-2.8],[.65,.38,-1.25]],flares:[[3,1.15,2.8],[.7,.79,1.1]]

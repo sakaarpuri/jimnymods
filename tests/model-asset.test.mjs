@@ -6,6 +6,7 @@ import { zstdDecompressSync } from 'node:zlib';
 import { Box3, Vector3, Raycaster, DoubleSide } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import {correctFrontEnd,stockHeadlampCentre} from '../src/front-end-correction.js';
 
 const binary=readFileSync(new URL('../assets/models/jimny-lwb-blender.glb',import.meta.url));
 const asset=JSON.parse(binary.subarray(20,20+binary.readUInt32LE(12)).toString('utf8'));
@@ -34,7 +35,9 @@ test('all grille badges stay within the grille face, including cursive lettering
   gltf.scene.updateMatrixWorld(true);
   for(const name of assemblies.filter(n=>n.endsWith('Grille'))){
     const bounds=new Box3().setFromObject(gltf.scene.getObjectByName(name));
-    assert.ok(bounds.min.y>.80&&bounds.max.y<1.15,`${name} has stretched or misplaced badge geometry (${bounds.min.y}–${bounds.max.y})`);
+    // Grille envelope 0.80–1.15 m on the original fascia, moved by the Brief 4 correction.
+    const [,low]=correctFrontEnd([0,.80,0],{rigid:true}),[,high]=correctFrontEnd([0,1.15,0],{rigid:true});
+    assert.ok(bounds.min.y>low&&bounds.max.y<high,`${name} has stretched or misplaced badge geometry (${bounds.min.y}–${bounds.max.y})`);
   }
 });
 
@@ -147,7 +150,7 @@ test('all grille variants have real headlamp openings, not panels hiding the ref
     const panels=[];
     gltf.scene.getObjectByName(name).traverse(obj=>{if(obj.isMesh&&['BodyPaint','GrilleAnthracite','GlossBlackGrille','MouldedPlastic'].includes(obj.material.name)){obj.material.side=DoubleSide;panels.push(obj);}});
     for(const side of [-1,1])for(const angle of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
-      const origin=new Vector3(side*.550+Math.cos(angle)*.085,.977+Math.sin(angle)*.085,2.2);
+      const lamp=stockHeadlampCentre(side),origin=new Vector3(lamp.x+Math.cos(angle)*.085,lamp.y+Math.sin(angle)*.085,2.2);
       const hits=new Raycaster(origin,new Vector3(0,0,-1),0,.50).intersectObjects(panels,false);
       assert.equal(hits.length,0,`${name} blocks the headlamp reflector at ${origin.toArray()}`);
     }

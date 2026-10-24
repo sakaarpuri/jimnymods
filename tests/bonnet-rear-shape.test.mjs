@@ -10,15 +10,18 @@ async function load(body){
  const root=(await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),'')).scene;
  root.updateMatrixWorld(true);return root;
 }
+import {correctFrontEnd} from '../src/front-end-correction.js';
 for(const body of ['lwb','swb']){
  test(`${body}: bonnet reaches the nose and has defined shoulders around a shallow centre`,async()=>{
   const shell=(await load(body)).getObjectByName('BodyShell'),offset=body==='swb'?-.17:0;
   // Garage replaces Blender's double-sided material with single-sided car
   // lacquer. Test the actual runtime culling, not the forgiving source mat.
   shell.traverse(o=>{if(o.isMesh&&o.material.name==='BodyPaint')o.material.side=FrontSide;});
-  const top=(x,z)=>new Raycaster(new Vector3(x,1.4,z+offset),new Vector3(0,-1,0),0,.30).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint')?.point;
+  const top=(x,z)=>new Raycaster(new Vector3(x,1.4,z+offset),new Vector3(0,-1,0),0,.42).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint')?.point;
   const nose=top(0,1.81),centre=top(0,1.50),shoulder=top(.58,1.50);
-  assert(nose&&nose.y>1.16&&nose.y<1.19,'Bonnet must roll forward over the painted nose, not stop behind it');
+  // Brief 4: the bonnet now falls about 115 mm from the cowl to the nose (Suzuki drawing).
+  const [,low]=correctFrontEnd([0,1.16,1.81]),[,high]=correctFrontEnd([0,1.19,1.81]);
+  assert(nose&&nose.y>low&&nose.y<high,`Bonnet must roll forward over the painted nose, not stop behind it (${nose?.y})`);
   assert(centre&&shoulder&&shoulder.y-centre.y>.016,'Stamped shoulder must rise clearly above the centre, not read as a soft padded lid');
   assert(shoulder.y-centre.y<.020,'Shoulder must not become an oversized scoop');
   const lipCentre=top(0,1.84),lipShoulder=top(.58,1.84);
