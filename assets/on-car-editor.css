@@ -10,3 +10,28 @@
 @media(max-width:600px){.on-car-editor{padding:14px 12px}.on-car-swatches{grid-template-columns:repeat(4,minmax(0,1fr))}.on-car-tabs button{font-size:max(11px,var(--fs-floor,0px))}.on-car-launch{width:100%}.on-car-variant-grid{gap:12px 10px}.on-car-variant-name{font-size:13px;padding:8px 8px 4px}.on-car-variant-state{padding:0 8px 9px}}
 @media(max-width:899px){body.on-car-editing .garage-categories,body.on-car-editing .garage-selection-tray,body.on-car-editing .garage-stage-actions{display:none!important}.on-car-editing .on-car-target{margin:6px 0}.on-car-editing .on-car-heading{margin-bottom:5px}.on-car-editing .on-car-editor{margin-top:3px}.on-car-editing .on-car-tabs{margin:8px 0}.on-car-editing .on-car-editor .on-car-note{margin:8px 0;font-size:max(11px,var(--fs-floor,0px))}.on-car-editing .on-car-editor .on-car-target{font-size:max(11px,var(--fs-floor,0px))}}
 @media(max-width:899px){body.rally-workshop.on-car-editing[data-mode=garage] .workbench{grid-template-rows:minmax(160px,34dvh) minmax(0,1fr)}.on-car-editing .on-car-heading{position:sticky;top:0;z-index:3;background:#f7f7f2;padding-bottom:6px}.on-car-editing .on-car-tabs{position:sticky;top:55px;z-index:2;background:#f7f7f2}}
+
+/* Direction A (Brief 2, task 3): the on-car editor takes the page's theme instead
+   of a fixed light panel. Daylight keeps the light look through the same tokens. */
+html[data-ui-theme] .on-car-editor{background:var(--a-panel);color:var(--a-text);border:1px solid var(--a-line);border-radius:16px;padding:20px;font-family:var(--font-body)}
+html[data-ui-theme] .on-car-editing .on-car-heading,html[data-ui-theme] .on-car-editing .on-car-tabs{background:var(--a-panel)}
+html[data-ui-theme] .on-car-eyebrow{color:var(--a-accent-text);font-size:13px}
+html[data-ui-theme] .on-car-editor :is(h2,h3,label,legend){color:var(--a-text)}
+html[data-ui-theme] .on-car-editor :is(button,select){min-height:44px;border:1px solid var(--a-line-strong);border-radius:12px;background:transparent;color:var(--a-text);font:500 15px var(--font-body)}
+html[data-ui-theme] .on-car-editor select{background:var(--a-panel2)}
+html[data-ui-theme] .on-car-tabs{border-bottom:1px solid var(--a-line)}
+html[data-ui-theme] .on-car-tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--a-muted)}
+html[data-ui-theme] .on-car-tabs button[aria-selected=true]{background:transparent;color:var(--a-text);border-bottom-color:var(--a-accent-text);font-weight:600}
+html[data-ui-theme] :is(.on-car-note,.on-car-help,.on-car-colour span){color:var(--a-muted);font-size:14px}
+html[data-ui-theme] .on-car-help{border-top-color:var(--a-line)}
+html[data-ui-theme] .on-car-colour input{border-color:var(--a-line-strong);border-radius:10px}
+html[data-ui-theme] .on-car-swatches button{border:2px solid var(--a-line);border-radius:10px}
+html[data-ui-theme] :is(.on-car-finish button[aria-pressed=true],.on-car-editor .on-car-primary){background:var(--a-chip);color:var(--a-on-chip);border-color:var(--a-chip)}
+html[data-ui-theme] .on-car-editor .on-car-variant{background:var(--a-panel2);border:2px solid transparent;border-radius:14px}
+html[data-ui-theme] .on-car-variant-image{background:var(--a-panel2)}
+html[data-ui-theme] .on-car-variant-state{color:var(--a-muted);font-size:14px}
+html[data-ui-theme] .on-car-editor .on-car-variant[aria-checked=true]{border-color:var(--a-lime);background:var(--a-panel2)}
+html[data-ui-theme] .on-car-variant[aria-checked=true] .on-car-variant-state{color:var(--a-accent-text)}
+html[data-ui-theme] .on-car-editor .on-car-variant:hover{border-color:var(--a-line-strong)}
+html[data-ui-theme] .on-car-launch{border:1px solid var(--a-line-strong);border-radius:12px;background:transparent;color:var(--a-text);font:600 15px var(--font-body)}
+html[data-ui-theme] .on-car-editor :is(button,select):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
