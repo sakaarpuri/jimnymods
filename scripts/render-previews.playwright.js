@@ -6,7 +6,7 @@ async (page, bodyFilter=null, mode='all') => {
   await p.addInitScript(()=>localStorage.setItem('thatsuvmod-ui-theme-v1','rally'));
   try {
     await p.goto('http://localhost:8080/');
-    await p.waitForFunction(()=>window.jimny3D?.getState().detailedReady&&!window.jimny3D.getState().modelLoading&&window.jimny3D.getState().workshopReady);
+    await p.waitForFunction(()=>window.jimny3D?.getState().detailedReady&&!window.jimny3D.getState().modelLoading&&window.jimny3D.getState().studioEnvironmentReady);
     const results=[],studioPreviews={};
     for(const body of ['5door','3door']){
       if(bodyFilter&&body!==bodyFilter)continue;

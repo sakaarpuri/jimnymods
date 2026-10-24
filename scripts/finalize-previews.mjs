@@ -38,7 +38,7 @@ manifest.swbPresets=[...manifest.presets];manifest.swbParts=['tires','seats','do
 manifest.wheelVariants=wheelVariants;
 manifest.tyreTypes=tyreTypes;
 manifest.catalogueParts=catalogueParts;
-for(const path of [...Object.keys(manifest.renderSources),'src/viewer3d.js','src/practical-accessories.js','assets/practical-accessories-data.js','src/accessories.js','src/surface-finishes.js','assets/surface-style-state.js','src/trail/cabin-materials.js','src/trail/cabin.js','assets/jimnygami-logo-original.png','src/workshop-stage.js','src/workshop-gear.js','assets/look-packages.js','src/wheel-finishes.js','src/tyre-types.js','src/catalogue-parts.js','src/interior-storage.js','src/grille-colours.js','src/steering-badge.js','src/interior-fabrics.js','src/cabin-upgrades.js','src/touring-interior.js'])manifest.renderSources[path]=await hash(path);
+for(const path of [...Object.keys(manifest.renderSources),'src/viewer3d.js','src/scenery.js','src/practical-accessories.js','assets/practical-accessories-data.js','src/accessories.js','src/surface-finishes.js','assets/surface-style-state.js','src/trail/cabin-materials.js','src/trail/cabin.js','assets/jimnygami-logo-original.png','assets/look-packages.js','src/wheel-finishes.js','src/tyre-types.js','src/catalogue-parts.js','src/interior-storage.js','src/grille-colours.js','src/steering-badge.js','src/interior-fabrics.js','src/cabin-upgrades.js','src/touring-interior.js'])manifest.renderSources[path]=await hash(path);
 manifest.generated='2026-10-23';
 await writeFile('assets/previews/manifest.json',JSON.stringify(manifest,null,2)+'\n');
 console.log(`${count} matching live-model previews encoded and fingerprinted.`);

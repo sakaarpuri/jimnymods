@@ -2,7 +2,6 @@ import {accessoryBuilder} from './accessories.js';
 import {applyCabinMaterials,applySeatCoverPalette} from './trail/cabin-materials.js';
 import {applyCabinUpgrades} from './cabin-upgrades.js';
 import {separateCabinControls,createCabinControls} from './trail/cabin.js';
-import {createWorkshopStage,WORKSHOP_LIGHT_SOURCES,WORKSHOP_CAMERA_RADIUS} from './workshop-stage.js';
 import {applyWheelFinish,applyWheelColour} from './wheel-finishes.js';
 import {createSurfaceStyler,markSurfaceMaterials,protectMirrorSurfaces} from './surface-finishes.js';
 import {applyGrilleColours} from './grille-colours.js';
@@ -16,21 +15,23 @@ import {applyTyreType,resolveTyreType} from './tyre-types.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
+import { UltraHDRLoader } from 'three/addons/loaders/UltraHDRLoader.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { loadBodyModel } from './model-loader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { LIGHT_PROFILES, resolvePreviewParts, activeLightProfiles } from './lighting.js';
-import { SCENERIES, validScenery, sceneryMessage } from './scenery.js';
+import { SCENERIES, validScenery, sceneryMessage, sceneryURL } from './scenery.js';
 import { projectBodyDecals } from './decals.js';
 import { slimlineRack, fittedVisors, mouldedSpareCover, extractFactoryBadge } from './refined-parts.js';
 
 // Original, dimensionally approximate Jimny planning geometry. No third-party vehicle asset.
 const mount=document.getElementById('viewer3d');
 const status=document.getElementById('viewerStatus');
+// Orbit stays well inside the smallest projected scenery floor (the garage).
+const CAMERA_RADIUS=8.1;
 const canvasLabel='Interactive Jimny modification preview. Click a part to edit; drag to orbit, scroll or pinch to zoom.';
 let renderer;
 try {renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true,powerPreference:'low-power'});}
@@ -44,22 +45,17 @@ if(renderer){
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
   renderer.domElement.setAttribute('aria-label',canvasLabel);renderer.domElement.setAttribute('role','img');renderer.domElement.tabIndex=0;
   mount.appendChild(renderer.domElement);
+  // A neutral generated room lights the car until the photographed garage arrives,
+  // and remains the fallback if an HDRI fails and the neutral night test ground.
   const pmrem=new THREE.PMREMGenerator(renderer);const env=new RoomEnvironment();
-  const envMap=pmrem.fromScene(env,.04);scene.environment=envMap.texture;scene.environmentIntensity=.7;env.dispose();pmrem.dispose();
+  const fallbackEnvironment=pmrem.fromScene(env,.04);scene.environment=fallbackEnvironment.texture;scene.environmentIntensity=.7;env.dispose();pmrem.dispose();
   const hemi=new THREE.HemisphereLight('#f6f8fa','#747572',1.35);scene.add(hemi);
+  // The photographed scenery carries the light. This light restores the sun the
+  // HDRI encoding clipped, or in sunless scenes only supplies the floor's shadow mask.
   const sun=new THREE.DirectionalLight('#fffdf8',2.2);sun.position.set(3,7,5);sun.castShadow=true;
   sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=12;sun.shadow.blurSamples=12;Object.assign(sun.shadow.camera,{left:-2.8,right:2.8,top:2.8,bottom:-2.8,near:.1,far:20});sun.shadow.bias=-.00015;sun.shadow.normalBias=.004;scene.add(sun);
-  const rimLight=new THREE.DirectionalLight('#f0f6ff',2);rimLight.position.set(-5,3,-4);scene.add(rimLight);
-  // Broad nearby workshop sources model a soft open bay and ceiling bounce.
-  // Unlike an omnidirectional fill they light the car more than the far wall.
-  // Their dimensions/positions are mirrored in the reflection environment.
-  RectAreaLightUniformsLib.init();
-  const workshopSources=WORKSHOP_LIGHT_SOURCES;
-  const workshopLights=workshopSources.map(({role,width,height,position,target,intensity,colour})=>{
-    const light=new THREE.RectAreaLight(colour,intensity,width,height);light.name='Workshop '+role;light.position.set(...position);light.lookAt(...target);scene.add(light);return light;
-  });
   let cameraView='orbit';
-  const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.9,0);controls.enableDamping=true;controls.dampingFactor=.09;controls.enablePan=false;controls.minDistance=3.3;controls.maxDistance=WORKSHOP_CAMERA_RADIUS;controls.maxPolarAngle=Math.PI*.49;controls.minPolarAngle=.15;
+  const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.9,0);controls.enableDamping=true;controls.dampingFactor=.09;controls.enablePan=false;controls.minDistance=3.3;controls.maxDistance=CAMERA_RADIUS;controls.maxPolarAngle=Math.PI*.49;controls.minPolarAngle=.15;
   const interiorViews=INTERIOR_VIEWS;
   const cutawayViews=CUTAWAY_VIEWS;
   const insideCamera={yaw:0,pitch:-.18,eye:new THREE.Vector3(),drag:null};
@@ -68,7 +64,7 @@ if(renderer){
     const inside=isInside();camera.near=inside?.018:.1;camera.updateProjectionMatrix();
     controls.enableZoom=!inside;controls.enableRotate=!inside;controls.enablePan=false;
     controls.minDistance=['doors-cutaway','touring'].includes(cameraView)?1.2:2;
-    controls.maxDistance=WORKSHOP_CAMERA_RADIUS;
+    controls.maxDistance=CAMERA_RADIUS;
     controls.minPolarAngle=.15;controls.maxPolarAngle=cameraView==='underside'?Math.PI*.75:Math.PI*.49;
     updateInputMode();
   }
@@ -114,7 +110,6 @@ if(renderer){
   const lightRig=new THREE.Group();bodyRig.add(lightRig);
   const auxiliaryBeams=Array.from({length:8},()=>{const light=new THREE.SpotLight('#fff',0,35,.3,.72,1.3);lightRig.add(light,light.target);return light;});
   const dayFloor=floor.material,nightFloor=new THREE.MeshStandardMaterial({color:'#303431',roughness:.96});
-  const workshop=createWorkshopStage({onLoad:()=>{dirty=true;}});scene.add(workshop.root);
   // An actual lit ground surface is necessary: ShadowMaterial alone cannot show lamp spill.
   const road=new THREE.Group();scene.add(road);road.visible=false;
   const roadSurface=new THREE.Mesh(new THREE.PlaneGeometry(5.4,45),new THREE.MeshStandardMaterial({color:'#424747',roughness:.94}));roadSurface.rotation.x=-Math.PI/2;roadSurface.position.set(0,.002,16);road.add(roadSurface);
@@ -129,7 +124,7 @@ if(renderer){
   const mats={paint:finishMaterial,roof:roofMaterial,trim:new THREE.MeshStandardMaterial({color:'#232a2a',roughness:.7}),rubber:new THREE.MeshStandardMaterial({color:'#1b2020',roughness:.98}),glass:new THREE.MeshStandardMaterial({color:'#213c45',roughness:.12,metalness:.55,transparent:true,opacity:.91}),metal:new THREE.MeshStandardMaterial({color:'#adb4b0',metalness:.8,roughness:.3}),darkmetal:new THREE.MeshStandardMaterial({color:'#39403b',metalness:.6,roughness:.5}),white:new THREE.MeshStandardMaterial({color:'#fff7de',emissive:'#fff3c4',emissiveIntensity:.25,roughness:.2}),red:new THREE.MeshStandardMaterial({color:'#b72d27',emissive:'#951d19',emissiveIntensity:.2}),orange:new THREE.MeshStandardMaterial({color:'#d88132',roughness:.5}),seat:new THREE.MeshStandardMaterial({color:'#343a36',roughness:.94}),accent:new THREE.MeshStandardMaterial({color:'#cb593a',roughness:.7}),canvas:new THREE.MeshStandardMaterial({color:'#a39a79',roughness:1})};
   const baseRig=new THREE.Group();bodyRig.add(baseRig);
   const detailRig=new THREE.Group();bodyRig.add(detailRig);
-  let detailed=null,garageCabinControls=null,assetError=false,studioEnvironmentReady=false,modelBody='5door',modelLoading=false,modelRequest=0;
+  let detailed=null,garageCabinControls=null,assetError=false,modelBody='5door',modelLoading=false,modelRequest=0;
   // Small, original surface maps, shared across rebuilds. No downloaded vehicle textures.
   function surfaceMap(kind){
     const canvas=document.createElement('canvas');canvas.width=canvas.height=256;const ctx=canvas.getContext('2d');ctx.fillStyle='#888';ctx.fillRect(0,0,256,256);
@@ -155,60 +150,60 @@ if(renderer){
   let visiblePartIds=[],effectiveDesign={finish:'oem',decal:'none',grille:'oem'};
   let selectedLightProfiles=[];
   let previewRestore=null;
-  let scenery='studio',sceneryLoading=false,sceneryFailed=false,sceneryRequest=0,skybox=null;
-  let studioEnvironment=envMap;
+  let scenery='studio',sceneryLoading=false,sceneryFailed=false,sceneryRequest=0;
   const sceneryCache=new Map();
   function updateSceneryUI(){
     document.querySelectorAll('[data-scenery-select]').forEach(select=>{select.value=scenery;});
     document.querySelectorAll('[data-scenery-status]').forEach(el=>{el.textContent=sceneryMessage(scenery,{loading:sceneryLoading,failed:sceneryFailed,night});});
     mount.dataset.scenery=scenery;mount.dataset.sceneryLoading=String(sceneryLoading);
   }
+  const sunDirection=new THREE.Vector3();
   function applyEnvironment(){
-    const outdoor=sceneryCache.get(scenery),active=outdoor&&!sceneryLoading&&!sceneryFailed;
-    if(skybox)skybox.visible=!!active&&!night;
-    scene.environment=active&&!night?outdoor.environment.texture:studioEnvironment.texture;
-    scene.environmentRotation.set(0,active&&!night?SCENERIES[scenery].rotation:0,0);
-    const rally=document.documentElement.dataset.uiTheme==='rally'&&!active&&!night;
-    renderer.toneMappingExposure=rally?1.10:.95;
-    workshop.root.visible=rally;
-    workshopLights.forEach(light=>{light.visible=!active&&!night;});
-    scene.background.set(night?'#10191f':rally?'#20272b':'#efefed');
-    floor.material=night?nightFloor:rally?workshop.floorMaterial:dayFloor;road.visible=false;
-    // A daytime panorama is not a measured night-lighting environment.
-    hemi.groundColor.set(!active&&!night?'#969694':'#747572');
-    hemi.intensity=night?.12:active?.45:studioEnvironmentReady?(rally?1.05:.95):1.35;
-    sun.position.set(...(!active&&!night?workshopSources[0].position:[3,7,5]));
-    sun.shadow.normalBias=!active&&!night?.018:.004;sun.shadow.bias=!active&&!night?-.0003:-.00015;
-    sun.intensity=night?.06:active?2:studioEnvironmentReady?1.35:2.2;
-    rimLight.intensity=night?.32:active?.3:studioEnvironmentReady?0:2;
-    scene.environmentIntensity=night?.12:active?1.1:studioEnvironmentReady?.68:.7;
+    const loaded=sceneryCache.get(scenery),active=!!loaded&&!sceneryLoading&&!sceneryFailed&&!night,config=SCENERIES[scenery];
+    // Previews switch scenery without reloading, so each panorama keeps its own floor.
+    for(const [id,entry] of sceneryCache)if(entry.skybox)entry.skybox.visible=active&&id===scenery;
+    scene.environment=active?loaded.environment.texture:fallbackEnvironment.texture;
+    scene.environmentRotation.set(0,active?config.rotation:0,0);
+    // Exposure is the photograph's own: background and car share one scale.
+    renderer.toneMappingExposure=active?config.exposure:.95;
+    scene.background.set(night?'#10191f':'#20272b');
+    floor.material=night?nightFloor:dayFloor;road.visible=false;
+    dayFloor.opacity=active?config.shadow:.19;
+    hemi.groundColor.set('#747572');
+    hemi.intensity=night?.12:active?0:1.35;
+    // The sun's measured direction, turned with the panorama.
+    if(active&&config.sun)sunDirection.fromArray(config.sun.direction);else if(active)sunDirection.fromArray(config.key);else sunDirection.set(3,7,5).normalize();
+    sunDirection.applyAxisAngle(THREE.Object3D.DEFAULT_UP,active?config.rotation:0);
+    sun.position.copy(sunDirection).multiplyScalar(9);
+    if(active&&config.sun){const [r,g,b]=config.sun.irradiance,peak=Math.max(r,g,b);sun.color.setRGB(r/peak,g/peak,b/peak,THREE.LinearSRGBColorSpace);sun.intensity=peak*config.sunScale;}
+    // Sunless scenes: the light only feeds the shadow-catcher floor, not the car.
+    else {sun.color.set('#fffdf8');sun.intensity=night?.06:active?.0001:2.2;}
+    sun.shadow.normalBias=.004;sun.shadow.bias=-.00015;
+    scene.environmentIntensity=night?.12:active?1:.7;
     updateSceneryUI();dirty=true;
   }
   new MutationObserver(applyEnvironment).observe(document.documentElement,{attributes:true,attributeFilter:['data-ui-theme']});
   async function setScenery(value){
     const id=validScenery(value),request=++sceneryRequest;
-    scenery=id;sceneryFailed=false;sceneryLoading=id!=='studio'&&!sceneryCache.has(id);
-    if(skybox){scene.remove(skybox);skybox.geometry.dispose();skybox.material.dispose();skybox=null;}
+    scenery=id;sceneryFailed=false;sceneryLoading=!sceneryCache.has(id);
     applyEnvironment();
     try{
       if(sceneryLoading){
-        const texture=await new THREE.TextureLoader().loadAsync(SCENERIES[id].url);
-        texture.colorSpace=THREE.SRGBColorSpace;texture.mapping=THREE.EquirectangularReflectionMapping;
+        // Ultra HDR JPEG: SDR image plus gain map, decoded to half-float radiance.
+        const texture=await new UltraHDRLoader().setDataType(THREE.HalfFloatType).loadAsync(sceneryURL(id,'4k'));
+        texture.mapping=THREE.EquirectangularReflectionMapping;texture.needsUpdate=true;
         if(request!==sceneryRequest){texture.dispose();return;}
         const generator=new THREE.PMREMGenerator(renderer);
         const environment=generator.fromEquirectangular(texture);generator.dispose();
         sceneryCache.set(id,{texture,environment});
       }
       if(request!==sceneryRequest)return;
-      if(id!=='studio'){
-        skybox=new GroundedSkybox(sceneryCache.get(id).texture,1.8,100,64);
-        // The generated panoramas have a wider ground/sky composition than a
-        // calibrated camera. Compress vertical scenery and align its horizon.
-        const uv=skybox.geometry.attributes.uv;
-        for(let i=0;i<uv.count;i++){const v=uv.getY(i);uv.setY(i,v<.5?v*1.06:Math.min(1,.53+(v-.5)*2));}
-        uv.needsUpdate=true;
-        skybox.position.y=1.79;skybox.rotation.y=SCENERIES[id].rotation;
-        skybox.renderOrder=-1;skybox.material.toneMapped=false;scene.add(skybox);
+      const config=SCENERIES[id],entry=sceneryCache.get(id);
+      if(!entry.skybox){
+        // Project the panorama's floor at its camera height so the car stands on it.
+        const skybox=new GroundedSkybox(entry.texture,config.height,config.radius,96);
+        skybox.position.y=config.height-.004;skybox.material.envMapRotation.set(0,config.rotation,0);
+        skybox.renderOrder=-1;scene.add(skybox);entry.skybox=skybox;
       }
       sceneryLoading=false;
       try{localStorage.setItem('thatsuvmod-scenery',id);}catch{/* Storage can be disabled. */}
@@ -661,10 +656,10 @@ if(renderer){
       document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b.dataset.camera===saved.view));
     }
   }
-  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
+  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady:sceneryCache.has('studio')||sceneryFailed,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
   const previousGetState=window.jimny3D.getState;
   Object.assign(window.jimny3D,{beginPreview,endPreview,renderPreset});
-  window.jimny3D.getState=()=>({...previousGetState(),body:modelBody,modelLoading,workshopReady:workshop.ready,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-10'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:!!skybox?.visible,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
+  window.jimny3D.getState=()=>({...previousGetState(),body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-10'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:!!sceneryCache.get(scenery)?.skybox?.visible,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
   sync(window.getJimnyBuildState?.()||current);
   let savedScenery='studio';try{savedScenery=localStorage.getItem('thatsuvmod-scenery');}catch{/* Private mode fallback. */}
   setScenery(savedScenery);
@@ -722,23 +717,5 @@ if(renderer){
   window.jimny3D.setBody=loadModel;
   window.addEventListener('jimny-model-change',e=>{endPreview();loadModel(e.detail);});
   loadModel(window.getJimnyBuildState?.().body||'5door');
-  // Restrained, directional strip reflections preserve the body colour and
-  // window contrast. A near-white environment or many giant luminous cards
-  // washed entire panels out, making the car look like a display miniature.
-  // Broad, modest skylight and bay-door reflections, not five bright product
-  // photography cards. Neutral wall bounce keeps reflections consistent with
-  // the visible workshop and avoids painted doors reflecting a black void.
-  const studioScene=new THREE.Scene();studioScene.background=new THREE.Color(.115,.118,.12);
-  const reflectionFloor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshBasicMaterial({color:'#25282b',side:THREE.DoubleSide}));reflectionFloor.rotation.x=-Math.PI/2;reflectionFloor.position.y=-.05;studioScene.add(reflectionFloor);
-  for(const {width,height,position,target,intensity,colour} of workshopSources){
-    // Area lights already evaluate their own specular lobes. Reflection cards
-    // retain a lower-energy image of the same opening, avoiding double-counted
-    // white patches in the clearcoat while preserving the room's broad shapes.
-    const reflected=intensity*.07;
-    const panel=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({color:new THREE.Color(colour).multiplyScalar(reflected),side:THREE.DoubleSide}));
-    panel.position.set(...position);panel.lookAt(...target);studioScene.add(panel);
-  }
-  const studioGenerator=new THREE.PMREMGenerator(renderer);studioEnvironment=studioGenerator.fromScene(studioScene,.10);studioGenerator.dispose();
-  studioScene.traverse(obj=>{if(obj.isMesh){obj.geometry.dispose();obj.material.dispose();}});studioEnvironmentReady=true;applyEnvironment();envMap.dispose();
   renderer.setAnimationLoop(()=>{if(!visible||document.hidden)return;updateCameraControls();if(dirty){renderer.render(scene,camera);dirty=false;mount.dataset.rendered='true';}});
 }

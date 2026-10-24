@@ -1,0 +1,10 @@
+Poly Haven HDRIs used by the 3D Garage scenery
+Autoshop 01 (Oliksiy Yakovlyev): https://polyhaven.com/a/autoshop_01
+Kiara 5 Noon (Greg Zaal): https://polyhaven.com/a/kiara_5_noon
+Palermo Square (Andreas Mischok): https://polyhaven.com/a/palermo_square
+Quarry 02 (Sergej Majboroda): https://polyhaven.com/a/quarry_02
+Asset licence: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+https://polyhaven.com/license
+
+The files are converted to Ultra HDR JPEGs (gain map) and served locally.
