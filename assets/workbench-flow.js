@@ -13,7 +13,7 @@
  // Move the already-bound scenery selector into the visible viewer toolbar.
  // Keeping the same node preserves the renderer's change listener and state.
  const scene=document.querySelector('.scenery-picker'),camera=document.querySelector('.planner-rail>.camera-controls');
- if(scene&&camera){scene.classList.add('garage-backgrounds');scene.querySelector('label').textContent='Background';scene.querySelector('option[value="studio"]').textContent='Garage';camera.after(scene);}
+ if(scene&&camera){scene.classList.add('garage-backgrounds');scene.querySelector('label').textContent='Background';camera.after(scene);}
  const pickHint=document.createElement('p');pickHint.className='garage-pick-direction';pickHint.textContent='Click a part on the car to edit · drag to rotate';document.getElementById('spin360').append(pickHint);
  const cabinViews=document.createElement('div');cabinViews.className='cabin-viewpoints';cabinViews.setAttribute('aria-label','Cabin viewpoints');cabinViews.innerHTML=[['interior','Driver'],['passenger','Passenger'],['driver-door','Driver door'],['passenger-door','Passenger door'],['cutaway','Cutaway']].map(([id,label])=>`<button type="button" data-camera="${id}">${label}</button>`).join('');camera.after(cabinViews);
  camera.querySelector('[data-camera="interior"]').textContent='Cabin';
