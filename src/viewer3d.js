@@ -219,7 +219,18 @@ if(renderer){
         texture.mapping=THREE.EquirectangularReflectionMapping;texture.needsUpdate=true;
         if(request!==sceneryRequest){texture.dispose();return;}
         const generator=new THREE.PMREMGenerator(renderer);
-        const environment=generator.fromEquirectangular(texture);generator.dispose();
+        const band=SCENERIES[id].reflectionBand;let environment;
+        if(band){
+          // A photographer's light band: a thin ring a few degrees below the horizon,
+          // present only in the reflections. Flat side panels reflect exactly that
+          // direction, so they carry a highlight line the low-contrast walls cannot give.
+          const lit=new THREE.Scene();lit.background=texture;
+          const r=20,[low,high]=band.elevation.map(deg=>r*Math.tan(THREE.MathUtils.degToRad(deg)));
+          const ring=new THREE.Mesh(new THREE.CylinderGeometry(r,r,high-low,96,1,true),new THREE.MeshBasicMaterial({color:new THREE.Color().setScalar(band.radiance),side:THREE.BackSide}));
+          ring.position.y=(low+high)/2;lit.add(ring);
+          environment=generator.fromScene(lit,0,.1,60);ring.geometry.dispose();ring.material.dispose();
+        }else environment=generator.fromEquirectangular(texture);
+        generator.dispose();
         sceneryCache.set(id,{texture,environment});
       }
       if(request!==sceneryRequest)return;

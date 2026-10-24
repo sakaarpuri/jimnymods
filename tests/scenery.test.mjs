@@ -20,6 +20,13 @@ test('photographed Garage plus three outdoor HDRIs, each an Ultra HDR JPEG at tw
     }
   }
 });
+test('only the low-contrast garage gets a reflection band, and it sits below the horizon', () => {
+  const bands = Object.entries(SCENERIES).filter(([, scene]) => scene.reflectionBand);
+  assert.deepEqual(bands.map(([id]) => id), ['studio']);
+  const [low, high] = SCENERIES.studio.reflectionBand.elevation;
+  assert.ok(low < high && high < 0 && low > -20);
+  assert.ok(SCENERIES.studio.reflectionBand.radiance <= 2, 'subtle enough to keep the paint colour');
+});
 test('unknown saved settings safely fall back to the garage', () => {
   for (const input of [null, undefined, '', 'invalid', '__proto__', 'constructor']) assert.equal(validScenery(input), 'studio');
   assert.equal(validScenery('mountains'), 'mountains');
