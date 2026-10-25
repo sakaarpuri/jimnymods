@@ -11,6 +11,7 @@ import {createNameDecals} from './trail/player.js';
 import {cleanPlayerName} from './trail/replay.js';
 import {installPartPicker} from './part-picking.js';
 import {applyCatalogueWheel,disposeCatalogueWheels} from './catalogue-parts.js';
+import {applyWheelDesign} from './wheel-designs.js';
 import {applyTyreType,resolveTyreType} from './tyre-types.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -457,7 +458,7 @@ if(renderer){
   }
   function buildAccessories(parts,design){
     visiblePartIds=accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,effectiveDesign,lampEmitters,buildGrille,addDecals,arch})(parts,design);
-    if(detailed&&design.nameDecal)accessoryRig.add(createNameDecals(cleanPlayerName(design.nameDecal),modelBody,detailed.paintMeshes,bodyRig));
+    if(detailed&&design.nameDecal)accessoryRig.add(createNameDecals(cleanPlayerName(design.nameDecal),modelBody,detailed.paintMeshes,bodyRig,design,()=>{dirty=true;}));
   }
   function sync(payload=current){
     contactDirty=true;
@@ -495,7 +496,8 @@ if(renderer){
     garageCabinControls?.setVisible(isInside()||cutawayViews.has(cameraView));
     cabinFill.intensity=isInside()?.85:['cargo','doors-cutaway','touring'].includes(cameraView)?.95:cutawayViews.has(cameraView)?.35:0;
     clear(baseRig);buildBase();const r=buildWheels(parts);bodyRig.position.y=(parts.has('lift')?.055:0)+(r-(detailed?.3465:.335));
-    if(detailed){for(const group of [detailed.stockWheels,detailed.atWheels,detailRig.getObjectByName('SpareWheel')]){if(design.partColours?.wheels)applyWheelColour(group,design.partColours.wheels);else applyWheelFinish(group,design.wheelFinish);applyCatalogueWheel(group,modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel'));applyTyreType(group,design.tyreType);}}
+    if(detailed){for(const group of [detailed.stockWheels,detailed.atWheels,detailRig.getObjectByName('SpareWheel')]){if(design.partColours?.wheels)applyWheelColour(group,design.partColours.wheels);else applyWheelFinish(group,design.wheelFinish);// The steel wheel part and a spoke design both replace the rim face: hand over in order.
+      const steel=modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel');if(steel){applyWheelDesign(group,{wheelDesign:'factory'});applyCatalogueWheel(group,true);}else{applyCatalogueWheel(group,false);applyWheelDesign(group,design);}applyTyreType(group,design.tyreType);}}
     applyCabinUpgrades(detailRig.getObjectByName('Cabin'),{body:modelBody,seats:parts.has('seats'),fabric:design.seatFabric,colour:'#'+mats.upholstery.color.getHexString(),touring:parts.has('touring'),camp:design.touringMode==='camp'});
     buildAccessories(parts,design);consolidateAccessories();
     if(cutawayViews.has(cameraView)){

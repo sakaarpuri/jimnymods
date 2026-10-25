@@ -22,7 +22,7 @@ test('breakpoint navigation preserves focus without cropping the heading and use
  assert.match(html,/const selectionCount = buildSelectionCount\(stats\)/);
  assert.match(html,/Your build · \$\{buildSelectionCount\(\)\}/);
  assert.match(html,/if\(customWheelFinish\)rows\.push/);
- assert.match(html,/x\.wheelFinish\|\|x\.colourField\|\|x\.surfaceTarget\|\|x\.surfaceColour\|\|x\.allBlack\?'Price not estimated':optionPrice\(x\)/);
+ assert.match(html,/x\.wheelFinish\|\|x\.wheelDesign\|\|x\.colourField\|\|x\.surfaceTarget\|\|x\.surfaceColour\|\|x\.allBlack\?'Price not estimated':optionPrice\(x\)/);
  assert.match(html,/x\.wheelFinish\?'data-remove-wheel-finish'/);
 });
 test('inline garage application parses without dependencies',()=>{

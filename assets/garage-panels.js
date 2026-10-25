@@ -20,12 +20,14 @@
     box.append(...[paint.querySelector('.custom-paint'),paint.querySelector('.paint-readout'),paint.querySelector('.garage-design-options')].filter(Boolean));
   }
 
-  // Decals: the graphics first; name lettering and vinyl colour inside.
+  // Decals: the graphics first, then the door name.
   const graphics=$('graphicsControls');
   if(graphics){
-    const box=more('decalMore','Your name on the doors, vinyl colour');
+    // The door name stays visible with its own lettering and size; only vinyl colour is tucked away.
+    const box=more('decalMore','Vinyl colour');
     const grid=graphics.querySelector('.graphic-grid');grid?.after(box);
-    box.append(...[graphics.querySelector('.garage-name-decal'),graphics.querySelector('.vinyl-ink')].filter(Boolean));
+    const name=graphics.querySelector('.garage-name-decal');if(name)box.after(name);
+    box.append(...[graphics.querySelector('.vinyl-ink')].filter(Boolean));
   }
 
   // My build (frames 04 and 10): a one-line context, name and saved versions in one
