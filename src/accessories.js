@@ -6,7 +6,6 @@ import {rearDoorMolle,halfMollyPockets,xlDrawerSystem} from './interior-storage.
 import {doorInserts,touringInterior,rearSeatInserts} from './touring-interior.js';
 import {markSurfaceMaterials} from './surface-finishes.js';
 import {addPracticalAccessories} from './practical-accessories.js';
-import {correctObject,FRONT_AXLE_Z} from './front-end-correction.js';
 export function accessoryMaterials(){
   const standard=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
   const m={trim:standard('#232a2a'),rubber:standard('#222526',.92),metal:standard('#adb4b0',.3,.8),darkmetal:standard('#25292b',.55,.4),white:standard('#fff7de',.2),red:standard('#b72d27'),orange:standard('#d88132'),seat:standard('#343a36',.94),accent:standard('#cb593a'),canvas:standard('#a39a79',1),chrome:standard('#e8eeed',.17,1),reflector:standard('#d4d9d7',.24,1),textured:standard('#30362f',.96),upholstery:standard('#a38b69',.86),ambient:standard('#386588'),glass:standard('#213c45',.12,.55)};
@@ -57,10 +56,7 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
       const display=mesh(new THREE.PlaneGeometry(wide?.232:.183,wide?.137:.103),material,accessoryRig,0,1.224,wide?.312:.333);display.rotation.y=Math.PI;display.userData.disposableMaterial=true;
       if(modelBody==='3door')display.position.z-=.17;
     }
-    // Parts are authored against the original fascia; the Brief 4 front-end field keeps
-    // them on the corrected one. Only aftermarket headlamps follow the lamp move inboard.
-    const frontAxleZ=FRONT_AXLE_Z[modelBody==='3door'?'3door':'5door'];
-    const show=(ids,fn)=>{const found=ids.filter(id=>parts.has(id));if(found.length){const before=new Set(accessoryRig.children);fn();for(const piece of accessoryRig.children)if(!before.has(piece)){piece.userData.finishTarget=found[0];correctObject(piece,accessoryRig,{frontAxleZ,lateral:found[0]==='headlamps'});}visiblePartIds.push(...found);}};
+    const show=(ids,fn)=>{const found=ids.filter(id=>parts.has(id));if(found.length){const before=new Set(accessoryRig.children);fn();for(const piece of accessoryRig.children)if(!before.has(piece))piece.userData.finishTarget=found[0];visiblePartIds.push(...found);}};
     buildGrille(accessoryRig,design.grille||'oem');addDecals(accessoryRig,design.decal||'none');
     if(design.finish==='raptor')[-1,1].forEach(side=>box(accessoryRig,.018,.16,modelBody==='3door'?1.43:1.77,side*(detailed?.751:.777),.65,-.08,mats.textured));
     const hasRack=['rack','msga_roofbasket','prad_roofrack','fr_slimline2','fr_slimline2_tall',...(modelBody==='3door'?[]:['suzuki_nomade_flatrack'])].some(id=>parts.has(id));
