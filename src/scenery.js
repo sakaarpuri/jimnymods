@@ -12,7 +12,7 @@
 export const SCENERIES = Object.freeze({
   studio: { label: 'Garage', description: 'Photographed workshop · Poly Haven HDRI', file: 'autoshop-01', rotation: 0, height: 1.6, radius: 22, exposure: .88, shadow: .5, key: [-.30, .94, .19], reflectionBand: { elevation: [-9, -4], radiance: 1.8 } },
   mountains: { label: 'Mountains', description: 'Photographed mountain valley · Poly Haven HDRI', file: 'kiara-5-noon', rotation: 0, height: 1.7, radius: 70, exposure: 1.1, shadow: .78, sunScale: .3, sun: { direction: [.466, .779, .419], irradiance: [15.54, 15.59, 16.72] } },
-  urban: { label: 'Urban', description: 'Photographed city square · Poly Haven HDRI', file: 'palermo-square', rotation: 0, height: 1.7, radius: 45, exposure: .95, shadow: .5, key: [0, 1, 0] },
+  urban: { label: 'Urban', description: 'Photographed city square · Poly Haven HDRI', file: 'rotes-rathaus', rotation: 0, height: 1.7, radius: 60, exposure: .95, shadow: .5, key: [0, 1, 0] },
   desert: { label: 'Desert', description: 'Photographed sand quarry · Poly Haven HDRI', file: 'quarry-02', rotation: 0, height: 1.7, radius: 70, exposure: 1.1, shadow: .74, sunScale: .3, sun: { direction: [.55, .734, .40], irradiance: [9.55, 7.99, 5.21] } },
 });
 export function validScenery(value) {

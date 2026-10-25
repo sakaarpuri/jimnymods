@@ -6,12 +6,14 @@ The 3D Garage's four scenery options are photographed 360° HDR environment maps
 | --- | --- | --- | --- | --- |
 | Garage (id `studio`, default) | Autoshop 01 | https://polyhaven.com/a/autoshop_01 | Oliksiy Yakovlyev | `assets/environments/autoshop-01-4k.jpg`, `autoshop-01-2k.jpg` |
 | Mountains | Kiara 5 Noon | https://polyhaven.com/a/kiara_5_noon | Greg Zaal | `assets/environments/kiara-5-noon-4k.jpg`, `kiara-5-noon-2k.jpg` |
-| Urban | Palermo Square | https://polyhaven.com/a/palermo_square | Andreas Mischok | `assets/environments/palermo-square-4k.jpg`, `palermo-square-2k.jpg` |
+| Urban | Rotes Rathaus | https://polyhaven.com/a/rotes_rathaus | Alexander Scholten | `assets/environments/rotes-rathaus-4k.jpg`, `rotes-rathaus-2k.jpg` |
 | Desert | Quarry 02 | https://polyhaven.com/a/quarry_02 | Sergej Majboroda | `assets/environments/quarry-02-4k.jpg`, `quarry-02-2k.jpg` |
 
-These are real places (a South African valley, a Sicilian square, a sand quarry and an auto workshop), not Indian locations; the previous India-inspired generated panoramas are no longer used by the Garage.
+These are real places (a South African valley, a Berlin square, a sand quarry and an auto workshop), not Indian locations; the previous India-inspired generated panoramas are no longer used by the Garage.
 
-How the files were made: the 4k and 2k Radiance `.hdr` downloads were converted to Ultra HDR JPEGs (an SDR JPEG with an embedded gain map, quality 0.86, gain map 0.8) with `@monogrid/gainmap-js` 3.1.0 in headless Chrome. Autoshop 01 and Palermo Square keep their full range. Kiara 5 Noon and Quarry 02 are capped at 64× the SDR white so the gain map keeps precision; the energy removed from the sun disc was measured from the source `.hdr` (direction and irradiance in `src/scenery.js`) and is restored by the shadow-casting sun light. The viewer decodes them with three.js `UltraHDRLoader`.
+25 October 2026: Urban changed from Palermo Square to Rotes Rathaus, whose foreground is open paving. Planters and a banner a few metres from the Palermo camera were flattened onto the projected floor and looked stretched. The viewer also blurs the projected floor with distance from the car (`src/soft-floor.js`), so anything standing near any photographer softens into the ground.
+
+How the files were made: the 4k and 2k Radiance `.hdr` downloads were converted to Ultra HDR JPEGs (an SDR JPEG with an embedded gain map, quality 0.86, gain map 0.8) with `@monogrid/gainmap-js` 3.1.0 in headless Chrome. Autoshop 01 and Rotes Rathaus keep their full range. Kiara 5 Noon and Quarry 02 are capped at 64× the SDR white so the gain map keeps precision; the energy removed from the sun disc was measured from the source `.hdr` (direction and irradiance in `src/scenery.js`) and is restored by the shadow-casting sun light. The viewer decodes them with three.js `UltraHDRLoader`.
 
 # Driving game scenery previews
 
