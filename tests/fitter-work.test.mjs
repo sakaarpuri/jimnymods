@@ -36,7 +36,8 @@ test('listings that name no work are flagged for review, never guessed',()=>{
   const r=work.deriveWork(shop(name));assert.deepEqual(plain(r.jobs),[],name);assert(r.review.includes('no-work-named'),name);
  }
  assert(work.deriveWork(shop('Karol Bagh Auto Market')).review.includes('market-wide'));
- assert(work.deriveWork(shop('BigDaddy Customs')).review.includes('non-part-work'));
+ assert(!work.deriveWork(shop('BigDaddy Customs')).review.includes('non-part-work'),'wraps are a Garage job');
+ assert(work.deriveWork(shop('Royal Car Shingar')).review.includes('non-part-work'),'audio is not');
 });
 
 test('tags are only ever job ids and never come from the shop name or badge',()=>{
@@ -82,4 +83,10 @@ test('quote request lists the build, caps long lists and has a plain empty form'
 test('monograms and ids are stable',()=>{
  assert.equal(work.monogram('Bimbra 4x4'),'B4');assert.equal(work.monogram('Performance Auto'),'PA');assert.equal(work.monogram('NEXA workshop locator'),'NW');
  assert.equal(work.shopId({name:'ESSARR 4x4 / Auto Tarun'}),'essarr-4x4-auto-tarun');
+});
+
+test('Garage finishes and decals count as wrap work, so wrap workshops light up for them',()=>{
+ assert.equal(work.DESIGN_JOB.finish,'wraps');assert.equal(work.DESIGN_JOB.decal,'wraps');
+ assert.equal(work.DESIGN_JOB.wheel,'wheels');assert.equal(work.DESIGN_JOB.grille,'grilles');
+ assert(!Object.values(work.DESIGN_JOB).includes('audio'));
 });

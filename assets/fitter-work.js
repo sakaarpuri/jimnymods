@@ -41,7 +41,8 @@
     const jobs = (override || JOBS.map(j => j.id).filter(id => found.has(id)));
     if (!jobs.length) review.push('no-work-named');
     if (/market/i.test(shop.tag || '') && jobs.length) review.push('market-wide');
-    if (jobs.some(id => id === 'wraps' || id === 'audio')) review.push('non-part-work');
+    // Wraps match Garage finishes and decals; audio matches nothing in the Garage.
+    if (jobs.includes('audio')) review.push('non-part-work');
     return {jobs, review};
   }
 
