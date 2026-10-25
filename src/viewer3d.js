@@ -2,7 +2,6 @@ import {accessoryBuilder} from './accessories.js';
 import {applyCabinMaterials,applySeatCoverPalette} from './trail/cabin-materials.js';
 import {applyCabinUpgrades} from './cabin-upgrades.js';
 import {separateCabinControls,createCabinControls} from './trail/cabin.js';
-import {createWorkshopStage,WORKSHOP_LIGHT_SOURCES,WORKSHOP_CAMERA_RADIUS} from './workshop-stage.js';
 import {applyWheelFinish,applyWheelColour} from './wheel-finishes.js';
 import {createSurfaceStyler,markSurfaceMaterials,protectMirrorSurfaces} from './surface-finishes.js';
 import {applyGrilleColours} from './grille-colours.js';
@@ -16,21 +15,30 @@ import {applyTyreType,resolveTyreType} from './tyre-types.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
+import { UltraHDRLoader } from 'three/addons/loaders/UltraHDRLoader.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { loadBodyModel } from './model-loader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { LIGHT_PROFILES, resolvePreviewParts, activeLightProfiles } from './lighting.js';
-import { SCENERIES, validScenery, sceneryMessage } from './scenery.js';
+import { SCENERIES, validScenery, sceneryMessage, sceneryURL } from './scenery.js';
+import { applyMaterialProfile, paintFinish } from './physical-materials.js';
+import { createContactShadow } from './contact-shadow.js';
+import { browserQuality } from './quality.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { projectBodyDecals } from './decals.js';
 import { slimlineRack, fittedVisors, mouldedSpareCover, extractFactoryBadge } from './refined-parts.js';
 
 // Original, dimensionally approximate Jimny planning geometry. No third-party vehicle asset.
 const mount=document.getElementById('viewer3d');
 const status=document.getElementById('viewerStatus');
+// Orbit stays well inside the smallest projected scenery floor (the garage).
+const CAMERA_RADIUS=8.1;
 const canvasLabel='Interactive Jimny modification preview. Click a part to edit; drag to orbit, scroll or pinch to zoom.';
 let renderer;
 try {renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true,powerPreference:'low-power'});}
@@ -39,27 +47,49 @@ catch {mount.classList.add('unavailable');status.textContent='3D is unavailable 
 if(renderer){
   const scene=new THREE.Scene();scene.background=new THREE.Color('#efefed');
   const camera=new THREE.PerspectiveCamera(28,1,.1,250);camera.position.set(4.25,1.62,5.35);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
+  const quality=browserQuality();mount.dataset.quality=quality.id;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,quality.maxPixelRatio));
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.VSMShadowMap;
+  // ACES filmic rolls highlights off instead of clipping them. Measured against the
+  // paint swatches it kept hue and saturation closest; AgX greyed yellows and reds.
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
   renderer.domElement.setAttribute('aria-label',canvasLabel);renderer.domElement.setAttribute('role','img');renderer.domElement.tabIndex=0;
   mount.appendChild(renderer.domElement);
+  // A neutral generated room lights the car until the photographed garage arrives,
+  // and remains the fallback if an HDRI fails and the neutral night test ground.
   const pmrem=new THREE.PMREMGenerator(renderer);const env=new RoomEnvironment();
-  const envMap=pmrem.fromScene(env,.04);scene.environment=envMap.texture;scene.environmentIntensity=.7;env.dispose();pmrem.dispose();
+  const fallbackEnvironment=pmrem.fromScene(env,.04);scene.environment=fallbackEnvironment.texture;scene.environmentIntensity=.7;env.dispose();pmrem.dispose();
   const hemi=new THREE.HemisphereLight('#f6f8fa','#747572',1.35);scene.add(hemi);
+  // The photographed scenery carries the light. This light restores the sun the
+  // HDRI encoding clipped, or in sunless scenes only supplies the floor's shadow mask.
   const sun=new THREE.DirectionalLight('#fffdf8',2.2);sun.position.set(3,7,5);sun.castShadow=true;
-  sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=12;sun.shadow.blurSamples=12;Object.assign(sun.shadow.camera,{left:-2.8,right:2.8,top:2.8,bottom:-2.8,near:.1,far:20});sun.shadow.bias=-.00015;sun.shadow.normalBias=.004;scene.add(sun);
-  const rimLight=new THREE.DirectionalLight('#f0f6ff',2);rimLight.position.set(-5,3,-4);scene.add(rimLight);
-  // Broad nearby workshop sources model a soft open bay and ceiling bounce.
-  // Unlike an omnidirectional fill they light the car more than the far wall.
-  // Their dimensions/positions are mirrored in the reflection environment.
-  RectAreaLightUniformsLib.init();
-  const workshopSources=WORKSHOP_LIGHT_SOURCES;
-  const workshopLights=workshopSources.map(({role,width,height,position,target,intensity,colour})=>{
-    const light=new THREE.RectAreaLight(colour,intensity,width,height);light.name='Workshop '+role;light.position.set(...position);light.lookAt(...target);scene.add(light);return light;
-  });
+  sun.shadow.mapSize.set(quality.shadowMapSize,quality.shadowMapSize);sun.shadow.radius=12;sun.shadow.blurSamples=quality.shadowBlurSamples;Object.assign(sun.shadow.camera,{left:-2.8,right:2.8,top:2.8,bottom:-2.8,near:.1,far:20});sun.shadow.bias=-.00015;sun.shadow.normalBias=.004;scene.add(sun);
+  // Post-processing: multisampled half-float render, ambient occlusion so panel gaps,
+  // arches and the underside read as depth, then tone mapping and sRGB output.
+  const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,samples:4}));
+  composer.addPass(new RenderPass(scene,camera));
+  const aoPass=new GTAOPass(scene,camera,1,1);aoPass.blendIntensity=.9;
+  aoPass.updateGtaoMaterial({radius:.45,distanceExponent:1,thickness:1,distanceFallOff:1,scale:1.6,samples:16});
+  aoPass.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:16});
+  // The projected backdrop is a photograph with its own shading: keep it out of the
+  // AO depth and normals, or its far walls read as fully occluded.
+  const renderOcclusion=aoPass.render.bind(aoPass);
+  aoPass.render=(...args)=>{
+    const backdrops=[...sceneryCache.values()].map(entry=>entry.skybox).filter(sky=>sky?.visible);
+    backdrops.forEach(sky=>{sky.visible=false;});renderOcclusion(...args);backdrops.forEach(sky=>{sky.visible=true;});
+  };
+  composer.addPass(aoPass);composer.addPass(new OutputPass());
+  function setRenderSize(width,height,ratio=renderer.getPixelRatio()){
+    renderer.setPixelRatio(ratio);renderer.setSize(width,height,false);composer.setPixelRatio(ratio);composer.setSize(width,height);
+  }
+  function draw(){
+    if(contactDirty){contactShadow.update(car);contactDirty=false;}
+    // The light tier skips the post-processing chain: tone mapping and native
+    // multisampling then happen in the one scene render.
+    if(quality.ambientOcclusion)composer.render();else renderer.render(scene,camera);
+  }
   let cameraView='orbit';
-  const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.9,0);controls.enableDamping=true;controls.dampingFactor=.09;controls.enablePan=false;controls.minDistance=3.3;controls.maxDistance=WORKSHOP_CAMERA_RADIUS;controls.maxPolarAngle=Math.PI*.49;controls.minPolarAngle=.15;
+  const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.9,0);controls.enableDamping=true;controls.dampingFactor=.09;controls.enablePan=false;controls.minDistance=3.3;controls.maxDistance=CAMERA_RADIUS;controls.maxPolarAngle=Math.PI*.49;controls.minPolarAngle=.15;
   const interiorViews=INTERIOR_VIEWS;
   const cutawayViews=CUTAWAY_VIEWS;
   const insideCamera={yaw:0,pitch:-.18,eye:new THREE.Vector3(),drag:null};
@@ -68,7 +98,7 @@ if(renderer){
     const inside=isInside();camera.near=inside?.018:.1;camera.updateProjectionMatrix();
     controls.enableZoom=!inside;controls.enableRotate=!inside;controls.enablePan=false;
     controls.minDistance=['doors-cutaway','touring'].includes(cameraView)?1.2:2;
-    controls.maxDistance=WORKSHOP_CAMERA_RADIUS;
+    controls.maxDistance=CAMERA_RADIUS;
     controls.minPolarAngle=.15;controls.maxPolarAngle=cameraView==='underside'?Math.PI*.75:Math.PI*.49;
     updateInputMode();
   }
@@ -93,18 +123,8 @@ if(renderer){
   new MutationObserver(updateInputMode).observe(mount.parentElement,{attributes:true,attributeFilter:['class']});
   window.matchMedia('(max-width:899px)').addEventListener('change',updateInputMode);updateInputMode();
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({color:'#303536',opacity:.19}));floor.rotation.x=-Math.PI/2;floor.position.y=-.003;floor.receiveShadow=true;scene.add(floor);
-  // Soft underbody occlusion anchors the tyres without a harsh miniature-like cast shadow.
-  const contactCanvas=document.createElement('canvas');contactCanvas.width=contactCanvas.height=128;
-  const contactCtx=contactCanvas.getContext('2d'),contactGradient=contactCtx.createRadialGradient(64,64,12,64,64,64);
-  contactGradient.addColorStop(0,'rgba(15,20,23,.46)');contactGradient.addColorStop(.55,'rgba(15,20,23,.30)');contactGradient.addColorStop(1,'rgba(15,20,23,0)');
-  contactCtx.fillStyle=contactGradient;contactCtx.fillRect(0,0,128,128);
-  const contact=new THREE.Mesh(new THREE.PlaneGeometry(2.05,4.05),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(contactCanvas),transparent:true,depthWrite:false}));
-  contact.rotation.x=-Math.PI/2;contact.position.y=.001;scene.add(contact);
-  const tyreContactCanvas=document.createElement('canvas');tyreContactCanvas.width=tyreContactCanvas.height=64;
-  const tc=tyreContactCanvas.getContext('2d'),tg=tc.createRadialGradient(32,32,3,32,32,32);
-  tg.addColorStop(0,'rgba(8,12,15,.55)');tg.addColorStop(.4,'rgba(8,12,15,.25)');tg.addColorStop(1,'rgba(8,12,15,0)');tc.fillStyle=tg;tc.fillRect(0,0,64,64);
-  const tyreContactMaterial=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(tyreContactCanvas),transparent:true,depthWrite:false});
-  for(const x of [-.705,.705])for(const z of [-1.295,1.295]){const patch=new THREE.Mesh(new THREE.PlaneGeometry(.40,.48),tyreContactMaterial);patch.rotation.x=-Math.PI/2;patch.position.set(x,.002,z);scene.add(patch);}
+  // The car's own underside, rendered from the floor, grounds tyres and bumpers.
+  const contactShadow=createContactShadow(renderer,{resolution:quality.contactResolution});scene.add(contactShadow.plane);let contactDirty=true;
   const car=new THREE.Group();scene.add(car);
   const bodyRig=new THREE.Group();car.add(bodyRig);
   const wheels=new THREE.Group();car.add(wheels);
@@ -114,22 +134,20 @@ if(renderer){
   const lightRig=new THREE.Group();bodyRig.add(lightRig);
   const auxiliaryBeams=Array.from({length:8},()=>{const light=new THREE.SpotLight('#fff',0,35,.3,.72,1.3);lightRig.add(light,light.target);return light;});
   const dayFloor=floor.material,nightFloor=new THREE.MeshStandardMaterial({color:'#303431',roughness:.96});
-  const workshop=createWorkshopStage({onLoad:()=>{dirty=true;}});scene.add(workshop.root);
   // An actual lit ground surface is necessary: ShadowMaterial alone cannot show lamp spill.
   const road=new THREE.Group();scene.add(road);road.visible=false;
   const roadSurface=new THREE.Mesh(new THREE.PlaneGeometry(5.4,45),new THREE.MeshStandardMaterial({color:'#424747',roughness:.94}));roadSurface.rotation.x=-Math.PI/2;roadSurface.position.set(0,.002,16);road.add(roadSurface);
   for(let z=3;z<36;z+=3){for(const x of [-2.5,2.5]){const marker=new THREE.Mesh(new THREE.BoxGeometry(.035,.32,.05),new THREE.MeshStandardMaterial({color:'#e6e3cd',roughness:.5}));marker.position.set(x,.16,z);road.add(marker);}}
-  const finishMaterial=new THREE.MeshPhysicalMaterial({color:'#d9b744',roughness:.28,metalness:.025,clearcoat:.85,clearcoatRoughness:.10});
-  // Broad bright ceiling reflections must not erase the chosen bonnet colour.
-  // Metals/glass retain the full environment; lacquer uses a restrained response.
-  finishMaterial.envMapIntensity=.42;
+  // Glossy clear-coated paint at full environment strength: the lacquer carries
+  // the photographed reflections while the base coat keeps the chosen colour.
+  const finishMaterial=new THREE.MeshPhysicalMaterial({color:'#d9b744',roughness:.32,metalness:.025,clearcoat:1,clearcoatRoughness:.035});
   const roofMaterial=finishMaterial.clone();
   finishMaterial.userData.vehiclePaint=true;roofMaterial.userData.vehiclePaint=true;
   const surfaceStyler=createSurfaceStyler();
   const mats={paint:finishMaterial,roof:roofMaterial,trim:new THREE.MeshStandardMaterial({color:'#232a2a',roughness:.7}),rubber:new THREE.MeshStandardMaterial({color:'#1b2020',roughness:.98}),glass:new THREE.MeshStandardMaterial({color:'#213c45',roughness:.12,metalness:.55,transparent:true,opacity:.91}),metal:new THREE.MeshStandardMaterial({color:'#adb4b0',metalness:.8,roughness:.3}),darkmetal:new THREE.MeshStandardMaterial({color:'#39403b',metalness:.6,roughness:.5}),white:new THREE.MeshStandardMaterial({color:'#fff7de',emissive:'#fff3c4',emissiveIntensity:.25,roughness:.2}),red:new THREE.MeshStandardMaterial({color:'#b72d27',emissive:'#951d19',emissiveIntensity:.2}),orange:new THREE.MeshStandardMaterial({color:'#d88132',roughness:.5}),seat:new THREE.MeshStandardMaterial({color:'#343a36',roughness:.94}),accent:new THREE.MeshStandardMaterial({color:'#cb593a',roughness:.7}),canvas:new THREE.MeshStandardMaterial({color:'#a39a79',roughness:1})};
   const baseRig=new THREE.Group();bodyRig.add(baseRig);
   const detailRig=new THREE.Group();bodyRig.add(detailRig);
-  let detailed=null,garageCabinControls=null,assetError=false,studioEnvironmentReady=false,modelBody='5door',modelLoading=false,modelRequest=0;
+  let detailed=null,garageCabinControls=null,assetError=false,modelBody='5door',modelLoading=false,modelRequest=0;
   // Small, original surface maps, shared across rebuilds. No downloaded vehicle textures.
   function surfaceMap(kind){
     const canvas=document.createElement('canvas');canvas.width=canvas.height=256;const ctx=canvas.getContext('2d');ctx.fillStyle='#888';ctx.fillRect(0,0,256,256);
@@ -139,8 +157,9 @@ if(renderer){
   }
   const grain=surfaceMap('paint');
   finishMaterial.bumpMap=grain;finishMaterial.bumpScale=.00035;
-  mats.rubber.name='TyreRubber';mats.rubber.bumpMap=grain;mats.rubber.bumpScale=.0002;mats.rubber.color.set('#202222');mats.rubber.roughness=.96;
-  mats.glass=new THREE.MeshPhysicalMaterial({color:'#182323',roughness:.055,metalness:0,clearcoat:1,clearcoatRoughness:.04,ior:1.52,transparent:true,opacity:.76,depthWrite:false,side:THREE.DoubleSide});
+  mats.rubber.name='TyreRubber';mats.rubber.bumpMap=grain;mats.rubber.bumpScale=.0002;mats.rubber.color.set('#171919');mats.rubber.roughness=.9;
+  // Smooth tinted glass: a full-strength reflection over a partly see-through cabin.
+  mats.glass=new THREE.MeshPhysicalMaterial({color:'#101b1d',roughness:.02,metalness:0,ior:1.52,specularIntensity:1,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});
   mats.lens=new THREE.MeshPhysicalMaterial({color:'#e0e7e7',metalness:.05,roughness:.08,clearcoat:1,transparent:true,opacity:.40,depthWrite:false});
   mats.chrome=new THREE.MeshStandardMaterial({color:'#e8eeed',metalness:1,roughness:.17});
   mats.reflector=new THREE.MeshStandardMaterial({color:'#d4d9d7',metalness:1,roughness:.24});
@@ -155,60 +174,72 @@ if(renderer){
   let visiblePartIds=[],effectiveDesign={finish:'oem',decal:'none',grille:'oem'};
   let selectedLightProfiles=[];
   let previewRestore=null;
-  let scenery='studio',sceneryLoading=false,sceneryFailed=false,sceneryRequest=0,skybox=null;
-  let studioEnvironment=envMap;
+  let scenery='studio',sceneryLoading=false,sceneryFailed=false,sceneryRequest=0;
   const sceneryCache=new Map();
   function updateSceneryUI(){
     document.querySelectorAll('[data-scenery-select]').forEach(select=>{select.value=scenery;});
     document.querySelectorAll('[data-scenery-status]').forEach(el=>{el.textContent=sceneryMessage(scenery,{loading:sceneryLoading,failed:sceneryFailed,night});});
     mount.dataset.scenery=scenery;mount.dataset.sceneryLoading=String(sceneryLoading);
   }
+  const sunDirection=new THREE.Vector3();
   function applyEnvironment(){
-    const outdoor=sceneryCache.get(scenery),active=outdoor&&!sceneryLoading&&!sceneryFailed;
-    if(skybox)skybox.visible=!!active&&!night;
-    scene.environment=active&&!night?outdoor.environment.texture:studioEnvironment.texture;
-    scene.environmentRotation.set(0,active&&!night?SCENERIES[scenery].rotation:0,0);
-    const rally=document.documentElement.dataset.uiTheme==='rally'&&!active&&!night;
-    renderer.toneMappingExposure=rally?1.10:.95;
-    workshop.root.visible=rally;
-    workshopLights.forEach(light=>{light.visible=!active&&!night;});
-    scene.background.set(night?'#10191f':rally?'#20272b':'#efefed');
-    floor.material=night?nightFloor:rally?workshop.floorMaterial:dayFloor;road.visible=false;
-    // A daytime panorama is not a measured night-lighting environment.
-    hemi.groundColor.set(!active&&!night?'#969694':'#747572');
-    hemi.intensity=night?.12:active?.45:studioEnvironmentReady?(rally?1.05:.95):1.35;
-    sun.position.set(...(!active&&!night?workshopSources[0].position:[3,7,5]));
-    sun.shadow.normalBias=!active&&!night?.018:.004;sun.shadow.bias=!active&&!night?-.0003:-.00015;
-    sun.intensity=night?.06:active?2:studioEnvironmentReady?1.35:2.2;
-    rimLight.intensity=night?.32:active?.3:studioEnvironmentReady?0:2;
-    scene.environmentIntensity=night?.12:active?1.1:studioEnvironmentReady?.68:.7;
+    const loaded=sceneryCache.get(scenery),active=!!loaded&&!sceneryLoading&&!sceneryFailed&&!night,config=SCENERIES[scenery];
+    // Previews switch scenery without reloading, so each panorama keeps its own floor.
+    for(const [id,entry] of sceneryCache)if(entry.skybox)entry.skybox.visible=active&&id===scenery;
+    scene.environment=active?loaded.environment.texture:fallbackEnvironment.texture;
+    scene.environmentRotation.set(0,active?config.rotation:0,0);
+    // Exposure is the photograph's own: background and car share one scale.
+    renderer.toneMappingExposure=active?config.exposure:.95;
+    scene.background.set(night?'#10191f':'#20272b');
+    floor.material=night?nightFloor:dayFloor;road.visible=false;
+    dayFloor.opacity=active?config.shadow:.19;
+    hemi.groundColor.set('#747572');
+    hemi.intensity=night?.12:active?0:1.35;
+    // The sun's measured direction, turned with the panorama.
+    if(active&&config.sun)sunDirection.fromArray(config.sun.direction);else if(active)sunDirection.fromArray(config.key);else sunDirection.set(3,7,5).normalize();
+    sunDirection.applyAxisAngle(THREE.Object3D.DEFAULT_UP,active?config.rotation:0);
+    sun.position.copy(sunDirection).multiplyScalar(9);
+    if(active&&config.sun){const [r,g,b]=config.sun.irradiance,peak=Math.max(r,g,b);sun.color.setRGB(r/peak,g/peak,b/peak,THREE.LinearSRGBColorSpace);sun.intensity=peak*config.sunScale;}
+    // Sunless scenes: the light only feeds the shadow-catcher floor, not the car.
+    else {sun.color.set('#fffdf8');sun.intensity=night?.06:active?.0001:2.2;}
+    // A real sun casts a firmer edge; overhead garage panels and shade only a soft one.
+    sun.shadow.radius=active&&config.sun?5:16;sun.shadow.normalBias=.004;sun.shadow.bias=-.00015;
+    scene.environmentIntensity=night?.12:active?1:.7;
     updateSceneryUI();dirty=true;
   }
   new MutationObserver(applyEnvironment).observe(document.documentElement,{attributes:true,attributeFilter:['data-ui-theme']});
   async function setScenery(value){
     const id=validScenery(value),request=++sceneryRequest;
-    scenery=id;sceneryFailed=false;sceneryLoading=id!=='studio'&&!sceneryCache.has(id);
-    if(skybox){scene.remove(skybox);skybox.geometry.dispose();skybox.material.dispose();skybox=null;}
+    scenery=id;sceneryFailed=false;sceneryLoading=!sceneryCache.has(id);
     applyEnvironment();
     try{
       if(sceneryLoading){
-        const texture=await new THREE.TextureLoader().loadAsync(SCENERIES[id].url);
-        texture.colorSpace=THREE.SRGBColorSpace;texture.mapping=THREE.EquirectangularReflectionMapping;
+        // Ultra HDR JPEG: SDR image plus gain map, decoded to half-float radiance.
+        const texture=await new UltraHDRLoader().setDataType(THREE.HalfFloatType).loadAsync(sceneryURL(id,quality.hdri));
+        texture.mapping=THREE.EquirectangularReflectionMapping;texture.needsUpdate=true;
         if(request!==sceneryRequest){texture.dispose();return;}
         const generator=new THREE.PMREMGenerator(renderer);
-        const environment=generator.fromEquirectangular(texture);generator.dispose();
+        const band=SCENERIES[id].reflectionBand;let environment;
+        if(band){
+          // A photographer's light band: a thin ring a few degrees below the horizon,
+          // present only in the reflections. Flat side panels reflect exactly that
+          // direction, so they carry a highlight line the low-contrast walls cannot give.
+          const lit=new THREE.Scene();lit.background=texture;
+          const r=20,[low,high]=band.elevation.map(deg=>r*Math.tan(THREE.MathUtils.degToRad(deg)));
+          const ring=new THREE.Mesh(new THREE.CylinderGeometry(r,r,high-low,96,1,true),new THREE.MeshBasicMaterial({color:new THREE.Color().setScalar(band.radiance),side:THREE.BackSide}));
+          ring.position.y=(low+high)/2;lit.add(ring);
+          environment=generator.fromScene(lit,0,.1,60);ring.geometry.dispose();ring.material.dispose();
+        }else environment=generator.fromEquirectangular(texture);
+        generator.dispose();
         sceneryCache.set(id,{texture,environment});
       }
       if(request!==sceneryRequest)return;
-      if(id!=='studio'){
-        skybox=new GroundedSkybox(sceneryCache.get(id).texture,1.8,100,64);
-        // The generated panoramas have a wider ground/sky composition than a
-        // calibrated camera. Compress vertical scenery and align its horizon.
-        const uv=skybox.geometry.attributes.uv;
-        for(let i=0;i<uv.count;i++){const v=uv.getY(i);uv.setY(i,v<.5?v*1.06:Math.min(1,.53+(v-.5)*2));}
-        uv.needsUpdate=true;
-        skybox.position.y=1.79;skybox.rotation.y=SCENERIES[id].rotation;
-        skybox.renderOrder=-1;skybox.material.toneMapped=false;scene.add(skybox);
+      const config=SCENERIES[id],entry=sceneryCache.get(id);
+      if(!entry.skybox){
+        // Project the panorama's floor at its camera height so the car stands on it.
+        const skybox=new GroundedSkybox(entry.texture,config.height,config.radius,96);
+        skybox.position.y=config.height-.004;skybox.material.envMapRotation.set(0,config.rotation,0);
+        skybox.renderOrder=-1;scene.add(skybox);entry.skybox=skybox;
       }
       sceneryLoading=false;
       try{localStorage.setItem('thatsuvmod-scenery',id);}catch{/* Storage can be disabled. */}
@@ -225,7 +256,8 @@ if(renderer){
   const glowCanvas=document.createElement('canvas');glowCanvas.width=glowCanvas.height=64;
   const glowContext=glowCanvas.getContext('2d'),glowGradient=glowContext.createRadialGradient(32,32,0,32,32,32);
   glowGradient.addColorStop(0,'rgba(255,251,222,1)');glowGradient.addColorStop(.18,'rgba(255,251,222,.6)');glowGradient.addColorStop(1,'rgba(255,251,222,0)');glowContext.fillStyle=glowGradient;glowContext.fillRect(0,0,64,64);
-  const glowMaterial=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(glowCanvas),transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending});
+  const glowTexture=new THREE.CanvasTexture(glowCanvas);glowTexture.colorSpace=THREE.SRGBColorSpace;
+  const glowMaterial=new THREE.SpriteMaterial({map:glowTexture,transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending});
   for(const x of [-.550,.550]){const glow=new THREE.Sprite(glowMaterial);glow.position.set(x,.977,1.94);glow.scale.set(.19,.19,1);headlightGlow.add(glow);}headlightGlow.visible=false;
   const mesh=(geometry,material,parent,x=0,y=0,z=0)=>{const obj=new THREE.Mesh(geometry,material);obj.position.set(x,y,z);obj.castShadow=true;obj.receiveShadow=true;parent.add(obj);return obj;};
   const box=(parent,w,h,d,x,y,z,mat=mats.trim)=>mesh(Math.min(w,h,d)>.065?new RoundedBoxGeometry(w,h,d,2,Math.min(w,h,d)*.14):new THREE.BoxGeometry(w,h,d),mat,parent,x,y,z);
@@ -418,6 +450,7 @@ if(renderer){
     if(detailed&&design.nameDecal)accessoryRig.add(createNameDecals(cleanPlayerName(design.nameDecal),modelBody,detailed.paintMeshes,bodyRig));
   }
   function sync(payload=current){
+    contactDirty=true;
     surfaceStyler.clear();
     mount.dataset.cameraMode=isInside()?'inside':cutawayViews.has(cameraView)?'cutaway':'exterior';mount.dataset.cameraView=cameraView;
     current={...current,...payload};if(payload.colour)colour=payload.colour;
@@ -435,12 +468,12 @@ if(renderer){
     if(!stock){if(parts.has('autostylenn_big_suzuki_grille'))design.grille='block';else if(parts.has('autostylenn_cursive_grille'))design.grille='script';else if(parts.has('autostylenn_s_grille'))design.grille='smesh';}
     effectiveDesign={...design};
     mats.upholstery.color.set(({tan:'#a38b69',saddle:'#854d31',olive:'#59624d',stone:'#b3b1a5',black:'#303332'})[design.cabin]||'#a38b69');
-    finishMaterial.color.set(colour);finishMaterial.roughness=design.finish==='matte'?.72:design.finish==='satin'?.42:.29;
+    const lacquer=paintFinish(design.finish);finishMaterial.color.set(colour);finishMaterial.roughness=lacquer.roughness;
     // Solid colours have a dielectric lacquer; silver retains a metallic base coat.
     finishMaterial.metalness=['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0;
-    finishMaterial.clearcoat=design.finish==='matte'?.04:design.finish==='satin'?.26:.7;finishMaterial.clearcoatRoughness=design.finish==='satin'?.34:.17;finishMaterial.bumpScale=design.finish==='matte'?.00055:.00008;
-    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');roofMaterial.envMapIntensity=.18;roofMaterial.roughness=.30;roofMaterial.clearcoat=.28;}
-    [finishMaterial,roofMaterial].forEach(mat=>{const cutaway=cutawayViews.has(cameraView);if(mat.transparent!==cutaway)mat.needsUpdate=true;mat.transparent=cutaway;mat.opacity=cutaway?.12:1;mat.depthWrite=!cutaway;});mats.glass.opacity=cutawayViews.has(cameraView)||isInside()?.12:.68;mats.glass.envMapIntensity=isInside()?.03:.32;
+    finishMaterial.clearcoat=lacquer.clearcoat;finishMaterial.clearcoatRoughness=lacquer.clearcoatRoughness;finishMaterial.bumpScale=design.finish==='matte'?.00055:.00008;
+    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');}
+    [finishMaterial,roofMaterial].forEach(mat=>{const cutaway=cutawayViews.has(cameraView);if(mat.transparent!==cutaway)mat.needsUpdate=true;mat.transparent=cutaway;mat.opacity=cutaway?.12:1;mat.depthWrite=!cutaway;});mats.glass.opacity=cutawayViews.has(cameraView)||isInside()?.12:.6;mats.glass.envMapIntensity=isInside()?.12:1;
     // Keep the overhead net/rails below 1.63 m, cut the authored headliner
     // (bottom 1.6325 m) as well as the exterior roof, not just the roof shell.
     renderer.clippingPlanes=cutawayViews.has(cameraView)?[new THREE.Plane(new THREE.Vector3(0,-1,0),cameraView==='headliner-cutaway'?1.631:1.48)]:[];
@@ -551,7 +584,7 @@ if(renderer){
     document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b.dataset.camera===name));dirty=true;
   }
   function fitViewport(aspect){camera.aspect=aspect;const lens=isInside()?68:scenery==='studio'?28:42;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(lens/2))*Math.max(1,1.25/aspect)));if(isInside())camera.fov=Math.min(92,camera.fov);camera.updateProjectionMatrix();}
-  const observer=new ResizeObserver(()=>{const {width,height}=mount.getBoundingClientRect();if(!width||!height)return;renderer.setSize(width,height,false);fitViewport(width/height);controls.target.copy(fitCameraToVehicle());updateCameraControls();dirty=true;});observer.observe(mount);
+  const observer=new ResizeObserver(()=>{const {width,height}=mount.getBoundingClientRect();if(!width||!height)return;setRenderSize(width,height);fitViewport(width/height);controls.target.copy(fitCameraToVehicle());updateCameraControls();dirty=true;});observer.observe(mount);
   new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)dirty=true;},{rootMargin:'100px'}).observe(mount);
   controls.addEventListener('change',()=>{dirty=true;});
   renderer.domElement.addEventListener('pointerdown',e=>{
@@ -590,11 +623,11 @@ if(renderer){
   }));
   function snapshot(){
     const size=renderer.getSize(new THREE.Vector2()),ratio=renderer.getPixelRatio(),aspect=camera.aspect,fov=camera.fov,position=camera.position.clone(),quaternion=camera.quaternion.clone();
-    renderer.setPixelRatio(1);renderer.setSize(1600,1200,false);fitViewport(4/3);
+    setRenderSize(1600,1200,1);fitViewport(4/3);
     // A close inspection zoom should not crop wheels/racks from the saved build sheet.
-    fitCameraToVehicle();renderer.render(scene,camera);
+    fitCameraToVehicle();draw();
     const data=renderer.domElement.toDataURL('image/png');
-    renderer.setPixelRatio(ratio);renderer.setSize(size.x,size.y,false);camera.position.copy(position);camera.quaternion.copy(quaternion);fitViewport(aspect);camera.fov=fov;camera.updateProjectionMatrix();renderer.render(scene,camera);return data;
+    setRenderSize(size.x,size.y,ratio);camera.position.copy(position);camera.quaternion.copy(quaternion);fitViewport(aspect);camera.fov=fov;camera.updateProjectionMatrix();draw();return data;
   }
   function beginPreview(payload){
     if(!previewRestore)previewRestore={payload:structuredClone(current),stock,night,view:cameraView,position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov,inside:captureInsideCamera()};
@@ -613,7 +646,7 @@ if(renderer){
       stock=false;night=false;scenery='studio';applyEnvironment();sync(payload);view(angle==='seat-detail'?'cabin':angle==='grille-detail'?'front':angle);
       // Supersample the small card render so sub-pixel shut lines, tread and
       // chrome edges do not break into dotted outlines in the downscaled image.
-      renderer.setPixelRatio(1);renderer.setSize(1600,1200,false);fitViewport(4/3);controls.target.copy(fitCameraToVehicle());updateCameraControls();
+      setRenderSize(1600,1200,1);fitViewport(4/3);controls.target.copy(fitCameraToVehicle());updateCameraControls();
       if(angle==='wheel-detail'){
         const z=modelBody==='3door'?1.125:1.295;
         // Close-up inspection exposure keeps dark rubber and graphite spokes
@@ -651,20 +684,20 @@ if(renderer){
         if(product?.lightProfile)frame=product.lightProfile==='work'?[[1.8,2.7,-4],[0,1.9,-1.45]]:product.lightProfile==='bar'?frames.led:product.lightProfile==='headlamps'?frames.headlamps:frames.pods;
         if(frame){camera.position.set(...frame[0]);camera.lookAt(...frame[1]);}
       }
-      renderer.render(scene,camera);
+      draw();
       const card=document.createElement('canvas');card.width=800;card.height=600;
       const context=card.getContext('2d');context.imageSmoothingQuality='high';context.drawImage(renderer.domElement,0,0,800,600);return card.toDataURL('image/webp',.90);
     }finally{
       bodyRig.visible=saved.bodyVisible;camera.near=saved.near;camera.far=saved.far;camera.updateProjectionMatrix();
       stock=saved.stock;night=saved.night;scenery=saved.scenery;cameraView=saved.view;configureCameraControls();sync(saved.payload);applyEnvironment();
-      restoreInsideCamera(saved.inside);renderer.setPixelRatio(saved.ratio);renderer.setSize(saved.size.x,saved.size.y,false);fitViewport(saved.size.x/saved.size.y);camera.fov=saved.fov;camera.updateProjectionMatrix();camera.position.copy(saved.position);controls.target.copy(saved.target);updateCameraControls();renderer.render(scene,camera);dirty=true;
+      restoreInsideCamera(saved.inside);setRenderSize(saved.size.x,saved.size.y,saved.ratio);fitViewport(saved.size.x/saved.size.y);camera.fov=saved.fov;camera.updateProjectionMatrix();camera.position.copy(saved.position);controls.target.copy(saved.target);updateCameraControls();draw();dirty=true;
       document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b.dataset.camera===saved.view));
     }
   }
-  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
+  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady:sceneryCache.has('studio')||sceneryFailed,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
   const previousGetState=window.jimny3D.getState;
   Object.assign(window.jimny3D,{beginPreview,endPreview,renderPreset});
-  window.jimny3D.getState=()=>({...previousGetState(),body:modelBody,modelLoading,workshopReady:workshop.ready,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-10'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:!!skybox?.visible,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
+  window.jimny3D.getState=()=>({...previousGetState(),quality:quality.id,body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-10'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:!!sceneryCache.get(scenery)?.skybox?.visible,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
   sync(window.getJimnyBuildState?.()||current);
   let savedScenery='studio';try{savedScenery=localStorage.getItem('thatsuvmod-scenery');}catch{/* Private mode fallback. */}
   setScenery(savedScenery);
@@ -684,7 +717,7 @@ if(renderer){
     garageCabinControls?.dispose();garageCabinControls=null;
     clear(detailRig);detailed=null;modelBody=body;
     gltf.scene.traverse(obj=>{if(!obj.isMesh)return;obj.castShadow=true;obj.receiveShadow=true;
-      const material=obj.material;
+      const material=obj.material;applyMaterialProfile(material);
       // Millimetre-wide panel-gap tubes are already dark. Shadow-map texels
       // turn their self-shadow into a jagged zipper along otherwise clean doors.
       if(material.name==='IntakeShadow')obj.castShadow=false;
@@ -713,8 +746,6 @@ if(renderer){
     Object.values(detailed.grilles).forEach(group=>group.traverse(obj=>{if(obj.isMesh&&['BrightChrome','GrilleLettering'].includes(obj.material.name))obj.userData.brightGrilleMaterial=obj.material;}));
     mount.dataset.model='blender';mount.dataset.body=body;car.visible=true;modelLoading=false;mount.setAttribute('aria-busy','false');
     beams.forEach(light=>light.position.z=body==='3door'?1.79:1.96);
-    scene.children.filter(o=>o.isMesh&&o.material===tyreContactMaterial).forEach(p=>p.position.z=Math.sign(p.position.z)*(body==='3door'?1.125:1.295));
-    contact.scale.y=body==='3door'?.91:1;
     sync();if(isInside())resetInsideCamera();else {controls.target.copy(fitCameraToVehicle());updateCameraControls();}
     window.dispatchEvent(new CustomEvent('jimny-model-ready',{detail:{body}}));
     }catch(error){if(request!==modelRequest)return;modelLoading=false;assetError=true;mount.setAttribute('aria-busy','false');car.visible=false;dirty=true;status.textContent='This model could not load. Switch model or reload to retry; your build is saved.';}
@@ -722,23 +753,5 @@ if(renderer){
   window.jimny3D.setBody=loadModel;
   window.addEventListener('jimny-model-change',e=>{endPreview();loadModel(e.detail);});
   loadModel(window.getJimnyBuildState?.().body||'5door');
-  // Restrained, directional strip reflections preserve the body colour and
-  // window contrast. A near-white environment or many giant luminous cards
-  // washed entire panels out, making the car look like a display miniature.
-  // Broad, modest skylight and bay-door reflections, not five bright product
-  // photography cards. Neutral wall bounce keeps reflections consistent with
-  // the visible workshop and avoids painted doors reflecting a black void.
-  const studioScene=new THREE.Scene();studioScene.background=new THREE.Color(.115,.118,.12);
-  const reflectionFloor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshBasicMaterial({color:'#25282b',side:THREE.DoubleSide}));reflectionFloor.rotation.x=-Math.PI/2;reflectionFloor.position.y=-.05;studioScene.add(reflectionFloor);
-  for(const {width,height,position,target,intensity,colour} of workshopSources){
-    // Area lights already evaluate their own specular lobes. Reflection cards
-    // retain a lower-energy image of the same opening, avoiding double-counted
-    // white patches in the clearcoat while preserving the room's broad shapes.
-    const reflected=intensity*.07;
-    const panel=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({color:new THREE.Color(colour).multiplyScalar(reflected),side:THREE.DoubleSide}));
-    panel.position.set(...position);panel.lookAt(...target);studioScene.add(panel);
-  }
-  const studioGenerator=new THREE.PMREMGenerator(renderer);studioEnvironment=studioGenerator.fromScene(studioScene,.10);studioGenerator.dispose();
-  studioScene.traverse(obj=>{if(obj.isMesh){obj.geometry.dispose();obj.material.dispose();}});studioEnvironmentReady=true;applyEnvironment();envMap.dispose();
-  renderer.setAnimationLoop(()=>{if(!visible||document.hidden)return;updateCameraControls();if(dirty){renderer.render(scene,camera);dirty=false;mount.dataset.rendered='true';}});
+  renderer.setAnimationLoop(()=>{if(!visible||document.hidden)return;updateCameraControls();if(dirty){draw();dirty=false;mount.dataset.rendered='true';}});
 }

@@ -20,13 +20,12 @@ test('both bodies have three distinct tyre-tread renders from their actual live 
  }
 });
 test('preview material and accessory renderer fingerprints are current',()=>{
-  assert.equal(Object.keys(manifest.renderSources).length,26);
+  assert.equal(Object.keys(manifest.renderSources).length,28);
   for(const file of ['src/garage-cameras.js','src/trail/player.js','src/trail/replay.js'])assert.ok(manifest.renderSources[file]);
+  assert.ok(manifest.renderSources['src/scenery.js'],'HDRI scenery lights every preview');
   assert.ok(manifest.renderSources['src/viewer3d.js'],'Camera framing must invalidate old product previews');
   assert.ok(manifest.renderSources['src/surface-finishes.js']);
   assert.ok(manifest.renderSources['assets/surface-style-state.js']);
-  assert.ok(manifest.renderSources['assets/jimnygami-logo-original.png']);
-  assert.ok(manifest.renderSources['src/workshop-gear.js']);
   assert.ok(manifest.renderSources['assets/look-packages.js']);
   assert.ok(manifest.renderSources['src/grille-colours.js']);
   assert.ok(manifest.renderSources['src/steering-badge.js']);
@@ -34,7 +33,6 @@ test('preview material and accessory renderer fingerprints are current',()=>{
   assert.ok(manifest.renderSources['src/catalogue-parts.js']);
   assert.ok(manifest.renderSources['src/tyre-types.js']);
   assert.ok(manifest.renderSources['src/wheel-finishes.js']);
-  assert.ok(manifest.renderSources['src/workshop-stage.js']);
   assert.ok(manifest.renderSources['src/accessories.js']);
   assert.ok(manifest.renderSources['src/trail/cabin-materials.js']);
   for(const [path,hash] of Object.entries(manifest.renderSources))assert.equal(createHash('sha256').update(readFileSync(new URL(path,root))).digest('hex'),hash,`Regenerate previews after changing ${path}`);

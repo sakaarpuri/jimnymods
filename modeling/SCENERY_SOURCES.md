@@ -1,8 +1,23 @@
-# Indian scenery previews
+# Garage scenery: photographed HDRIs (Brief 3, 24 October 2026)
+
+The 3D Garage's four scenery options are photographed 360° HDR environment maps from Poly Haven. Each one is both the visible background and the light and reflections on the car, with its floor projected under the wheels. All four are CC0 1.0 Universal (public domain dedication), which allows commercial use without attribution; the authors are credited here anyway. Licence: https://polyhaven.com/license and https://creativecommons.org/publicdomain/zero/1.0/
+
+| Option | Asset | Source | Author | Files |
+| --- | --- | --- | --- | --- |
+| Garage (id `studio`, default) | Autoshop 01 | https://polyhaven.com/a/autoshop_01 | Oliksiy Yakovlyev | `assets/environments/autoshop-01-4k.jpg`, `autoshop-01-2k.jpg` |
+| Mountains | Kiara 5 Noon | https://polyhaven.com/a/kiara_5_noon | Greg Zaal | `assets/environments/kiara-5-noon-4k.jpg`, `kiara-5-noon-2k.jpg` |
+| Urban | Palermo Square | https://polyhaven.com/a/palermo_square | Andreas Mischok | `assets/environments/palermo-square-4k.jpg`, `palermo-square-2k.jpg` |
+| Desert | Quarry 02 | https://polyhaven.com/a/quarry_02 | Sergej Majboroda | `assets/environments/quarry-02-4k.jpg`, `quarry-02-2k.jpg` |
+
+These are real places (a South African valley, a Sicilian square, a sand quarry and an auto workshop), not Indian locations; the previous India-inspired generated panoramas are no longer used by the Garage.
+
+How the files were made: the 4k and 2k Radiance `.hdr` downloads were converted to Ultra HDR JPEGs (an SDR JPEG with an embedded gain map, quality 0.86, gain map 0.8) with `@monogrid/gainmap-js` 3.1.0 in headless Chrome. Autoshop 01 and Palermo Square keep their full range. Kiara 5 Noon and Quarry 02 are capped at 64× the SDR white so the gain map keeps precision; the energy removed from the sun disc was measured from the source `.hdr` (direction and irradiance in `src/scenery.js`) and is restored by the shadow-casting sun light. The viewer decodes them with three.js `UltraHDRLoader`.
+
+# Driving game scenery previews
 
 Created with the built-in OpenAI image-generation tool for this project. These are generated India-inspired environments, not photographs or surveyed representations of actual locations. No third-party photography is reused.
 
-The native-resolution 1774 × 887 WebP panoramas are loaded on demand. The neutral Studio remains the default. Night lighting uses a neutral test surface so a daylight image does not misrepresent actual lamp illumination. The viewer adjusts the vertical panorama composition for a readable horizon. These are artistic environments, not calibrated lighting or geometry captures.
+Since Brief 3 these panoramas are used only by the driving game. The native-resolution 1774 × 887 WebP panoramas are loaded on demand. Night lighting uses a neutral test surface so a daylight image does not misrepresent actual lamp illumination. The viewer adjusts the vertical panorama composition for a readable horizon. These are artistic environments, not calibrated lighting or geometry captures.
 
 21 October game reuse: these same generated panoramas supply distant sky/background scenery behind the playable 3D terrain and filtered environmental reflections on the car. They are not calibrated HDR lighting, navigable mountains or buildings, and do not turn the fictional courses into mapped Indian locations. The game compresses the panorama's vertical composition to keep the horizon above its real terrain. Actual engine screenshots, without AI post-processing, are used for the three terrain-selection cards. Close-range terrain, obstacles and wheel contacts remain 3D; distant backdrop parallax and resolution are limited. A later screenshot exposed faceted, floating boulders: shared normals and normalized obstacle height now make them smoother and ground their bases. Collision hulls remain simpler than rock geometry.
 

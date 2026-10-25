@@ -8,7 +8,8 @@ const modelFull=await hash('assets/models/jimny-lwb-blender.glb'),swbFull=await 
 const modelHash=modelFull.slice(0,12),swbHash=swbFull.slice(0,12);
 const previews=JSON.parse(await readFile('assets/previews/manifest.json','utf8'));
 const worldPreviews=await readFile('assets/previews/world-manifest.json','utf8').then(JSON.parse).catch(()=>null);
-const sources={};for(const file of Object.keys(previews.renderSources))sources[file]=await hash(file);
+// A render source deleted since the last preview refresh also marks the previews stale.
+const sources={};for(const file of Object.keys(previews.renderSources))sources[file]=await hash(file).catch(()=>null);
 const stale=previews.modelSha256!==modelFull||previews.swbModelSha256!==swbFull||worldPreviews?.modelSha256!==modelFull||Object.entries(sources).some(([f,h])=>previews.renderSources[f]!==h);
 if(stale&&!process.argv.includes('--preview-refresh'))throw new Error('Model-derived previews are stale. Build with --preview-refresh for rendering only, regenerate/finalize previews, then run the normal release build.');
 if(stale)console.warn('Preview-refresh build: not a finished release until previews are finalized.');
