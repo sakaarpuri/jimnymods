@@ -17,6 +17,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
 import { UltraHDRLoader } from 'three/addons/loaders/UltraHDRLoader.js';
+import { softenGroundedSkybox } from './soft-floor.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -239,6 +240,7 @@ if(renderer){
         // Project the panorama's floor at its camera height so the car stands on it.
         const skybox=new GroundedSkybox(entry.texture,config.height,config.radius,96);
         skybox.position.y=config.height-.004;skybox.material.envMapRotation.set(0,config.rotation,0);
+        softenGroundedSkybox(skybox,config.height);
         skybox.renderOrder=-1;scene.add(skybox);entry.skybox=skybox;
       }
       sceneryLoading=false;
