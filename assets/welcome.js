@@ -43,7 +43,7 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
     const page=document.createElement('section');
     page.className='welcome-page';page.id='welcome';page.setAttribute('aria-labelledby','welcomeTitle');
     const body=bodyStyle==='3door'?'3door':'5door';
-    page.innerHTML=`<div class="welcome-top"><span class="site-logo welcome-logo"><span class="site-logo-art"><img src="assets/jimnygami-logo.webp" width="560" height="280" alt="jimnygami"></span></span><button type="button" class="welcome-skip" data-welcome-go="garage" data-welcome-skip><span class="welcome-skip-long">Skip to the Garage</span><span class="welcome-skip-short">Skip</span> ${arrow}</button></div>
+    page.innerHTML=`<div class="welcome-top"><span class="site-logo welcome-logo"><span class="site-logo-art"><img src="assets/jimnygami-logo-sticker.webp" width="1550" height="341" alt="jimnygami"></span></span><button type="button" class="welcome-skip" data-welcome-go="garage" data-welcome-skip><span class="welcome-skip-long">Skip to the Garage</span><span class="welcome-skip-short">Skip</span> ${arrow}</button></div>
 <div class="welcome-main">
  <div class="welcome-copy">
   <p class="welcome-eyebrow">Independent Jimny modification guide</p>

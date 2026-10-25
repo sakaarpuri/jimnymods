@@ -38,8 +38,14 @@ html[data-ui-theme] body header.site-header{position:sticky;top:0;z-index:50;wid
 .site-logo{display:flex;align-items:center;flex-shrink:0;min-height:44px;padding:0 10px;line-height:0;border-radius:10px}
 .site-logo:focus-visible,.site-header :is(a,button,summary,select):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
 /* The white pill is drawn with a shadow so padding never shifts the logo crop. */
-.site-logo-art{position:relative;display:block;overflow:hidden;width:128px;aspect-ratio:1570/360;background:#fff;border-radius:3px;box-shadow:0 0 0 7px #fff,0 0 0 8px rgba(0,0,0,.04)}
-.site-logo-art img{position:absolute;left:-6.3694%;top:-69.4444%;width:112.9937%;height:auto;max-width:none;margin:0;display:block}
+/* The die-cut sticker from the Garage wall (src/workshop-stage.js), rendered once to
+   assets/jimnygami-logo-sticker.webp. A soft shadow lifts it off light grounds too. */
+.site-logo-art{display:block;width:140px;aspect-ratio:1550/341}
+.site-logo{gap:12px;text-decoration:none}
+.site-tagline{color:var(--a-muted);font:500 13px/1.25 var(--font-body);letter-spacing:.01em;white-space:normal;line-height:1.25}
+/* Phones keep the bar for the menu and My build. */
+@media(max-width:1279px){.site-tagline{display:none}}
+.site-logo-art img{display:block;width:100%;height:auto;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
 .site-menu-panel{display:contents}
 .site-nav{flex:1;display:flex;justify-content:center;align-items:stretch;gap:4px;min-width:0;height:100%}
 .site-nav :is(a,button){position:relative;display:inline-flex;align-items:center;padding:0 12px;min-height:44px;border:0;background:transparent;color:var(--a-muted);font:500 15px/1.2 var(--font-body);text-decoration:none;white-space:nowrap;cursor:pointer;border-radius:0}
@@ -77,7 +83,7 @@ html[data-ui-theme] body header.site-header{position:sticky;top:0;z-index:50;wid
 @media(max-width:1099px){
   .site-bar{gap:10px;padding:0 16px}
   .site-logo{padding:0 8px;margin-right:auto}
-  .site-logo-art{width:108px}
+  .site-logo-art{width:118px}
   .site-menu-toggle{display:grid}
   .site-menu-panel{display:none;position:absolute;left:0;right:0;top:100%;z-index:60;flex-direction:column;gap:14px;max-height:calc(100dvh - var(--site-header-h));overflow:auto;padding:12px 16px 20px;background:var(--a-panel);border-bottom:1px solid var(--a-line);box-shadow:0 18px 40px rgba(0,0,0,.35)}
   .site-header.menu-open .site-menu-panel{display:flex}
@@ -89,7 +95,7 @@ html[data-ui-theme] body header.site-header{position:sticky;top:0;z-index:50;wid
   .site-setup-heading button{display:none}
   .site-setup :is(.market-bar select,.ui-theme-picker select){background:var(--a-panel)}
 }
-@media(max-width:380px){.site-build{padding-left:12px;gap:8px}.site-logo-art{width:96px}}
+@media(max-width:380px){.site-build{padding-left:12px;gap:8px}.site-logo-art{width:104px}}
 /* Drive also carries Courses, so My build shrinks to its count on phones. */
 @media(max-width:480px){body.drive-page .site-build{padding:0 7px}body.drive-page .site-build-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}body.drive-page .site-bar>[data-site-header-slot]{padding:0 12px}}
 

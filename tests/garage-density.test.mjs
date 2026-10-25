@@ -13,7 +13,7 @@ test('repeated shortcuts appear once instead of in every category',()=>{
 
 test('advanced controls sit behind one "More options" per category; nothing is removed',()=>{
  assert.match(panels,/more\('paintMore','Custom colour, finish, all black, matte \/ gloss'\)/);
- assert.match(panels,/more\('decalMore','Your name on the doors, vinyl colour'\)/);
+ assert.match(panels,/more\('decalMore','Vinyl colour'\)/);
  assert.match(html,/<details class="garage-more" data-more="wheels"/);
  assert.match(flow,/<summary>More options <small>Colour, badge & finish<\/small><\/summary>/);
  for(const kept of ['.custom-paint','.paint-readout','.garage-design-options','.garage-name-decal','.vinyl-ink'])assert(panels.includes(kept),kept);

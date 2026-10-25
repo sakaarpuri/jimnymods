@@ -53,7 +53,7 @@ test('jimnygami identity changes do not abandon saved builds or the configured w
   // The logo lives in the shared header that every page renders.
   const header=await readFile(new URL('../assets/site-header.js',import.meta.url),'utf8');
   assert.match(header,/aria-label="jimnygami Garage"/);
-  assert.match(header,/jimnygami-logo\.webp/);
+  assert.match(header,/jimnygami-logo-sticker\.webp/);
   assert.match(html,/<header data-site-header data-page="garage">/);
   assert.match(html,/readJSON\("thatsuvmod-build"/);
   assert.match(html,/rel="canonical" href="https:\/\/thatsuvmod.com\/"/);
