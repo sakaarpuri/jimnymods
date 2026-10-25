@@ -86,3 +86,11 @@ Order of attack if all are approved: #1 with #2 and #5 together (one front-end c
 - Camera matching for perspective photos: `modeling/audit_photo_overlay.py` solves the camera from wheel centres and tyre contacts only (positions fixed by the published wheelbase and track), so the model never places its own camera. `modeling/audit_photo_features.py` measures feature offsets through that camera.
 - What the audit cannot establish: exact surfaces (no manufacturer CAD), the front overhang (see #7), and anything hidden in the references. Suzuki's own images are marketing material and not calibrated; where they disagree with the published numbers, the numbers win.
 - Model files: `jimny-lwb-blender.glb` 3,168,596 bytes, `jimny-swb-blender.glb` 3,108,080 bytes (the size budget for Step 3).
+
+## Front end: stopped (25 October 2026)
+
+A scripted correction of the front end (commit 036b205) was tried and reverted (commit 2ac65e4) at the owner's request. Warping the existing bonnet could not make it accurate: the slope began with a visible ripple, the tilt was too steep, the square front lip still protruded, and the bonnet's surface features, which were never accurate, could only be moved. The model is back to the original files byte for byte.
+
+Decision: the front end (#1, #2, #5) is left as is in this brief. The owner will consider a professionally made Jimny model with a commercial licence, or a 3D artist, for the front. Items #3 (side glass) and #4 (mirrors) were approved for scripted fixes but have not been started; ask the owner whether to continue with them, since a replacement model would supersede them too.
+
+Lessons for whoever continues: the body meshes store custom normals, so any vertex edit must also rotate them or the surface shades as rippled; and the overlay scripts (`modeling/audit_overlays.py`, `audit_photo_overlay.py`, `audit_photo_features.py`) remain useful for checking a replacement model against Suzuki's references.
