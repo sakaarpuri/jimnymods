@@ -191,9 +191,9 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     if(camera.fov!==fov||camera.near!==near){camera.fov=fov;camera.near=near;camera.updateProjectionMatrix();}
     if(cameraMode==='external'||internal)cameraPosition.set(state.x-n*10+c*.5,state.y+(portrait?4.3:3.1),state.z-c*10-n*.5);
     else if(bonnet)cameraPosition.set(state.x+n*1.2,state.y+1.8,state.z+c*1.2);
-    else cameraPosition.set(state.x+c*OVERVIEW.side-n*OVERVIEW.back,state.y+OVERVIEW.height,state.z-n*OVERVIEW.side-c*OVERVIEW.back);
+    else{const o=portrait?OVERVIEW.portrait:OVERVIEW.landscape;cameraPosition.set(state.x+c*o.side-n*o.back,state.y+o.height,state.z-n*o.side-c*o.back);}
     cameraPosition.y=Math.max(cameraPosition.y,(world?.height(cameraPosition.x,cameraPosition.z)||0)+1);
-    const ahead=bonnet?12:cameraMode==='overview'?(portrait?OVERVIEW.aheadPortrait:OVERVIEW.ahead):portrait?2:5;
+    const ahead=bonnet?12:cameraMode==='overview'?(portrait?OVERVIEW.portrait:OVERVIEW.landscape).ahead:portrait?2:5;
     aim.set(state.x+n*ahead,state.y+(bonnet?1.1:1.6),state.z+c*ahead);
     if(bonnet){bodyRig.updateWorldMatrix(true,true);const pose=bonnetPose(bodyRig);cameraPosition.copy(pose.position);aim.copy(pose.target);}
     if(internal){bodyRig.updateWorldMatrix(true,true);const offset=currentBody==='3door'?-.17:0;if(cameraMode==='controls'){cameraPosition.copy(bodyRig.localToWorld(new T.Vector3(.03,1.52,-.24+offset)));aim.copy(bodyRig.localToWorld(new T.Vector3(-.18,1.055,.27+offset)));}else{const pose=cockpitPose(bodyRig,null,currentBody,cameraMode);cameraPosition.copy(pose.position);aim.copy(pose.target);}}
