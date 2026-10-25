@@ -38,6 +38,11 @@ await writeFile('dist/index.html',html);
 let game=await readFile('dist/game.html','utf8');
 for(const file of ['assets/visual-release.js','assets/visual-assets.js','assets/trail-game.js','assets/market-catalog.js','assets/ui-theme.js','assets/site-header.js','assets/direction-a.css','assets/drive-direction-a.css','game.css','assets/jimnygami-brand.css']){const hash=createHash('sha256').update(await readFile(file)).digest('hex').slice(0,12);game=game.replace(`"${file}"`,`"${file}?v=${hash}"`);}
 await writeFile('dist/game.html',game);
+// The Garage's "Drive" link leads here: fetch the 3 MB game bundle at idle priority so the first
+// click does not wait for it. The URL (hash included) matches game.html, so the cache entry is shared.
+{const gameHash=(await hash('assets/trail-game.js')).slice(0,12);let garage=await readFile('dist/index.html','utf8');
+ if(!garage.includes('</head>'))throw new Error('index.html has no </head> for the game prefetch hint.');
+ garage=garage.replace('</head>',`<link rel="prefetch" href="assets/trail-game.js?v=${gameHash}" as="script">\n</head>`);await writeFile('dist/index.html',garage);}
 let trip=await readFile('dist/trip-planner.html','utf8');
 for(const file of ['assets/trip-planner.css','assets/trip-page.css','assets/direction-a.css','assets/trip-direction-a.css','assets/site-header.js','assets/ui-theme.js','assets/trip-planner.js','assets/trip-planner-ui.js','assets/trip-page.js','assets/trip-destinations.js','assets/trip-photos.js','assets/market-catalog.js','assets/product-photos.js','assets/practical-accessories-data.js'])trip=trip.replace(`"${file}"`,`"${file}?v=${(await hash(file)).slice(0,12)}"`);
 await writeFile('dist/trip-planner.html',trip);

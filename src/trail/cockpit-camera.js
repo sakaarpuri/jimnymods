@@ -1,6 +1,8 @@
 import {Vector3} from 'three';
 
 export const DRIVING_CAMERAS=Object.freeze(['external','interior','bonnet','overview']);
+// Overhead follow view, metres. Was back 17 / side 14 / height 15, aimed 5 ahead (2 on portrait screens).
+export const OVERVIEW=Object.freeze({back:8,side:5,height:9,ahead:7,aheadPortrait:4.5});
 export function normalizeDrivingCamera(mode){return ['dashboard','controls'].includes(mode)?'interior':DRIVING_CAMERAS.includes(mode)?mode:'external';}
 // Mount ahead of the windscreen/roof and follow body pitch/roll, rather than
 // leaving a world-horizontal camera inside the roof when climbing a slope.

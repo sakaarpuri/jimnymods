@@ -1,5 +1,5 @@
 import RAPIER from '@dimforge/rapier3d-compat';
-import { clamp, SPECS } from './physics.js';
+import { clamp, SPECS, DRIVE_EFFICIENCY, maxAutoGear, revLimit } from './physics.js';
 import {elementFootprint} from './terrain-builder.js';
 import {coarseBedRelief,articulationBedRelief} from './adventure-terrain.js';
 
@@ -98,7 +98,7 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     s.steer+=(clamp(input.steer||0,-1,1)*.48/(1+absSpeed*.045)-s.steer)*Math.min(1,dt*5);
     s.throttle+=(clamp(input.throttle||0,0,1)-s.throttle)*Math.min(1,dt*4);
     s.handbrake=!!input.handbrake;
-    const low=s.range==='4L',drive=!['N','P'].includes(s.gear),direction=s.gear==='R'?-1:1,transfer=1.32*(low?2.002:1),maxGear=s.gear==='L'?1:s.gear==='2'?2:4;
+    const low=s.range==='4L',drive=!['N','P'].includes(s.gear),direction=s.gear==='R'?-1:1,transfer=1.32*(low?2.002:1),maxGear=maxAutoGear(s);
     const rpmAt=gear=>absSpeed/SPECS.wheelRadius*60/(2*Math.PI)*SPECS.gears[gear-1]*SPECS.finalDrive*transfer;
     s.autoGear=clamp(s.autoGear,1,maxGear);
     if(rpmAt(s.autoGear)>3300+s.throttle*1400&&s.autoGear<maxGear)s.autoGear++;
@@ -106,7 +106,7 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     const ratio=(s.gear==='R'?SPECS.reverse:SPECS.gears[s.autoGear-1])*SPECS.finalDrive*transfer;
     s.rpm=clamp(Math.max(850,absSpeed/SPECS.wheelRadius*60/(2*Math.PI)*ratio)+s.throttle*(absSpeed<2?1300:350),850,6200);
     const torque=SPECS.peakTorque*(.65+.35*Math.exp(-(((s.rpm-4000)/2400)**2)));
-    const demanded=drive?direction*(s.throttle*torque*ratio*.82/SPECS.wheelRadius+(absSpeed<1.2?170:0))*(s.rpm>6100?.25:1):0;
+    const demanded=drive?direction*(s.throttle*torque*ratio*DRIVE_EFFICIENCY[s.range]/SPECS.wheelRadius+(absSpeed<1.2?170:0))*revLimit(absSpeed/SPECS.wheelRadius*60/(2*Math.PI)*ratio):0;
     const surface=terrain.surface(s.x,s.z),mu=grip(surface),slope=Math.asin(clamp(forward.y,-1,1)),brake=clamp(input.brake||0,0,1);
     if(brake>.5&&absSpeed<.05&&drive&&slope*direction>.04)s.hold=2;else s.hold=Math.max(0,s.hold-dt);
     if(s.throttle>.12)s.hold=0;

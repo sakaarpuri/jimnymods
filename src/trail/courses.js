@@ -63,6 +63,12 @@ export function mountainShoulderRelief(x,z,distance){
  return mask*(shape*5.6-1.7);
 }
 function segmentDistance(x,z,a,b){const dx=b.x-a.x,dz=b.z-a.z,t=clamp(((x-a.x)*dx+(z-a.z)*dz)/Math.max(1e-6,dx*dx+dz*dz),0,1);return Math.hypot(x-a.x-t*dx,z-a.z-t*dz);}
+// Nearest distance to a set of [a,b] segments. Skips any segment whose bounding box is already
+// farther away than the best so far, which gives the same result as testing every segment.
+function nearestSegments(segments){
+ const items=segments.map(([a,b])=>({a,b,minX:Math.min(a.x,b.x),maxX:Math.max(a.x,b.x),minZ:Math.min(a.z,b.z),maxZ:Math.max(a.z,b.z)}));
+ return (x,z,start=Infinity)=>{let nearest=start;for(const s of items){const ex=s.minX>x?s.minX-x:x>s.maxX?x-s.maxX:0,ez=s.minZ>z?s.minZ-z:z>s.maxZ?z-s.maxZ:0;if(ex*ex+ez*ez>=nearest*nearest)continue;nearest=Math.min(nearest,segmentDistance(x,z,s.a,s.b));}return nearest;};
+}
 export function getMissions(course){return course.missions||MISSIONS[course.worldId||course.theme]||MISSIONS.urban;}
 export function getMission(course,id){return getMissions(course).find(m=>m.id===id)||getMissions(course)[0];}
 export function centerAt(course,z){const t=Math.max(0,z-20);return course.theme==='urban'?5*Math.sin(t/36):course.theme==='sand'?14*Math.sin(t/80):12*Math.sin(t/65)*Math.min(t/40,1);}
@@ -74,15 +80,18 @@ export function makeWorld(course,difficulty='explorer'){
  if(activeStoneLane!==null)for(const line of adventure)if(line.id==='stone-line')line.points=line.points.map(([x,z])=>[activeStoneLane,z]);
  const routes=getMissions(course).flatMap(m=>Object.values(m.routes));
  const legacySegments=getMissions(course).filter(m=>!m.extension).flatMap(m=>Object.values(m.routes)).flatMap(points=>points.slice(1).map((p,i)=>[points[i],p]));
- const legacyRouteDistance=(x,z)=>{let nearest=Math.abs(x-centerAt(course,z));for(const[a,b]of legacySegments)nearest=Math.min(nearest,segmentDistance(x,z,a,b));return nearest;};
+ const legacyNearest=nearestSegments(legacySegments),legacyRouteDistance=(x,z)=>legacyNearest(x,z,Math.abs(x-centerAt(course,z)));
  const segments=[...routes,...adventure.map(line=>line.points.map(([x,z])=>({x,z})))].flatMap(points=>points.slice(1).map((p,i)=>[points[i],p]));
- const routeDistance=(x,z)=>{let nearest=Math.abs(x-centerAt(course,z));for(const [a,b]of segments)nearest=Math.min(nearest,segmentDistance(x,z,a,b));return nearest;};
+ // height() asks for this at the same point up to three times in a row, so keep the last answer.
+ const segmentNearest=nearestSegments(segments);let lastX=NaN,lastZ=NaN,lastRoute=0;
+ const routeDistance=(x,z)=>{if(x===lastX&&z===lastZ)return lastRoute;lastX=x;lastZ=z;return lastRoute=segmentNearest(x,z,Math.abs(x-centerAt(course,z)));};
  const facilitySegments=course.theme==='urban'?[...MISSIONS.school,...MISSIONS.urban].flatMap(m=>Object.values(m.routes)).flatMap(points=>points.slice(1).map((p,i)=>[points[i],p])):segments;
  const landmarkRouteDistance=(x,z)=>Math.min(routeDistance(x,z),...facilitySegments.map(([a,b])=>segmentDistance(x,z,a,b)));
  const activeSegments=getMissions(course).filter(m=>!m.extension).flatMap(m=>{const line=m.routes[settings.route];return line.slice(1).map((p,i)=>[line[i],p]);});
+ const activeNearest=nearestSegments(activeSegments);
  const sectionTerraceClearance=(x,z)=>{
   if(course.id!=='mountain'||x<45||x>85||z<110||z>187)return Infinity;
-  let nearest=Infinity;for(const[a,b]of activeSegments)nearest=Math.min(nearest,segmentDistance(x,z,a,b));return nearest;
+  return activeNearest(x,z);
  };
  const baseHeight=(x,z)=>{
   if(course.id==='custom')return 0;
