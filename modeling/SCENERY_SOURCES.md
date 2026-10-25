@@ -1,19 +1,20 @@
-# Garage scenery: photographed HDRIs (Brief 3, 24 October 2026)
+# Garage scenery (Brief 3, updated 25 October 2026)
 
-The 3D Garage's four scenery options are photographed 360° HDR environment maps from Poly Haven. Each one is both the visible background and the light and reflections on the car, with its floor projected under the wheels. All four are CC0 1.0 Universal (public domain dedication), which allows commercial use without attribution; the authors are credited here anyway. Licence: https://polyhaven.com/license and https://creativecommons.org/publicdomain/zero/1.0/
+**Garage** (id `studio`, default) is the modelled jimnygami workshop (`src/workshop-stage.js`, `src/workshop-gear.js`, original concrete texture `assets/environments/workshop-concrete.webp`; see `modeling/ASSET_SOURCES.md`). It is real geometry, so it stays correct from every camera angle. Its reflections on the car are rendered from the room itself, with its own lights.
 
-| Option | Asset | Source | Author | Files |
-| --- | --- | --- | --- | --- |
-| Garage (id `studio`, default) | Autoshop 01 | https://polyhaven.com/a/autoshop_01 | Oliksiy Yakovlyev | `assets/environments/autoshop-01-4k.jpg`, `autoshop-01-2k.jpg` |
-| Mountains | Kiara 5 Noon | https://polyhaven.com/a/kiara_5_noon | Greg Zaal | `assets/environments/kiara-5-noon-4k.jpg`, `kiara-5-noon-2k.jpg` |
-| Urban | Rotes Rathaus | https://polyhaven.com/a/rotes_rathaus | Alexander Scholten | `assets/environments/rotes-rathaus-4k.jpg`, `rotes-rathaus-2k.jpg` |
-| Desert | Quarry 02 | https://polyhaven.com/a/quarry_02 | Sergej Majboroda | `assets/environments/quarry-02-4k.jpg`, `quarry-02-2k.jpg` |
+**Mountains, Urban and Desert** use a photographed 360° HDR environment map from Poly Haven as the distant backdrop (drawn at infinity) and as the light and reflections on the car. The ground near the car is a real textured surface that fades into the photo toward the horizon; nothing from the photo is projected onto the floor, so objects near the photographer can no longer stretch or smear. All assets below are CC0 1.0 Universal (public domain dedication), which allows commercial use without attribution; the authors are credited anyway. Licence: https://polyhaven.com/license and https://creativecommons.org/publicdomain/zero/1.0/
 
-These are real places (a South African valley, a Berlin square, a sand quarry and an auto workshop), not Indian locations; the previous India-inspired generated panoramas are no longer used by the Garage.
+| Option | Backdrop HDRI | Author | Ground texture | Author | Files |
+| --- | --- | --- | --- | --- | --- |
+| Mountains | Kiara 5 Noon, https://polyhaven.com/a/kiara_5_noon | Greg Zaal | Dry Ground Rocks, https://polyhaven.com/a/dry_ground_rocks (4 m tile) | Rob Tuytel | `assets/environments/kiara-5-noon-{4k,2k}.jpg`, `assets/ground/dry-ground-rocks-{color,normal,rough}.webp` |
+| Urban | Rotes Rathaus, https://polyhaven.com/a/rotes_rathaus | Alexander Scholten | Floor Pavement, https://polyhaven.com/a/floor_pavement (2 m tile) | Charlotte Baglioni (photography), Dario Barresi (processing) | `assets/environments/rotes-rathaus-{4k,2k}.jpg`, `assets/ground/floor-pavement-{color,normal,rough}.webp` |
+| Desert | Quarry 02, https://polyhaven.com/a/quarry_02 | Sergej Majboroda | Aerial Sand, https://polyhaven.com/a/aerial_sand (8 m tile) | Rob Tuytel | `assets/environments/quarry-02-{4k,2k}.jpg`, `assets/ground/aerial-sand-{color,normal,rough}.webp` |
 
-25 October 2026: Urban changed from Palermo Square to Rotes Rathaus, whose foreground is open paving. Planters and a banner a few metres from the Palermo camera were flattened onto the projected floor and looked stretched. The viewer also blurs the projected floor with distance from the car (`src/soft-floor.js`), so anything standing near any photographer softens into the ground.
+These are real places (a South African valley, a Berlin square and a sand quarry), not Indian locations; the previous India-inspired generated panoramas are no longer used by the Garage.
 
-How the files were made: the 4k and 2k Radiance `.hdr` downloads were converted to Ultra HDR JPEGs (an SDR JPEG with an embedded gain map, quality 0.86, gain map 0.8) with `@monogrid/gainmap-js` 3.1.0 in headless Chrome. Autoshop 01 and Rotes Rathaus keep their full range. Kiara 5 Noon and Quarry 02 are capped at 64× the SDR white so the gain map keeps precision; the energy removed from the sun disc was measured from the source `.hdr` (direction and irradiance in `src/scenery.js`) and is restored by the shadow-casting sun light. The viewer decodes them with three.js `UltraHDRLoader`.
+History: the first Brief 3 version used a photographed garage (Autoshop 01) and projected every photo's floor under the car. Objects near each photographer were flattened onto the ground and stretched (planters and a banner in the former Palermo Square Urban photo), and blurring the projection only softened it. Both were replaced on 25 October 2026 at the owner's request by the modelled garage and real outdoor ground.
+
+How the files were made: the 4k and 2k Radiance `.hdr` downloads were converted to Ultra HDR JPEGs (an SDR JPEG with an embedded gain map, quality 0.86, gain map 0.8) with `@monogrid/gainmap-js` 3.1.0 in headless Chrome. Rotes Rathaus keeps its full range. Kiara 5 Noon and Quarry 02 are capped at 64× the SDR white so the gain map keeps precision; the energy removed from the sun disc was measured from the source `.hdr` (direction and irradiance in `src/scenery.js`) and is restored by the shadow-casting sun light. The viewer decodes them with three.js `UltraHDRLoader`. Ground textures are Poly Haven's 1k JPEG maps (diffuse, OpenGL normal, roughness) re-encoded as WebP with `cwebp` (quality 80, 88 and 75; roughness at 512 px). Each ground's colour tint was measured so that, under that scene's sky and sun, it matches the photo's own ground near the camera.
 
 # Driving game scenery previews
 

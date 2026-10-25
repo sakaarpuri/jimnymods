@@ -11,9 +11,8 @@ test('the car is grounded by a rendered contact shadow, not painted gradient car
   assert.match(viewer, /function sync\(payload=current\)\{\n    contactDirty=true;/, 'every build change re-renders the contact shadow');
   assert.match(contact, /OrthographicCamera/);assert.match(contact, /HorizontalBlurShader/);
 });
-test('ambient occlusion ignores the photographed backdrop and all renders share one pipeline', () => {
+test('ambient occlusion and all renders share one pipeline', () => {
   assert.match(viewer, /new GTAOPass\(/);
-  assert.match(viewer, /backdrops\.forEach\(sky=>\{sky\.visible=false;\}\)/);
   assert.equal(viewer.match(/renderer\.render\(scene,camera\)/g).length, 1, 'Save image and previews also go through draw()');
   assert.match(viewer, /if\(quality\.ambientOcclusion\)composer\.render\(\);else renderer\.render\(scene,camera\);/);
 });

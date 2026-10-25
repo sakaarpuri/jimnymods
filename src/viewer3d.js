@@ -15,9 +15,10 @@ import {applyTyreType,resolveTyreType} from './tyre-types.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { UltraHDRLoader } from 'three/addons/loaders/UltraHDRLoader.js';
-import { softenGroundedSkybox } from './soft-floor.js';
+import { createOutdoorGround } from './outdoor-ground.js';
+import { createWorkshopStage, WORKSHOP_LIGHT_SOURCES } from './workshop-stage.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -65,6 +66,12 @@ if(renderer){
   // HDRI encoding clipped, or in sunless scenes only supplies the floor's shadow mask.
   const sun=new THREE.DirectionalLight('#fffdf8',2.2);sun.position.set(3,7,5);sun.castShadow=true;
   sun.shadow.mapSize.set(quality.shadowMapSize,quality.shadowMapSize);sun.shadow.radius=12;sun.shadow.blurSamples=quality.shadowBlurSamples;Object.assign(sun.shadow.camera,{left:-2.8,right:2.8,top:2.8,bottom:-2.8,near:.1,far:20});sun.shadow.bias=-.00015;sun.shadow.normalBias=.004;scene.add(sun);
+  // The modelled workshop's own sources: one dominant bay opening, two high-bay battens
+  // and a bench light, each matching a visible fixture. Shown only in the Garage.
+  RectAreaLightUniformsLib.init();
+  const workshopLights=WORKSHOP_LIGHT_SOURCES.map(({role,width,height,position,target,intensity,colour})=>{
+    const light=new THREE.RectAreaLight(colour,intensity,width,height);light.name='Workshop '+role;light.position.set(...position);light.lookAt(...target);scene.add(light);return light;
+  });
   // Post-processing: multisampled half-float render, ambient occlusion so panel gaps,
   // arches and the underside read as depth, then tone mapping and sRGB output.
   const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,samples:4}));
@@ -72,13 +79,6 @@ if(renderer){
   const aoPass=new GTAOPass(scene,camera,1,1);aoPass.blendIntensity=.9;
   aoPass.updateGtaoMaterial({radius:.45,distanceExponent:1,thickness:1,distanceFallOff:1,scale:1.6,samples:16});
   aoPass.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:16});
-  // The projected backdrop is a photograph with its own shading: keep it out of the
-  // AO depth and normals, or its far walls read as fully occluded.
-  const renderOcclusion=aoPass.render.bind(aoPass);
-  aoPass.render=(...args)=>{
-    const backdrops=[...sceneryCache.values()].map(entry=>entry.skybox).filter(sky=>sky?.visible);
-    backdrops.forEach(sky=>{sky.visible=false;});renderOcclusion(...args);backdrops.forEach(sky=>{sky.visible=true;});
-  };
   composer.addPass(aoPass);composer.addPass(new OutputPass());
   function setRenderSize(width,height,ratio=renderer.getPixelRatio()){
     renderer.setPixelRatio(ratio);renderer.setSize(width,height,false);composer.setPixelRatio(ratio);composer.setSize(width,height);
@@ -135,6 +135,22 @@ if(renderer){
   const lightRig=new THREE.Group();bodyRig.add(lightRig);
   const auxiliaryBeams=Array.from({length:8},()=>{const light=new THREE.SpotLight('#fff',0,35,.3,.72,1.3);lightRig.add(light,light.target);return light;});
   const dayFloor=floor.material,nightFloor=new THREE.MeshStandardMaterial({color:'#303431',roughness:.96});
+  // Garage: the modelled workshop. Its reflections are rendered from the room itself
+  // (car hidden), so the paint reflects the walls, bay opening and lights you can see.
+  let workshopEnvironment=null;
+  const workshop=createWorkshopStage({onLoad:()=>{refreshWorkshopEnvironment();dirty=true;}});scene.add(workshop.root);
+  function refreshWorkshopEnvironment(){
+    const hidden=[car,contactShadow.plane,...[...sceneryCache.values()].map(entry=>entry.ground).filter(Boolean)].filter(obj=>obj.visible);
+    const state={visible:workshop.root.visible,lights:workshopLights.map(l=>l.visible),floor:floor.material,background:scene.background,environment:scene.environment};
+    hidden.forEach(obj=>{obj.visible=false;});workshop.root.visible=true;workshopLights.forEach(l=>{l.visible=true;});floor.material=workshop.floorMaterial;
+    scene.background=new THREE.Color('#20272b');scene.environment=fallbackEnvironment.texture;
+    const generator=new THREE.PMREMGenerator(renderer);
+    const next=generator.fromScene(scene,0,.1,60,{position:new THREE.Vector3(0,1.2,0)});generator.dispose();
+    workshopEnvironment?.dispose();workshopEnvironment=next;
+    hidden.forEach(obj=>{obj.visible=true;});workshop.root.visible=state.visible;workshopLights.forEach((l,i)=>{l.visible=state.lights[i];});floor.material=state.floor;
+    scene.background=state.background;scene.environment=state.environment;
+    applyEnvironment();
+  }
   // An actual lit ground surface is necessary: ShadowMaterial alone cannot show lamp spill.
   const road=new THREE.Group();scene.add(road);road.visible=false;
   const roadSurface=new THREE.Mesh(new THREE.PlaneGeometry(5.4,45),new THREE.MeshStandardMaterial({color:'#424747',roughness:.94}));roadSurface.rotation.x=-Math.PI/2;roadSurface.position.set(0,.002,16);road.add(roadSurface);
@@ -182,67 +198,59 @@ if(renderer){
     document.querySelectorAll('[data-scenery-status]').forEach(el=>{el.textContent=sceneryMessage(scenery,{loading:sceneryLoading,failed:sceneryFailed,night});});
     mount.dataset.scenery=scenery;mount.dataset.sceneryLoading=String(sceneryLoading);
   }
-  const sunDirection=new THREE.Vector3();
+  const sunDirection=new THREE.Vector3(),backdropColour=new THREE.Color('#20272b');
   function applyEnvironment(){
-    const loaded=sceneryCache.get(scenery),active=!!loaded&&!sceneryLoading&&!sceneryFailed&&!night,config=SCENERIES[scenery];
-    // Previews switch scenery without reloading, so each panorama keeps its own floor.
-    for(const [id,entry] of sceneryCache)if(entry.skybox)entry.skybox.visible=active&&id===scenery;
-    scene.environment=active?loaded.environment.texture:fallbackEnvironment.texture;
-    scene.environmentRotation.set(0,active?config.rotation:0,0);
-    // Exposure is the photograph's own: background and car share one scale.
-    renderer.toneMappingExposure=active?config.exposure:.95;
-    scene.background.set(night?'#10191f':'#20272b');
-    floor.material=night?nightFloor:dayFloor;road.visible=false;
-    dayFloor.opacity=active?config.shadow:.19;
-    hemi.groundColor.set('#747572');
-    hemi.intensity=night?.12:active?0:1.35;
-    // The sun's measured direction, turned with the panorama.
-    if(active&&config.sun)sunDirection.fromArray(config.sun.direction);else if(active)sunDirection.fromArray(config.key);else sunDirection.set(3,7,5).normalize();
-    sunDirection.applyAxisAngle(THREE.Object3D.DEFAULT_UP,active?config.rotation:0);
+    const config=SCENERIES[scenery],loaded=sceneryCache.get(scenery);
+    // Outdoor: photographed backdrop and light with a real ground. Garage (also the
+    // fallback while a scene loads or after it fails): the modelled workshop.
+    const outdoor=!night&&!!config.file&&!!loaded?.ground&&!sceneryLoading&&!sceneryFailed,garage=!night&&!outdoor;
+    for(const [id,entry] of sceneryCache)if(entry.ground)entry.ground.visible=outdoor&&id===scenery;
+    workshop.root.visible=garage;workshopLights.forEach(light=>{light.visible=garage;});
+    if(outdoor){
+      // Drawn at infinity: sky, mountains and buildings keep their place as the car turns.
+      scene.background=loaded.texture;scene.backgroundRotation.set(0,config.rotation,0);
+      scene.environment=loaded.environment.texture;scene.environmentRotation.set(0,config.rotation,0);
+    }else{
+      scene.background=backdropColour.set(night?'#10191f':'#20272b');
+      scene.environment=garage&&workshopEnvironment?workshopEnvironment.texture:fallbackEnvironment.texture;scene.environmentRotation.set(0,0,0);
+    }
+    // Exposure is the photograph's own outdoors: backdrop and car share one scale.
+    renderer.toneMappingExposure=outdoor?config.exposure:garage?1.10:.95;
+    floor.visible=!outdoor;floor.material=night?nightFloor:workshop.floorMaterial;road.visible=false;
+    hemi.groundColor.set(garage?'#969694':'#747572');
+    hemi.intensity=night?.12:outdoor?0:workshopEnvironment?1.05:1.35;
+    // Outdoors: the sun's measured direction, turned with the panorama. Garage: the bay opening.
+    if(outdoor&&config.sun)sunDirection.fromArray(config.sun.direction);else if(outdoor)sunDirection.fromArray(config.key);else sunDirection.fromArray(WORKSHOP_LIGHT_SOURCES[0].position).normalize();
+    sunDirection.applyAxisAngle(THREE.Object3D.DEFAULT_UP,outdoor?config.rotation:0);
     sun.position.copy(sunDirection).multiplyScalar(9);
-    if(active&&config.sun){const [r,g,b]=config.sun.irradiance,peak=Math.max(r,g,b);sun.color.setRGB(r/peak,g/peak,b/peak,THREE.LinearSRGBColorSpace);sun.intensity=peak*config.sunScale;}
-    // Sunless scenes: the light only feeds the shadow-catcher floor, not the car.
-    else {sun.color.set('#fffdf8');sun.intensity=night?.06:active?.0001:2.2;}
-    // A real sun casts a firmer edge; overhead garage panels and shade only a soft one.
-    sun.shadow.radius=active&&config.sun?5:16;sun.shadow.normalBias=.004;sun.shadow.bias=-.00015;
-    scene.environmentIntensity=night?.12:active?1:.7;
+    if(outdoor&&config.sun){const [r,g,b]=config.sun.irradiance,peak=Math.max(r,g,b);sun.color.setRGB(r/peak,g/peak,b/peak,THREE.LinearSRGBColorSpace);sun.intensity=peak*config.sunScale;}
+    // Sunless outdoor scenes: a faint overhead light only places the soft shadow.
+    else {sun.color.set('#fffdf8');sun.intensity=night?.06:outdoor?.35:1.35;}
+    // A real sun casts a firmer edge; the garage opening and shade only a soft one.
+    sun.shadow.radius=outdoor&&config.sun?5:16;sun.shadow.normalBias=garage?.018:.004;sun.shadow.bias=garage?-.0003:-.00015;
+    scene.environmentIntensity=night?.12:outdoor?1:workshopEnvironment?.8:.7;
     updateSceneryUI();dirty=true;
   }
   new MutationObserver(applyEnvironment).observe(document.documentElement,{attributes:true,attributeFilter:['data-ui-theme']});
   async function setScenery(value){
-    const id=validScenery(value),request=++sceneryRequest;
-    scenery=id;sceneryFailed=false;sceneryLoading=!sceneryCache.has(id);
+    const id=validScenery(value),request=++sceneryRequest,config=SCENERIES[id];
+    scenery=id;sceneryFailed=false;sceneryLoading=!!config.file&&!sceneryCache.has(id);
     applyEnvironment();
     try{
       if(sceneryLoading){
         // Ultra HDR JPEG: SDR image plus gain map, decoded to half-float radiance.
-        const texture=await new UltraHDRLoader().setDataType(THREE.HalfFloatType).loadAsync(sceneryURL(id,quality.hdri));
+        const [texture,ground]=await Promise.all([
+          new UltraHDRLoader().setDataType(THREE.HalfFloatType).loadAsync(sceneryURL(id,quality.hdri)),
+          createOutdoorGround(renderer,config.ground),
+        ]);
         texture.mapping=THREE.EquirectangularReflectionMapping;texture.needsUpdate=true;
-        if(request!==sceneryRequest){texture.dispose();return;}
+        if(request!==sceneryRequest){texture.dispose();ground.geometry.dispose();ground.material.dispose();return;}
         const generator=new THREE.PMREMGenerator(renderer);
-        const band=SCENERIES[id].reflectionBand;let environment;
-        if(band){
-          // A photographer's light band: a thin ring a few degrees below the horizon,
-          // present only in the reflections. Flat side panels reflect exactly that
-          // direction, so they carry a highlight line the low-contrast walls cannot give.
-          const lit=new THREE.Scene();lit.background=texture;
-          const r=20,[low,high]=band.elevation.map(deg=>r*Math.tan(THREE.MathUtils.degToRad(deg)));
-          const ring=new THREE.Mesh(new THREE.CylinderGeometry(r,r,high-low,96,1,true),new THREE.MeshBasicMaterial({color:new THREE.Color().setScalar(band.radiance),side:THREE.BackSide}));
-          ring.position.y=(low+high)/2;lit.add(ring);
-          environment=generator.fromScene(lit,0,.1,60);ring.geometry.dispose();ring.material.dispose();
-        }else environment=generator.fromEquirectangular(texture);
-        generator.dispose();
-        sceneryCache.set(id,{texture,environment});
+        const environment=generator.fromEquirectangular(texture);generator.dispose();
+        ground.visible=false;scene.add(ground);
+        sceneryCache.set(id,{texture,environment,ground});
       }
       if(request!==sceneryRequest)return;
-      const config=SCENERIES[id],entry=sceneryCache.get(id);
-      if(!entry.skybox){
-        // Project the panorama's floor at its camera height so the car stands on it.
-        const skybox=new GroundedSkybox(entry.texture,config.height,config.radius,96);
-        skybox.position.y=config.height-.004;skybox.material.envMapRotation.set(0,config.rotation,0);
-        softenGroundedSkybox(skybox,config.height);
-        skybox.renderOrder=-1;scene.add(skybox);entry.skybox=skybox;
-      }
       sceneryLoading=false;
       try{localStorage.setItem('thatsuvmod-scenery',id);}catch{/* Storage can be disabled. */}
     }catch{
@@ -696,12 +704,13 @@ if(renderer){
       document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b.dataset.camera===saved.view));
     }
   }
-  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady:sceneryCache.has('studio')||sceneryFailed,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
+  window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady:!!workshopEnvironment&&workshop.ready,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
   const previousGetState=window.jimny3D.getState;
   Object.assign(window.jimny3D,{beginPreview,endPreview,renderPreset});
-  window.jimny3D.getState=()=>({...previousGetState(),quality:quality.id,body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-10'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:!!sceneryCache.get(scenery)?.skybox?.visible,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
+  window.jimny3D.getState=()=>({...previousGetState(),quality:quality.id,body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-10'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:scenery==='studio'?workshop.root.visible:!!sceneryCache.get(scenery)?.ground?.visible,workshopReady:workshop.ready,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
   sync(window.getJimnyBuildState?.()||current);
   let savedScenery='studio';try{savedScenery=localStorage.getItem('thatsuvmod-scenery');}catch{/* Private mode fallback. */}
+  refreshWorkshopEnvironment();
   setScenery(savedScenery);
   mount.classList.add('ready');
   async function loadModel(body='5door'){

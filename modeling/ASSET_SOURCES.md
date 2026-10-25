@@ -10,7 +10,7 @@ The new cards are unenhanced renders of the actual configurable model. Cabin che
 
 ## Generated workshop material and course concepts, 21 October 2026
 
-Retired 24 October 2026 (Brief 3): the modelled workshop, its lights and `workshop-concrete.webp` were replaced by the photographed Autoshop 01 HDRI; see `modeling/SCENERY_SOURCES.md`. The notes below are kept as history.
+Restored 25 October 2026: the modelled workshop, its lights and `workshop-concrete.webp` are the Garage again (the photographed replacement stretched objects near its camera); see `modeling/SCENERY_SOURCES.md`.
 
 `assets/environments/workshop-concrete.webp` is an original synthetic diffuse concrete texture created with the built-in image-generation tool, then encoded as WebP. It is not a third-party photograph, vehicle image or supplier product picture. The 3D stage supplies perspective, geometry, lighting and shadows; procedural surface maps remain separate. Exact prompt: `modeling/verification/workshop-texture-prompt.md`.
 
