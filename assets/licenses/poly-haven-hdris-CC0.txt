@@ -1,10 +1,14 @@
-Poly Haven HDRIs used by the 3D Garage scenery
-Autoshop 01 (Oliksiy Yakovlyev): https://polyhaven.com/a/autoshop_01
+Poly Haven assets used by the 3D Garage scenery
+HDRIs (backdrop and light):
 Kiara 5 Noon (Greg Zaal): https://polyhaven.com/a/kiara_5_noon
-Palermo Square (Andreas Mischok): https://polyhaven.com/a/palermo_square
+Rotes Rathaus (Alexander Scholten): https://polyhaven.com/a/rotes_rathaus
 Quarry 02 (Sergej Majboroda): https://polyhaven.com/a/quarry_02
+Ground textures:
+Dry Ground Rocks (Rob Tuytel): https://polyhaven.com/a/dry_ground_rocks
+Floor Pavement (Charlotte Baglioni, Dario Barresi): https://polyhaven.com/a/floor_pavement
+Aerial Sand (Rob Tuytel): https://polyhaven.com/a/aerial_sand
 Asset licence: CC0 1.0 Universal
 https://creativecommons.org/publicdomain/zero/1.0/
 https://polyhaven.com/license
 
-The files are converted to Ultra HDR JPEGs (gain map) and served locally.
+HDRIs are converted to Ultra HDR JPEGs (gain map) and textures to WebP; all are served locally.

@@ -20,9 +20,10 @@ test('both bodies have three distinct tyre-tread renders from their actual live 
  }
 });
 test('preview material and accessory renderer fingerprints are current',()=>{
-  assert.equal(Object.keys(manifest.renderSources).length,28);
+  assert.equal(Object.keys(manifest.renderSources).length,31);
   for(const file of ['src/garage-cameras.js','src/trail/player.js','src/trail/replay.js'])assert.ok(manifest.renderSources[file]);
-  assert.ok(manifest.renderSources['src/scenery.js'],'HDRI scenery lights every preview');
+  assert.ok(manifest.renderSources['src/scenery.js'],'scenery lights every preview');
+  assert.ok(manifest.renderSources['src/workshop-stage.js'],'previews are rendered in the modelled Garage');
   assert.ok(manifest.renderSources['src/viewer3d.js'],'Camera framing must invalidate old product previews');
   assert.ok(manifest.renderSources['src/surface-finishes.js']);
   assert.ok(manifest.renderSources['assets/surface-style-state.js']);
