@@ -5,7 +5,7 @@
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
-    "src/viewer3d.js": "947a8c1df822a5f8046fa1d5fe0ed892810adf6785e3fd87ee0f46e4638c463f",
+    "src/viewer3d.js": "a72dfc4a91cf9734f5225a7adb297673e4247b8b46afb0c79e4382d85334717e",
     "src/refined-parts.js": "67124a252e652c0587bdb780029897922712c9d72a1efa29bf689cca99472ad3",
     "src/decals.js": "ab5112e00b6affdca87142ab9885d2def01d43be47a244bee49047bb3553ccf1",
     "src/accessories.js": "6039126f2417f6ad93a7f05c804ec5a869e7b0ed98220300003f13b02ebfdc59",
@@ -27,7 +27,7 @@
     "src/practical-accessories.js": "155f3a7b3458b44ec43b51d260e44e02c848130a438bb4f29a266cf86ffe8de9",
     "assets/practical-accessories-data.js": "04dcd1aa3bf344bfc04adb550640d4517e790949e16f9eb067a22cf0abf3e78b",
     "src/garage-cameras.js": "168793be7170dd446562db56fc081299b6116957c87d23b7dcf053a824ab2145",
-    "src/trail/player.js": "5b439799416a81826eb0bb07afb2c89edc9d9f42cadca53f10caffeb5aa234e5",
+    "src/trail/player.js": "c3b2374dde978ab8d415c7021293c1a56fcfc9a613dfbe6444cc314a3b42fe4e",
     "src/trail/replay.js": "c61c9be1184247b9a8844bc69968dba38b67ba41ff47d9c75fa863c6fe55e223",
     "src/scenery.js": "6c67b6b5d62e7b702a7451c3426cc48874e4a75efff6c704cfce3a747b9b1f1d",
     "src/physical-materials.js": "c076249e39004e1edd5beeb9d9eab71c002e5484c050f7a8cd14e449fd089373",

@@ -23,6 +23,7 @@ import {separateCabinControls,createCabinControls} from './cabin.js';
 import {cockpitPose,bonnetPose,DRIVING_CAMERAS,normalizeDrivingCamera,OVERVIEW} from './cockpit-camera.js';
 import {createVehicleMirrors} from './mirrors.js';
 import {applyWheelFinish,applyWheelColour} from '../wheel-finishes.js';
+import {applyWheelDesign,disposeWheelDesigns} from '../wheel-designs.js';
 import {createSurfaceStyler,protectMirrorSurfaces} from '../surface-finishes.js';
 import {applyGrilleColours} from '../grille-colours.js';
 import {fitSteeringBadge} from '../steering-badge.js';
@@ -93,7 +94,7 @@ export function createTrailScene(mount){
     const buildKey=JSON.stringify(build);if(currentBody===body&&currentBuildKey===buildKey)return;
     const path=body==='3door'?__JIMNY_SWB_URL__:__JIMNY_MODEL_URL__;
     const [gltf]=await Promise.all([loadBodyModel(path),preloadRockAssets(),preloadVegetationAssets(),preloadAuthoredPines()]);gltf.scene.updateMatrixWorld(true);surfaceStyler.clear();wheelRoot.userData.finishTarget='wheels';
-mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose();dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);wheels=[];windowMaterials=[];car.position.set(0,0,0);car.rotation.set(0,0,0);bodyRig.position.set(0,0,0);bodyRig.rotation.set(0,0,0);car.updateMatrixWorld(true);
+mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose();dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeWheelDesigns(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);wheels=[];windowMaterials=[];car.position.set(0,0,0);car.rotation.set(0,0,0);bodyRig.position.set(0,0,0);bodyRig.rotation.set(0,0,0);car.updateMatrixWorld(true);
     const design={...(build.design||{}),drivingPreview:true},colour=typeof build.colour==='string'&&/^#[\da-f]{6}$/i.test(build.colour)?build.colour:'#728773';
     const paint=new T.MeshPhysicalMaterial({color:colour,roughness:design.finish==='matte'?.72:design.finish==='satin'?.42:.28,metalness:['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0,clearcoat:design.finish==='matte'?.04:design.finish==='satin'?.26:1,clearcoatRoughness:design.finish==='satin'?.34:.22});
     paint.envMap=paintEnvironment;paint.envMapIntensity=.40;paint.userData.vehiclePaint=true;
@@ -122,13 +123,13 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
       });
     }
     if(design.partColours?.wheels)applyWheelColour(wheelRoot,design.partColours.wheels);else applyWheelFinish(wheelRoot,design.wheelFinish);
-    applyCatalogueWheel(wheelRoot,body==='5door'&&parts.has('suzuki_nomade_steelwheel'));
+    const steelWheel=body==='5door'&&parts.has('suzuki_nomade_steelwheel');applyCatalogueWheel(wheelRoot,steelWheel);if(!steelWheel)applyWheelDesign(wheelRoot,design);
     applyTyreType(wheelRoot,tyreType);
     const badge=extractFactoryBadge(gltf.scene.getObjectByName('OEMGrille'));
     applyGrilleColours(gltf.scene.getObjectByName(selectedGrille),design,colour,body);
     fitSteeringBadge(gltf.scene.getObjectByName('Cabin'),badge,body);
     for(const name of ['BodyShell','RoofShell',selectedGrille,...(parts.has('bull')||parts.has('autostylenn_bumper_v1')?[]:['StockBumper']),...(parts.has('headlamps')?[]:['StockHeadlamps']),'Cabin','SpareWheel']){const o=gltf.scene.getObjectByName(name);if(o)bodyRig.attach(o);}
-    const spare=bodyRig.getObjectByName('SpareWheel');if(design.partColours?.wheels)applyWheelColour(spare,design.partColours.wheels);else applyWheelFinish(spare,design.wheelFinish);
+    const spare=bodyRig.getObjectByName('SpareWheel');if(design.partColours?.wheels)applyWheelColour(spare,design.partColours.wheels);else applyWheelFinish(spare,design.wheelFinish);applyWheelDesign(spare,design);
     const accessories=new T.Group();accessories.name='GarageAccessories';bodyRig.add(accessories);const materials=accessoryMaterials();materials.upholstery.color.set(({tan:'#a38b69',saddle:'#854d31',olive:'#59624d',stone:'#b3b1a5',black:'#303332'})[design.cabin]||'#a38b69');
     const emitters=Object.fromEntries(Object.entries(LIGHT_PROFILES).map(([id,p])=>[id,new T.MeshStandardMaterial({color:p.colour,roughness:.12,metalness:.1})]));
     visibleParts=accessoryBuilder({accessoryRig:accessories,mats:materials,detailed:{sBadgeGeometry:badge},modelBody:body,colour,effectiveDesign:design,lampEmitters:emitters})(parts,design);
@@ -153,7 +154,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     const cp=car.position.clone(),cr=car.rotation.clone(),br=bodyRig.rotation.clone();car.position.set(0,0,0);car.rotation.set(0,0,0);bodyRig.rotation.set(0,0,0);car.updateMatrixWorld(true);
     // Human avatars are deliberately retired from this phase. Keep player
     // identity/name decals, but never load a saved avatar or a fallback body.
-    playerObjects=[createNameDecals(profile.decal?profile.name:'',currentBody,paintMeshes,bodyRig)];bodyRig.add(...playerObjects);car.position.copy(cp);car.rotation.copy(cr);bodyRig.rotation.copy(br);car.updateMatrixWorld(true);
+    playerObjects=[createNameDecals(profile.decal?profile.name:'',currentBody,paintMeshes,bodyRig,profile.nameStyle||{})];bodyRig.add(...playerObjects);car.position.copy(cp);car.rotation.copy(cr);bodyRig.rotation.copy(br);car.updateMatrixWorld(true);
   }
   function setWorld(nextWorld,nextGates){
     dispose(worldRoot);world=nextWorld;gates=[];const course=world.course,isSand=course.theme==='sand',isUrban=course.theme==='urban';
@@ -238,5 +239,5 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     endCapture(){capturing=false;renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));resize();firstCamera=true;lastShot='';},
     setCamera(mode){cameraMode=normalizeDrivingCamera(mode);firstCamera=true;return cameraMode;},
     cycleCamera(){const modes=DRIVING_CAMERAS;cameraMode=modes[(modes.indexOf(cameraMode)+1)%modes.length];firstCamera=true;return cameraMode;},
-    cameraState:()=>({scannedRocks:rockAssetsReady(),mode:cameraMode,position:camera.position.toArray(),target:look.toArray(),cabin:cabinControls?.snapshot(),mirrors:mirrors?.snapshot(),body:currentBody,parts:[...visibleParts],wheelRadius:visualWheelRadius,bodyLift:bodyRig.position.y,tyreType,surfaceStyles:surfaceStyler.snapshot(),thumbnail:{visible:thumbnailVisible,wheel:wheelPreview,frames:thumbnailFrames,position:cabinCamera.position.toArray()}}),resetCamera(){firstCamera=true;},info:()=>renderer.info.render,dispose(){surfaceStyler.clear();disposed=true;skyRequest++;skies.forEach(entry=>{entry.texture.dispose();entry.environment.dispose();});skies.clear();skyDome.geometry.dispose();skyDome.material.dispose();observer.disconnect();mirrors?.dispose();cabinControls?.dispose();cabinMaterials?.dispose();cabinTarget.dispose();dispose(worldRoot);dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);disposeRockAssets();disposeVegetationAssets();disposeAuthoredPineAssets();env.dispose();daylightEnvironment?.dispose();renderer.dispose();}};
+    cameraState:()=>({scannedRocks:rockAssetsReady(),mode:cameraMode,position:camera.position.toArray(),target:look.toArray(),cabin:cabinControls?.snapshot(),mirrors:mirrors?.snapshot(),body:currentBody,parts:[...visibleParts],wheelRadius:visualWheelRadius,bodyLift:bodyRig.position.y,tyreType,surfaceStyles:surfaceStyler.snapshot(),thumbnail:{visible:thumbnailVisible,wheel:wheelPreview,frames:thumbnailFrames,position:cabinCamera.position.toArray()}}),resetCamera(){firstCamera=true;},info:()=>renderer.info.render,dispose(){surfaceStyler.clear();disposed=true;skyRequest++;skies.forEach(entry=>{entry.texture.dispose();entry.environment.dispose();});skies.clear();skyDome.geometry.dispose();skyDome.material.dispose();observer.disconnect();mirrors?.dispose();cabinControls?.dispose();cabinMaterials?.dispose();cabinTarget.dispose();dispose(worldRoot);dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeWheelDesigns(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);disposeRockAssets();disposeVegetationAssets();disposeAuthoredPineAssets();env.dispose();daylightEnvironment?.dispose();renderer.dispose();}};
 }

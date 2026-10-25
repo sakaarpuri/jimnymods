@@ -17,6 +17,28 @@
  function syncName(){if(document.activeElement!==nameInput)nameInput.value=designState.nameDecal||'';nameForm.querySelector('[data-clear-name]').disabled=!designState.nameDecal;}
  nameForm.onsubmit=e=>{e.preventDefault();rememberUndo();designState.nameDecal=Array.from(nameInput.value.normalize('NFC').replace(/[^\p{L}\p{M}\p{N} ._'’-]/gu,'').trim()).slice(0,20).join('');nameInput.value=designState.nameDecal;update();window.jimny3D?.view('side');nameStatus.textContent=designState.nameDecal?'Name applied to both front doors. Saved with your build; visible in exports.':'Enter a name to add a door decal.';syncName();};
  nameForm.querySelector('[data-clear-name]').onclick=()=>{rememberUndo();designState.nameDecal='';nameInput.value='';update();nameStatus.textContent='Name decal removed.';syncName();};window.addEventListener('jimny-build-change',syncName);syncName();
+ // Lettering style and size for the door name. Each style previews the typed name
+ // in its own font; choosing one applies immediately and is saved with the build.
+ const nameStyles=globalThis.JimnyNameDecalStyles,nameStyle=document.createElement('div');nameStyle.className='name-decal-style';
+ nameStyle.innerHTML=`<fieldset class="name-decal-fonts"><legend>Lettering</legend><div>${nameStyles.FONTS.map(f=>`<button type="button" data-name-font="${f.id}" aria-pressed="false"><span class="name-font-sample" style="font-family:'${f.family}',sans-serif;font-weight:${f.weight}"></span><small>${esc(f.label)}</small></button>`).join('')}</div></fieldset><fieldset class="name-decal-sizes"><legend>Size on the door</legend><div>${nameStyles.SIZES.map(z=>`<button type="button" data-name-size="${z.id}" aria-pressed="false" aria-label="${esc(z.name)}">${esc(z.label)}</button>`).join('')}</div></fieldset>`;
+ nameForm.querySelector('.name-decal-status').before(nameStyle);
+ nameStyles.FONTS.forEach(f=>nameStyles.load(f.id));
+ function syncNameStyle(){
+  const chosen=nameStyles.clean(designState),sample=(nameInput.value.trim()||designState.nameDecal||'Your name').slice(0,20);
+  nameStyle.querySelectorAll('[data-name-font]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.nameFont===chosen.nameFont));b.querySelector('.name-font-sample').textContent=sample;});
+  nameStyle.querySelectorAll('[data-name-size]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.nameSize===chosen.nameSize)));
+ }
+ nameInput.addEventListener('input',syncNameStyle);window.addEventListener('jimny-build-change',syncNameStyle);
+ nameStyle.addEventListener('click',e=>{
+  const fontButton=e.target.closest('[data-name-font]'),sizeButton=e.target.closest('[data-name-size]');if(!fontButton&&!sizeButton)return;
+  rememberUndo();
+  if(fontButton)designState.nameFont=fontButton.dataset.nameFont;else designState.nameSize=sizeButton.dataset.nameSize;
+  // A typed but unapplied name is applied with its first style choice.
+  if(!designState.nameDecal&&nameInput.value.trim()){nameForm.requestSubmit();return;}
+  update();window.jimny3D?.view('side');syncNameStyle();
+  if(designState.nameDecal){const c=nameStyles.clean(designState);nameStatus.textContent=`${nameStyles.font(c.nameFont).label} lettering, ${nameStyles.size(c.nameSize).name.toLowerCase()} size. Saved with your build.`;}
+ });
+ syncNameStyle();
  document.addEventListener('click',e=>{if(e.target.closest('[data-remove-name-decal]'))nameForm.querySelector('[data-clear-name]').click();if(e.target.closest('[data-edit-name-decal]')){window.JimnyPartEditor?.close();openGarageCategory('graphics');document.querySelector('.planner-main').scrollTop=0;nameInput.focus({preventScroll:true});}});
  // The category picker and the direct-on-car editor are separate entry paths.
  // Both must show the visual choice before optional paint/finish controls.

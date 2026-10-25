@@ -319,3 +319,40 @@ html[data-ui-theme] #garage .garage-looks-launch:hover,html[data-ui-theme] #gara
   html[data-ui-theme] body.phone-garage #garage .garage-looks-launch{width:auto;max-width:none;margin:0!important;padding:0 14px!important;min-height:40px!important;font-size:15px!important}
   html[data-ui-theme] body.phone-garage #garage .garage-looks-launch svg{display:inline-block}
 }
+
+/* ---------- Door name decal: lettering and size ---------- */
+html[data-ui-theme] #garage .garage-name-decal{margin:24px 0 0!important;padding:20px 0 0!important;border:0!important;border-top:1px solid var(--a-line)!important}
+html[data-ui-theme] #garage .garage-name-decal label{color:var(--a-text)!important;font:600 17px var(--font-body)!important}
+html[data-ui-theme] #garage .garage-name-decal label small{display:block;margin-top:2px;color:var(--a-muted);font-weight:400;font-size:14px}
+html[data-ui-theme] #garage .garage-name-decal input{min-height:48px;border:1px solid var(--a-line-strong)!important;border-radius:12px!important;background:var(--a-panel2)!important;color:var(--a-text)!important;font:500 16px var(--font-body)!important}
+html[data-ui-theme] #garage .garage-name-decal button[type=submit]{min-height:48px!important;border:0!important;border-radius:12px!important;background:var(--a-lime)!important;color:var(--a-on-lime)!important;font:700 16px var(--font-body)!important}
+html[data-ui-theme] #garage .garage-name-decal [data-clear-name]{min-height:48px!important;border:1px solid var(--a-line-strong)!important;border-radius:12px!important;background:transparent!important;color:var(--a-text)!important;font:500 15px var(--font-body)!important}
+.name-decal-style{display:grid;gap:16px;margin-top:16px}
+.name-decal-style fieldset{margin:0;padding:0;border:0;min-width:0}
+.name-decal-style legend{margin-bottom:8px;padding:0;color:var(--a-muted);font:600 14px var(--font-body)}
+.name-decal-fonts>div{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.name-decal-fonts button{display:grid;gap:4px;justify-items:start;min-width:0;min-height:72px;padding:10px 14px;border:2px solid var(--a-line);border-radius:14px;background:var(--a-panel);color:var(--a-text);text-align:left;cursor:pointer}
+.name-decal-fonts button:hover{border-color:var(--a-line-strong)}
+.name-decal-fonts button[aria-pressed=true]{border-color:var(--a-lime)}
+:root[data-ui-theme=daylight] .name-decal-fonts button[aria-pressed=true]{border-color:var(--a-accent-text)}
+.name-font-sample{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:24px;line-height:1.2}
+.name-decal-fonts small{color:var(--a-muted);font:500 13px var(--font-body)}
+.name-decal-sizes>div{display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--a-panel2)}
+.name-decal-sizes button{min-width:52px;min-height:44px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--a-muted);font:600 15px var(--font-body);cursor:pointer}
+.name-decal-sizes button[aria-pressed=true]{background:var(--a-chip);color:var(--a-on-chip)}
+.name-decal-style button:focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+
+/* ---------- Wheel style picker ---------- */
+html[data-ui-theme] #garage .garage-wheel-designs{margin:28px 0 0}
+html[data-ui-theme] #garage .garage-wheel-designs h2{margin:0 0 12px!important;color:var(--a-text)!important;font:700 20px var(--font-display)!important;letter-spacing:-.01em!important;text-transform:none!important}
+.wheel-design-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.wheel-design{display:grid;justify-items:center;gap:4px;min-width:0;padding:12px 8px 12px;border:2px solid var(--a-line);border-radius:16px;background:var(--a-panel);color:var(--a-text);text-align:center;cursor:pointer}
+.wheel-design svg{display:block;width:84px;height:84px;color:#c9ced0}
+.wheel-design span{font:600 15px var(--font-body)}
+.wheel-design small{color:var(--a-muted);font:500 13px var(--font-body)}
+.wheel-design:hover{border-color:var(--a-line-strong)}
+.wheel-design[aria-pressed=true]{border-color:var(--a-lime)}
+:root[data-ui-theme=daylight] .wheel-design[aria-pressed=true]{border-color:var(--a-accent-text)}
+.wheel-design:focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+.wheel-design:disabled{opacity:.55;cursor:default}
+@media(max-width:899px){.wheel-design-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

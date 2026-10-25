@@ -141,14 +141,28 @@ export function updateDriver(driver,state={},firstPerson=false){
     arm.forearm.position.copy(hand).add(arm.elbow).multiplyScalar(.5);arm.forearm.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),delta.clone().normalize());arm.forearm.scale.y=delta.length()/arm.length;
   }
 }
-export function createNameDecals(name,body,paintMeshes,parent){
+// style: {nameFont,nameSize} from the saved design (see assets/name-decal-styles.js).
+// onRedraw runs once a lazily loaded font arrives, so on-demand renderers can repaint.
+export function createNameDecals(name,body,paintMeshes,parent,style={},onRedraw=()=>{}){
   const root=new T.Group();root.name='PlayerNameDecals';if(!name)return root;
-  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=192;const ctx=canvas.getContext('2d');ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 100px sans-serif';ctx.lineJoin='round';ctx.strokeStyle='#182622';ctx.lineWidth=9;ctx.strokeText(name,512,96,960);ctx.fillStyle='#fffdf2';ctx.fillText(name,512,96,960);
+  const styles=globalThis.JimnyNameDecalStyles,chosen=styles?styles.clean(style):{nameFont:'clean',nameSize:'medium'};
+  const scale=styles?styles.size(chosen.nameSize).scale:1;
+  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=192;const ctx=canvas.getContext('2d');
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);ctx.textAlign='center';ctx.textBaseline='middle';
+    // Fit the lettering to the decal: short names grow to door-decal height, long ones narrow.
+    const font=px=>styles?styles.css(chosen.nameFont,px):`700 ${px}px sans-serif`;
+    ctx.font=font(100);const px=Math.max(56,Math.min(150,100*900/Math.max(1,ctx.measureText(name).width)));
+    ctx.font=font(px);ctx.lineJoin='round';ctx.strokeStyle='#182622';ctx.lineWidth=Math.max(7,px*.09);
+    ctx.strokeText(name,512,98,960);ctx.fillStyle='#fffdf2';ctx.fillText(name,512,98,960);
+  }
+  draw();
   const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;
+  styles?.load(chosen.nameFont).then(ok=>{if(!ok)return;draw();texture.needsUpdate=true;onRedraw();});
   const material=new T.MeshStandardMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-5,roughness:.65});parent.updateMatrixWorld(true);
   material.userData.disposableMaterial=true;
   for(const side of [-1,1])for(const target of paintMeshes){
-    const position=parent.localToWorld(new T.Vector3(side*.748,.99,body==='3door'?-.07:.13)),orientation=new T.Euler(0,side*Math.PI/2,0),geo=new DecalGeometry(target,position,orientation,new T.Vector3(.69,.13,.13));geo.applyMatrix4(parent.matrixWorld.clone().invert());if(geo.attributes.position.count){const m=new T.Mesh(geo,material);m.renderOrder=5;root.add(m);}else geo.dispose();
+    const position=parent.localToWorld(new T.Vector3(side*.748,.99,body==='3door'?-.07:.13)),orientation=new T.Euler(0,side*Math.PI/2,0),geo=new DecalGeometry(target,position,orientation,new T.Vector3(.69*scale,.13*scale,.13));geo.applyMatrix4(parent.matrixWorld.clone().invert());if(geo.attributes.position.count){const m=new T.Mesh(geo,material);m.renderOrder=5;root.add(m);}else geo.dispose();
   }
   return root;
 }
