@@ -62,6 +62,14 @@ I'm pulling the header and tokens out of Task 4 so the welcome and Garage are bu
 - The trip planner keeps its photography and spacing, and takes Direction A tokens, type and the shared header.
 - The game gets the shared header and tokens, the all-caps rally styling goes, and it's renamed per question 2.
 
+### 5. Parts and Fitters (frames: `jimnygami Parts and Fitters frames/`)
+Branch `brief2/5-parts-fitters`. The Parts and Fitters & sellers pages follow the six new frames.
+- **Parts:** search first, one row of category pills with counts, a filter column on desktop and a Filters sheet on phone. Cards show image, badge, seller, one fit line and two buttons. The photo toggle, the fitment dropdown and the stacked disclaimers are gone; the 3D explainer and the two archived sources sit behind one "How listings, prices and 3D previews work" link. Counts come from the catalogue, never from the frames.
+- **Part detail:** a drawer on desktop and a full screen on phone, with Where to buy and Who can fit it (linking to Fitters). Prices show only where the data has one; otherwise "price on seller site".
+- **Fitters:** Fitters/Sellers toggle, city pills with counts, "Can work on my build", cards that list the work each workshop names (build jobs highlighted), a shortlist with "Copy quote request" and a short "Before you book" checklist. "Sellers" is the existing buying-options list in the same look.
+- **Work tags** are read from each listing's own description (`assets/fitter-work.js`). A sentence that denies a skill never adds a tag. Listings that name no work show no tags, and an owner override table exists for any decision made later.
+- **Departures from the frames:** phone Fitters keeps the search box; phone workshop cards hide the description (the badge still says what kind of listing it is); "Include other body styles" and "Saved" sit under Show only, so no earlier control is lost.
+
 ## Verification for every task
 - Every task is checked at 375×812 and 1440×900 in the browser pane, in both Rally dark and Daylight.
 - **Regression pass:** 3D viewer, part pick, paint, decals, autosave across reload, save/load a version, share link round-trip, the game loading the saved build, directory search and filters, owner-tools calculations.

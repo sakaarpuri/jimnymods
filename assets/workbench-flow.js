@@ -55,8 +55,6 @@
  }
  document.addEventListener('click',e=>{if(!e.target.closest('[data-open-grille-appearance]'))return;grilleAppearance.open=true;grilleAppearance.scrollIntoView({block:'start',behavior:'instant'});grilleAppearance.querySelector('summary').focus({preventScroll:true});});
  syncGarageCategory();
- const directory=document.createElement('nav');directory.className='directory-switch';directory.dataset.mode='sources';directory.setAttribute('aria-label','Business directory');directory.innerHTML='<button type="button" data-mode-select="sources">Vendors</button><button type="button" data-mode-select="fitters">Fitters</button>';main.prepend(directory);
- const fitterSwitch=directory.cloneNode(true);fitterSwitch.dataset.mode='fitters';directory.after(fitterSwitch);
  const overview=document.createElement('section');overview.id='buildOverview';overview.setAttribute('aria-labelledby','buildOverviewTitle');$('garageChoices').before(overview);
  let origin='';try{origin=sessionStorage.getItem('jimnygami-build-origin')||'';}catch{}
  const setOrigin=name=>{origin=name||'';try{sessionStorage.setItem('jimnygami-build-origin',origin);}catch{}};
