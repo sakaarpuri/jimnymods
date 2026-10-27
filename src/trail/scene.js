@@ -3,6 +3,7 @@ import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {loadBodyModel} from '../model-loader.js';
+import {applyMaterialProfile,paintFinish} from '../physical-materials.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {RGBELoader} from 'three/addons/loaders/RGBELoader.js';
 import {Sky} from 'three/addons/objects/Sky.js';
@@ -96,9 +97,9 @@ export function createTrailScene(mount){
     const [gltf]=await Promise.all([loadBodyModel(path),preloadRockAssets(),preloadVegetationAssets(),preloadAuthoredPines()]);gltf.scene.updateMatrixWorld(true);surfaceStyler.clear();wheelRoot.userData.finishTarget='wheels';
 mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose();dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeWheelDesigns(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);wheels=[];windowMaterials=[];car.position.set(0,0,0);car.rotation.set(0,0,0);bodyRig.position.set(0,0,0);bodyRig.rotation.set(0,0,0);car.updateMatrixWorld(true);
     const design={...(build.design||{}),drivingPreview:true},colour=typeof build.colour==='string'&&/^#[\da-f]{6}$/i.test(build.colour)?build.colour:'#728773';
-    const paint=new T.MeshPhysicalMaterial({color:colour,roughness:design.finish==='matte'?.72:design.finish==='satin'?.42:.28,metalness:['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0,clearcoat:design.finish==='matte'?.04:design.finish==='satin'?.26:1,clearcoatRoughness:design.finish==='satin'?.34:.22});
+    const paint=new T.MeshPhysicalMaterial({color:colour,...paintFinish(design.finish),metalness:['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0});
     paint.envMap=paintEnvironment;paint.envMapIntensity=.40;paint.userData.vehiclePaint=true;
-    const roof=paint.clone();if(design.finish==='twotone'){roof.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');roof.envMapIntensity=.18;roof.roughness=.30;roof.clearcoat=.28;}
+    const roof=paint.clone();if(design.finish==='twotone'){roof.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');roof.envMapIntensity=.18;}
     const parts=new Set(resolvePreviewParts(build.parts||[],window.JIMNY_MARKET_PRODUCTS||[]).filter(id=>body!=='3door'||['tires','snorkel','mod_reardoor_molle','skinnyjim_backbone','skinnyjim_jerry_tray','seats','doortrim'].includes(id)||globalThis.JimnyPracticalParts?.[id]?.bodyStyles.includes(body)));
     tyreType=resolveTyreType(design,parts);if(tyreType==='highway')parts.delete('tires');else parts.add('tires');
     // Geometry follows the saved Garage stance. The solver deliberately retains
@@ -107,7 +108,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     const visualBodyLift=(parts.has('lift')?.055:0)+(visualWheelRadius-.3465);
     const grille=parts.has('autostylenn_big_suzuki_grille')?'block':parts.has('autostylenn_cursive_grille')?'script':parts.has('autostylenn_s_grille')?'smesh':design.grille;
     const selectedGrille={oem:'OEMGrille',block:'BlockGrille',rhino:'RhinoGrille',script:'ScriptGrille',chrome:'GlossGrille',delete:'DeleteGrille',classic:'ClassicGrille',mesh:'MeshGrille',smesh:'MeshGrille'}[grille]||'OEMGrille';
-    gltf.scene.traverse(o=>{if(!o.isMesh)return;const material=o.material;if(material.name==='BodyPaint')o.material=paint;else if(material.name==='RoofPaint')o.material=roof;else if(material.name==='WindowGlass'){o.material=new T.MeshPhysicalMaterial({color:'#3f585b',roughness:.09,metalness:0,transparent:true,opacity:.63,depthWrite:false});o.material.name='WindowGlass';}o.castShadow=!o.material.transparent;o.receiveShadow=true;});
+    gltf.scene.traverse(o=>{if(!o.isMesh)return;const material=o.material;applyMaterialProfile(material);if(['BrightChrome','MachinedAlloy','GrilleLettering','OpticalGlass'].includes(material.name))material.vertexColors=false;if(material.name==='BodyPaint')o.material=paint;else if(material.name==='RoofPaint')o.material=roof;else if(material.name==='WindowGlass'){o.material=new T.MeshPhysicalMaterial({color:'#3f585b',roughness:.09,metalness:0,transparent:true,opacity:.63,depthWrite:false});o.material.name='WindowGlass';}o.castShadow=!o.material.transparent&&material.name!=='IntakeShadow';o.receiveShadow=true;});
     const stock=gltf.scene.getObjectByName(parts.has('tires')?'AllTerrainWheels':'StockWheels'),wb=body==='3door'?2.25:2.59;
     // Split the baked four-wheel assembly spatially, retaining authored rims/tyres.
     for(let i=0;i<4;i++){

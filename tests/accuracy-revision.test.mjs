@@ -15,12 +15,12 @@ test('stock accessories do not place the obsolete blank overlay in front of the 
 
 async function model(body){const b=await readFile(new URL(`../assets/models/jimny-${body}-blender.glb`,import.meta.url));const root=(await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),'')).scene;root.updateMatrixWorld(true);return root;}
 for(const body of ['lwb','swb']){
- test(`${body}: compound windscreen has a restrained optical bow without changing the A-pillar rake`,async()=>{
+ test(`${body}: approved flat windscreen retains the A-pillar rake`,async()=>{
   const root=await model(body),glass=[];root.getObjectByName('BodyShell').traverse(o=>{if(o.isMesh&&o.material.name==='WindowGlass'){o.material.side=DoubleSide;glass.push(o);}});
   const offset=body==='swb'?-.17:0;
   const hit=(x,y)=>new Raycaster(new Vector3(x,y,1.1+offset),new Vector3(0,0,-1),0,.75).intersectObjects(glass,false)[0]?.point;
   const centre=hit(0,1.416),shoulder=hit(.58,1.416);assert(centre&&shoulder);
-  assert(centre.z-shoulder.z>.023&&centre.z-shoulder.z<.032,`Bow ${centre.z-shoulder.z}m should follow the revised compound glass rather than a flat sheet`);
+  assert(Math.abs(centre.z-shoulder.z)<.001,`The approved flat windscreen acquired a ${centre.z-shoulder.z}m bow`);
   const low=hit(.30,1.23),high=hit(.30,1.60);assert(low&&high);
   const lean=(low.z-high.z)/(high.y-low.y);assert(lean>.40&&lean<.49,`Coordinated windscreen rake ${lean} drifted`);
  });

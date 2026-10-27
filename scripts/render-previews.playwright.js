@@ -17,7 +17,7 @@ async (page, bodyFilter=null, mode='all') => {
       }
       const items=await p.evaluate(body=>[
         ...window.getJimnyPresets().map(p=>({...p,file:'preset-'+p.id})),
-        ...window.getJimnyPartPreviews().filter(p=>body==='5door'||['tires','seats','doortrim'].includes(p.id)).map(p=>({...p,file:'part-'+p.id,detail:body==='5door',angle:p.id==='tires'?'wheel-detail':p.angle})),
+        ...window.getJimnyPartPreviews().filter(p=>body==='5door'||['tires','seats','doortrim','snorkel'].includes(p.id)).map(p=>({...p,file:'part-'+p.id,detail:body==='5door',angle:p.id==='tires'?'wheel-detail':p.angle})),
         ...(body==='5door'?window.getJimnyWheelPreviews():[]),
         ...['highway','allterrain','mudterrain'].map(type=>({id:type,file:'tyre-'+type,parts:type==='highway'?[]:['tires'],colour:'#d9b744',design:{finish:'oem',decal:'none',grille:'oem',tyreType:type,wheelFinish:'oem'},angle:'wheel-detail'})),
         ...window.getJimnyStudioPreviews().map(p=>({...p,detail:p.file.startsWith('part-')})),

@@ -9,6 +9,8 @@ test('chrome, alloy, plastic and rubber read as different materials', () => {
   assert.equal(MATERIAL_PROFILES.BrightChrome.metalness, 1);
   assert.equal(MATERIAL_PROFILES.TyreRubber.metalness, 0);
   assert.equal(MATERIAL_PROFILES.MouldedPlastic.metalness, 0);
+  assert.equal(MATERIAL_PROFILES.GrilleAnthracite.metalness,0);
+  assert.equal(MATERIAL_PROFILES.GrilleAnthracite.roughness,.36);
 });
 test('profiles restore full environment reflections and skip unknown materials', () => {
   const chrome = new MeshPhysicalMaterial({ name: 'BrightChrome', roughness: .5 });chrome.envMapIntensity = .3;
@@ -19,7 +21,8 @@ test('profiles restore full environment reflections and skip unknown materials',
   assert.equal(applyMaterialProfile(new MeshStandardMaterial({ name: 'CabinCarpet', roughness: 1 })), false);
 });
 test('paint finishes: lacquered gloss, softer satin, unlacquered matte', () => {
-  assert.ok(paintFinish('oem').clearcoat === 1 && paintFinish('oem').clearcoatRoughness < .05);
+  assert.equal(paintFinish('oem').clearcoat,.60);
+  assert.equal(paintFinish('oem').clearcoatRoughness,.30);
   assert.ok(paintFinish('satin').clearcoatRoughness > paintFinish('oem').clearcoatRoughness);
   assert.equal(paintFinish('matte').clearcoat, 0);
   assert.deepEqual(paintFinish('twotone'), paintFinish('gloss'));

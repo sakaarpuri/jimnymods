@@ -55,7 +55,7 @@ test('front amber lenses retain reference-guided 80 mm diameter in both bodies',
       const position=object.geometry.attributes.position;
       for(let i=0;i<position.count;i++){
         point.fromBufferAttribute(position,i).applyMatrix4(object.matrixWorld);
-        if(point.z>(body==='swb'?1.65:1.8))heights.push(point.y);
+        if(point.z>(body==='swb'?1.58:1.75))heights.push(point.y);
       }
     });
     assert(heights.length>20,`${body} front amber lenses exist`);
@@ -87,7 +87,7 @@ test('both steering wheels retain broad switch spokes and a genuinely open lower
 test('mirror lenses have real rounded silhouettes and sit in visible housing recesses',async()=>{
   for(const body of ['lwb','swb']){
     const root=(await cabin(body)).parent,offset=body==='swb'?-.17:0;
-    const lenses=[[-.863,1.285,.175,.117,.49],[.863,1.285,.175,.117,.49],[0,1.522,.18,.055,.51]];
+    const lenses=[[-.863,1.285,.175,.117,.49],[.863,1.285,.175,.117,.49],[0,1.522,.18,.055,.45]];
     for(const [x,y,w,h,z] of lenses){
       const hitAt=(dx,dy)=>new Raycaster(new Vector3(x+dx,y+dy,z+offset),new Vector3(0,0,1),0,.075).intersectObject(root,true);
       assert.equal(hitAt(0,0)[0]?.object.material.name,'BrightChrome',`${body} mirror centre must be visible, not buried behind housing`);

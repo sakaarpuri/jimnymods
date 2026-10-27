@@ -11,14 +11,15 @@ export const MATERIAL_PROFILES=Object.freeze({
   CaliperMetal:{metalness:.6,roughness:.45},
   // Grained black bumper and arch plastic: dull, but still a dielectric sheen.
   MouldedPlastic:{metalness:0,roughness:.62},
-  GrilleAnthracite:{metalness:.2,roughness:.4},
+  // Factory moulded grille: dark satin polymer, not light metallic grey.
+  GrilleAnthracite:{metalness:0,roughness:.36},
   GlossBlackGrille:{metalness:0,roughness:.12,clearcoat:1,clearcoatRoughness:.04},
   TyreRubber:{metalness:0,roughness:.9},
 });
 // Body paint per finish: a base coat under a clear lacquer. Matte has no lacquer.
 export const PAINT_FINISHES=Object.freeze({
-  gloss:{roughness:.32,clearcoat:1,clearcoatRoughness:.035},
-  satin:{roughness:.46,clearcoat:.35,clearcoatRoughness:.3},
+  gloss:{roughness:.45,clearcoat:.60,clearcoatRoughness:.30},
+  satin:{roughness:.52,clearcoat:.35,clearcoatRoughness:.40},
   matte:{roughness:.72,clearcoat:0,clearcoatRoughness:.6},
 });
 export function paintFinish(finish){return PAINT_FINISHES[finish]||PAINT_FINISHES.gloss;}
