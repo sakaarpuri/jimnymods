@@ -38,5 +38,5 @@ test('research-only or incompatible records never offer empty 3D actions',()=>{
  assert.match(context.catalogueFitmentLabel(restricted,'3door'),/Different body/);
  assert.match(html,/preview!=='research-only'\?`<button/);
  assert.match(html,/Stock can change/);
- assert.match(html,/All body styles/);
+ assert.match(readFileSync(new URL('../assets/catalogue-ui.js',import.meta.url),'utf8'),/Include other body styles/);
 });

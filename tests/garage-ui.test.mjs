@@ -75,8 +75,8 @@ test('category changes reset the tray after replacing its content without focus 
   assert.match(css,/\.rally-workshop \.planner-main\{[^}]*overflow-anchor:none/);
   assert.match(css,/\.rally-workshop \.planner-main\{[^}]*scroll-behavior:auto/);
 });
-test('online sellers navigation identifies sellers rather than the parts catalogue',()=>{
-  assert.match(html,/const active=button\.dataset\.modeSelect===mode/);
+test('the Sellers view keeps the Fitters & sellers tab lit and is never mistaken for Parts',()=>{
+  assert.match(html,/const navMode=mode==='sources'\?'fitters':mode;/);assert.match(html,/const active=button\.dataset\.modeSelect===navMode/);
   assert(!html.includes("mode==='sources'?'parts':mode"));
 });
 test('Rally feedback has explicit contrasting colours rather than inheriting a white background',()=>{

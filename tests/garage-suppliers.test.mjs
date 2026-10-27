@@ -22,11 +22,11 @@ test('selected product retains its exact URL and different-body alternatives are
  const swb=vm.runInContext('partSupplierOptions("rack")',fixture('3door'));
  assert(!swb.rows.some(r=>r.product?.id==='local-rack'));assert(swb.rows.some(r=>r.product?.id==='au-rack'));
 });
-test('selected tray reserves height and preserves scroll while supplier dialog stays in garage',()=>{
+test('selected tray reserves height and preserves scroll while part drawer opens from the garage',()=>{
  assert.match(css,/\.garage-selection-tray\{flex:0 0 auto/);assert.match(css,/\.garage-selection-tray \.garage-chips\{[^}]*overflow:auto/);
  assert.match(html,/chips\.scrollTop=top;chips\.scrollLeft=left/);assert.match(html,/if\(partSource\)\{openPartSuppliers\(partId\);return;\}/);
  assert.match(html,/if\(renderedGarageChips!==chipMarkup\)/);assert(!html.includes('chips.innerHTML!==chipMarkup'),'DOM serialisation must not trigger a chip rebuild every second');
- assert.match(html,/partSupplierDialog\.showModal\(\)/);assert.match(html,/data-source-design/);assert.match(html,/data-remove-part/);
+ assert.match(html,/function openPartSuppliers\(partId='',group=''\)\{window\.JimnyPartDrawer\?\.open\(\{partId,group\}\);\}/);assert(!html.includes('partSupplierDialog'));assert.match(html,/data-source-design/);assert.match(html,/data-remove-part/);
 });
 test('tyre tread selection is distinct from wheel finish and saved safely',()=>{
  assert.match(html,/\['highway','allterrain','mudterrain'\]/);assert.match(html,/data-tyre-choice/);assert.match(html,/cleanDesign\.tyreType=/);
