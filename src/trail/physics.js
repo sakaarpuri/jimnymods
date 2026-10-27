@@ -5,7 +5,16 @@ export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 // A held brake can leave a few centimetres/second of solver drift on a slope.
 // Treat that as stopped for control interlocks only; do not alter body velocity.
 export const stoppedForShift=s=>Math.abs(s.speed)<=((s.parking||s.braking>.5)? .08:.03);
+// Wheel force per unit of engine torque. Short game courses make the published engine feel
+// sluggish, so 2H and 4H are tuned brisker; 4L keeps the original crawl-range value.
+// Peak torque and gear ratios remain the published figures.
+export const DRIVE_EFFICIENCY=Object.freeze({'2H':2,'4H':1.15,'4L':.82});
 export const SPECS=Object.freeze({wheelRadius:.3465,track:1.405,finalDrive:4.3,gears:[2.875,1.568,1,.697],reverse:2.3,peakTorque:130});
+// Highest gear the automatic may use. 4H and 4L stay in the lower two gears, so they top out
+// below 2H while pulling harder at low speed.
+export const maxAutoGear=s=>s.gear==='L'?1:s.gear==='2'?2:s.range==='2H'?4:2;
+// Soft rev limiter on engine speed before the throttle bump: full force below 5850 rpm, none from 6100.
+export const revLimit=rpm=>clamp((6100-rpm)/250,0,1);
 export function createVehicle(body='5door'){
   return {body,wheelbase:body==='3door'?2.25:2.59,mass:body==='3door'?1190:1290,x:0,z:0,y:0,yaw:0,vx:0,vz:0,speed:0,steer:0,pitch:0,roll:0,heave:0,
     range:'2H',gear:'N',autoGear:1,parking:true,hdc:false,hdcActive:false,hdcSuspended:false,rpm:850,slip:0,brakeLSD:false,throttle:0,wheelHeights:[0,0,0,0],wheelContacts:[true,true,true,true],wheelRotations:[0,0,0,0],suspension:[.18,.18,.18,.18],loads:[.25,.25,.25,.25],distance:0,elapsed:0,penalty:0,recoveries:0,finished:false,hold:0,brakeHeat:0,handbrake:false,impact:0,physics:'approximation'};
@@ -54,7 +63,7 @@ export function stepVehicle(s,input,world,dt=1/60){
   s.throttle+=(throttle-s.throttle)*Math.min(1,dt*4);
   const low=s.range==='4L',transfer=1.32*(low?2.002:1);
   // Published automatic gear ratios; converter/shift logic and curve are approximations.
-  const maxGear=s.gear==='L'?1:s.gear==='2'?2:4;
+  const maxGear=maxAutoGear(s);
   const rpmAt=gear=>speed/SPECS.wheelRadius*60/(2*Math.PI)*SPECS.gears[gear-1]*SPECS.finalDrive*transfer;
   s.autoGear=clamp(s.autoGear,1,maxGear);
   if(rpmAt(s.autoGear)>3300+s.throttle*1400&&s.autoGear<maxGear)s.autoGear++;
@@ -62,8 +71,8 @@ export function stepVehicle(s,input,world,dt=1/60){
   const ratio=(s.gear==='R'?SPECS.reverse:SPECS.gears[s.autoGear-1])*SPECS.finalDrive*transfer;
   s.rpm=clamp(Math.max(850,speed/SPECS.wheelRadius*60/(2*Math.PI)*ratio)+s.throttle*(speed<2?1300:350),850,6200);
   const torque=130*(.65+.35*Math.exp(-(((s.rpm-4000)/2400)**2)));
-  let force=drive?direction*(s.throttle*torque*ratio*.82/SPECS.wheelRadius+(speed<1.2?170:0)):0;
-  if(s.rpm>=6100)force*=.25;
+  let force=drive?direction*(s.throttle*torque*ratio*DRIVE_EFFICIENCY[s.range]/SPECS.wheelRadius+(speed<1.2?170:0)):0;
+  force*=revLimit(speed/SPECS.wheelRadius*60/(2*Math.PI)*ratio);
   const staticRear=clamp(.48+Math.sin(slope)*.5,.2,.8),rough=Math.abs(h[0]-h[1]-h[2]+h[3]);
   s.brakeLSD=low&&rough>.13&&s.throttle>.1;
   const contactFactor=clamp(1-rough*(s.brakeLSD?.25:.8),.35,1);

@@ -1,0 +1,191 @@
+/* Drive controls in Direction A (Brief 5, task 3).
+   The in-game HUD and control dock take the shared tokens: dark ground, lime for the one
+   primary action, Outfit for headings and numbers, DM Sans for text. Layout is a two-row grid:
+   the driving view on top, a control dock underneath, so nothing on the dock overlaps the scene.
+   Text is 14px or larger and every control is 44px or larger. Loaded after game.css and
+   drive-direction-a.css; the body.drive-page #game prefix outranks their id rules. */
+
+body.drive-page #game{--card:color-mix(in srgb,var(--a-ground) 90%,transparent);--dock-gap:10px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;height:calc(100dvh - var(--site-header-h,64px));min-height:0;background:var(--a-ground);font-family:var(--font-body)}
+body.drive-page #game #stage{position:relative;inset:auto;grid-area:1/1;min-height:0}
+body.drive-page #game #hud{grid-area:1/1;position:relative;z-index:2;pointer-events:none;min-height:0}
+body.drive-page #game #console{grid-area:2/1;position:relative;inset:auto;min-height:0;height:auto;z-index:3;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"quick quick" "drive pedals" "hint hint";gap:var(--dock-gap) 24px;align-items:end;padding:10px 16px 8px;background:var(--a-ground);border-top:1px solid var(--a-line);color:var(--a-text)}
+
+/* ---------- Buttons: quiet by default, lime only for the primary action ---------- */
+body.drive-page #game :where(#console,#hud) button,
+body.drive-page #game #quick select{min-height:44px;border:0;border-radius:10px;background:var(--a-panel2);color:var(--a-text);font:500 14px/1.2 var(--font-body);padding:0 14px;box-shadow:none;transform:none}
+body.drive-page #game :where(#console,#hud) button:hover,
+body.drive-page #game #quick select:hover{background:color-mix(in srgb,var(--a-panel2) 80%,var(--a-text))}
+body.drive-page #game :where(#console,#hud) button:active{transform:scale(.97)}
+body.drive-page #game :where(#console,#hud) :is(button,select):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+body.drive-page #game :where(#console,#hud) button:disabled{opacity:.5}
+
+/* ---------- Toolbar (Pause, camera, sound, help, recover) ---------- */
+body.drive-page #game #quick{grid-area:quick;position:static;display:flex;flex-wrap:wrap;gap:4px;padding:0}
+body.drive-page #game #quick :is(button,select){background:transparent;color:var(--a-muted);min-width:44px;white-space:nowrap}
+body.drive-page #game #quick select{width:auto;min-width:0;padding:0 28px 0 12px;appearance:none;background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23aab3ad' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 10px center}
+body.drive-page #game #quick :is(button,select):hover{color:var(--a-text);background:var(--a-panel2)}
+body.drive-page #game #quick button[aria-pressed=true]{background:transparent;color:var(--a-muted)}
+body.drive-page #game #quick .wide{display:inline}
+
+/* ---------- Drive controls ---------- */
+body.drive-page #game .drive-controls{grid-area:drive;display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;min-width:0}
+body.drive-page #game .drive-controls fieldset{border:0;padding:0;margin:0;min-width:0}
+body.drive-page #game .drive-controls :is(legend,.gear-label){font:500 14px/1.2 var(--font-body);color:var(--a-muted);padding:0;margin:0 0 5px 2px;display:block}
+body.drive-page #game .gear-label{display:block;max-width:none;min-width:0}
+body.drive-page #game .segments,body.drive-page #game .gear-seg{display:flex;width:max-content;gap:2px;padding:3px;border-radius:12px;background:var(--a-panel2)}
+body.drive-page #game .segments button{min-width:52px;min-height:44px;padding:0 10px;background:transparent;color:var(--a-muted);font:600 15px/1 var(--font-body);border-radius:9px}
+body.drive-page #game .segments button:hover{background:color-mix(in srgb,var(--a-text) 10%,transparent);color:var(--a-text)}
+body.drive-page #game .segments button[aria-pressed=true]{background:var(--a-lime);color:var(--a-on-lime);font-weight:700}
+/* Selector: previous / current / next. The select stays the source of truth. */
+body.drive-page #game .gear-seg>*{margin:0}
+body.drive-page #game .gear-seg button{min-width:44px;padding:0;background:transparent;color:var(--a-text);font:500 22px/1 var(--font-body);border-radius:9px}
+body.drive-page #game .gear-seg select{width:60px;min-height:44px;padding:0;text-align:center;text-align-last:center;appearance:none;border:0;border-radius:9px;background:var(--a-lime);color:var(--a-on-lime);font:700 18px/1 var(--font-display);cursor:pointer}
+body.drive-page #game .gear-seg select:focus-visible{outline-color:var(--a-text)}
+body.drive-page #game .gear-seg select option{background:var(--a-panel);color:var(--a-text);font:500 16px var(--font-body)}
+body.drive-page #game .assist-controls{display:flex;gap:6px;flex-wrap:wrap}
+body.drive-page #game .assist-controls button{display:inline-flex;align-items:center;gap:8px;max-width:none;background:var(--a-panel2);color:var(--a-text);font-weight:500}
+body.drive-page #game .assist-controls button::before{content:'';width:9px;height:9px;border-radius:50%;background:#586360;flex:none}
+body.drive-page #game #parking[aria-pressed=true]::before{background:#e8956a}
+body.drive-page #game #hdc[aria-pressed=true]::before{background:var(--a-lime)}
+body.drive-page #game .assist-controls button[aria-pressed=true]{background:var(--a-panel2);color:var(--a-text)}
+
+/* ---------- Steering, Brake, Accelerate ---------- */
+body.drive-page #game .pedals{grid-area:pedals;display:flex;gap:6px;align-items:flex-end;justify-content:flex-end}
+body.drive-page #game .pedals .steering{display:flex;gap:6px}
+body.drive-page #game .pedals button{min-width:0;height:64px;padding:0 18px;font:600 16px/1.1 var(--font-body);user-select:none;touch-action:none;display:inline-flex;align-items:center;justify-content:center}
+body.drive-page #game .steering button{width:60px;padding:0;font-size:24px}
+body.drive-page #game .pedals .brake{width:96px}
+body.drive-page #game .pedals .accelerator{width:140px;background:var(--a-lime);color:var(--a-on-lime);font:700 18px/1.1 var(--font-display)}
+body.drive-page #game .pedals .accelerator:hover{background:color-mix(in srgb,var(--a-lime) 88%,#fff)}
+body.drive-page #game .pedals button.held{background:var(--a-text);color:var(--a-ground);transform:scale(.97)}
+body.drive-page #game .pedals .accelerator.held{background:#fff;color:var(--a-on-lime)}
+/* The keys are named in the hint bar; per-button key captions only add noise. */
+body.drive-page #game .pedals small{display:none}
+
+/* ---------- Keyboard hint bar ---------- */
+body.drive-page #game .key-hint{grid-area:hint;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;margin:0;padding-top:8px;border-top:1px solid var(--a-line);font:400 14px/1.4 var(--font-body);color:var(--a-muted)}
+body.drive-page #game .key-hint span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+body.drive-page #game .key-hint kbd{display:inline-block;min-width:24px;padding:2px 7px;border-radius:6px;background:var(--a-panel2);color:var(--a-text);font:600 14px/1.3 var(--font-body);text-align:center}
+
+/* ---------- HUD cards ---------- */
+body.drive-page #game :is(.mission,.telemetry,.coach){position:absolute;background:var(--card);color:var(--a-text);border:0;border-left:0;border-radius:12px;text-shadow:none;backdrop-filter:blur(6px)}
+body.drive-page #game .mission{left:16px;top:16px;width:min(280px,calc(100% - 200px));padding:10px 14px;gap:4px}
+body.drive-page #game .mission>span{font:400 14px/1.3 var(--font-body);color:var(--a-muted)}
+body.drive-page #game .mission>strong{font:600 17px/1.25 var(--font-display);color:var(--a-text)}
+body.drive-page #game .mission progress{height:4px;margin-top:3px;accent-color:var(--a-lime);border-radius:2px}
+body.drive-page #game .telemetry{right:16px;top:16px;left:auto;display:flex;gap:14px;align-items:center;padding:10px 14px}
+body.drive-page #game .telemetry>div{display:flex;align-items:baseline;gap:6px}
+body.drive-page #game .telemetry strong{font:600 36px/1 var(--font-display);color:var(--a-text)}
+body.drive-page #game .telemetry span{font:400 14px/1.2 var(--font-body);color:var(--a-muted)}
+body.drive-page #game .telemetry p{display:grid;gap:2px;margin:0;text-align:right;font:600 15px/1.2 var(--font-display)}
+body.drive-page #game .telemetry p b{font:inherit;color:var(--a-text)}
+body.drive-page #game #map{right:16px;top:98px;left:auto;width:112px;height:112px;border:0;border-radius:50%;background:var(--card)}
+body.drive-page #game #map.map-expanded{width:min(380px,50vw);height:min(380px,50vw);border-radius:16px}
+
+/* ---------- Coaching card ---------- */
+body.drive-page #game .coach{left:16px;bottom:16px;top:auto;right:auto;width:min(500px,calc(100% - 32px));max-width:none;max-height:calc(100% - 140px);overflow-y:auto;pointer-events:auto;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"kicker cabin" "text cabin" "cond cabin" "actions cabin" "status status";column-gap:14px;row-gap:0;align-items:start}
+body.drive-page #game .coach>#coachKicker{grid-area:kicker;font:600 14px/1.3 var(--font-body);letter-spacing:0;text-transform:none;color:var(--a-accent-text)}
+body.drive-page #game .coach>#coachText{grid-area:text;margin:4px 0 6px;font:500 16px/1.4 var(--font-body);color:var(--a-text)}
+body.drive-page #game .coach>#condition{grid-area:cond;font:400 14px/1.35 var(--font-body);color:var(--a-muted)!important;margin-bottom:10px}
+body.drive-page #game .coach>#spokenStatus{grid-area:status;margin-top:6px;font:400 14px/1.4 var(--font-body);color:var(--a-muted)}
+body.drive-page #game .coach .coach-actions{grid-area:actions;display:flex;flex-wrap:wrap;gap:6px;margin:0}
+body.drive-page #game .coach :is(.coach-actions button,.coach-toggle){flex:none;min-height:44px;padding:0 14px;font-size:14px;margin:0;background:transparent;color:var(--a-muted)}
+body.drive-page #game .coach .coach-actions button:hover,body.drive-page #game .coach .coach-toggle:hover{background:var(--a-panel2);color:var(--a-text)}
+body.drive-page #game .coach #showMe{order:-1;background:var(--a-lime);color:var(--a-on-lime);font-weight:700}
+body.drive-page #game .coach #showMe:hover{background:color-mix(in srgb,var(--a-lime) 88%,#fff);color:var(--a-on-lime)}
+
+/* ---------- Cabin thumbnail: small, with its own close button ---------- */
+body.drive-page #game .cabin-card{grid-area:cabin;width:132px;border-radius:10px;background:var(--a-panel2);overflow:hidden;align-self:start}
+body.drive-page #game .cabin-card[hidden]{display:none}
+body.drive-page #game .cabin-head{display:flex;align-items:center;justify-content:space-between;padding:0 0 0 10px;color:var(--a-text);font:500 14px/1 var(--font-body)}
+body.drive-page #game .cabin-head button{width:44px;min-width:44px;height:44px;padding:0;background:transparent;color:var(--a-muted);font:400 24px/1 var(--font-body);border-radius:0}
+body.drive-page #game .cabin-head button:hover{background:color-mix(in srgb,var(--a-text) 12%,transparent);color:var(--a-text)}
+body.drive-page #game .cabin-card #cabinPreview:not([hidden]){display:block!important;grid-area:auto;width:100%;min-height:0;padding:0;border-radius:0;background:var(--a-panel2);text-align:left;overflow:hidden}
+body.drive-page #game #cabinThumbnail{display:block;width:100%;height:auto;background:#28322e}
+body.drive-page #game #cabinPreview>span{display:block;padding:6px 10px 8px;font:500 14px/1.3 var(--font-body);color:var(--a-text)}
+body.drive-page #game #cabinState{font-size:14px;position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);padding:0}
+body.drive-page #game .coach #thumbnailToggle{grid-area:status;justify-self:start;min-height:44px;margin-top:2px;background:transparent;color:var(--a-muted)}
+body.drive-page #game .coach #thumbnailToggle:hover{background:var(--a-panel2);color:var(--a-text)}
+body.drive-page #game .coach #thumbnailToggle[hidden]{display:none}
+/* Collapsed: the card is text only. */
+body.drive-page #game .coach[data-thumbnail=collapsed]{grid-template-columns:minmax(0,1fr)}
+/* The old "controls" sizes (rotated phones, interior camera) no longer reserve extra width. */
+body.drive-page #game:is([data-camera=interior],[data-camera=dashboard],[data-camera=controls]) .coach{max-width:none}
+
+/* ---------- Phone: view on top, dock below, coaching as one line ---------- */
+@media(max-width:700px){
+ body.drive-page #game #console{grid-template-columns:minmax(0,1fr);grid-template-areas:"quick" "drive" "pedals";gap:6px;padding:6px 8px max(8px,env(safe-area-inset-bottom));align-items:stretch}
+ body.drive-page #game #quick{flex-wrap:nowrap;justify-content:space-between;gap:2px}
+ body.drive-page #game #quick :is(button,select){flex:1 1 auto;min-width:0;padding:0 4px;text-align:center;white-space:nowrap}
+ body.drive-page #game #quick select{padding:0 18px 0 6px;background-position:right 5px center}
+ body.drive-page #game #quick .wide{display:none}
+ body.drive-page #game .drive-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+ body.drive-page #game .drive-controls legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0}
+ body.drive-page #game .drive-controls .gear-label{margin:0;max-width:none;min-width:0}
+ body.drive-page #game .gear-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ body.drive-page #game .drive-controls fieldset,body.drive-page #game .gear-label{display:block;min-width:0}
+ body.drive-page #game .segments{display:flex;width:auto}
+ body.drive-page #game .segments button{flex:1;min-width:0;padding:0}
+ body.drive-page #game .gear-seg button{min-width:44px}
+ body.drive-page #game .gear-seg select{width:46px}
+ body.drive-page #game .assist-controls{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}
+ body.drive-page #game .assist-controls button{justify-content:center;padding:0 6px}
+ body.drive-page #game .pedals{justify-content:stretch}
+ body.drive-page #game .pedals .steering{flex:none}
+ body.drive-page #game .steering button{width:52px}
+ body.drive-page #game .pedals button{height:60px}
+ body.drive-page #game .pedals .brake{flex:1;width:auto}
+ body.drive-page #game .pedals .accelerator{flex:1.3;width:auto}
+ body.drive-page #game .key-hint{display:none}
+
+ body.drive-page #game .mission{left:8px;top:8px;width:calc(100% - 150px);padding:8px 10px}
+ body.drive-page #game .mission>span{display:none}
+ body.drive-page #game .mission>strong{font-size:15px}
+ body.drive-page #game .telemetry{right:8px;top:8px;padding:8px 10px;gap:8px}
+ body.drive-page #game .telemetry strong{font-size:26px}
+ body.drive-page #game .telemetry p span,body.drive-page #game .telemetry>div>span{display:none}
+ body.drive-page #game .telemetry p{font-size:15px}
+ body.drive-page #game #map{right:8px;top:62px;width:72px;height:72px}
+ body.drive-page #game #map.map-expanded{width:min(300px,80vw);height:min(300px,80vw)}
+
+ body.drive-page #game .coach{left:8px;right:8px;bottom:8px;width:auto;max-height:60%;padding:8px 10px}
+ body.drive-page #game .coach:not([data-coaching=compact]){grid-template-areas:"kicker cabin" "text cabin" "cond cabin" "actions actions" "status status"}
+ body.drive-page #game .coach:not([data-coaching=compact]) .coach-actions button{padding:0 12px}
+}
+
+/* ---------- Compact coaching (set on phones and short screens, or by "Less coaching") ---------- */
+body.drive-page #game .coach[data-coaching=compact]{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"text hear toggle" "cabin cabin cabin";column-gap:6px;align-items:center;padding:6px 8px 6px 12px}
+body.drive-page #game .coach[data-coaching=compact]>:is(#coachKicker,#condition,#spokenStatus){display:none}
+body.drive-page #game .coach[data-coaching=compact]>#coachText{margin:0;font-size:14px;line-height:1.35}
+body.drive-page #game .coach[data-coaching=compact] .coach-actions{display:contents}
+body.drive-page #game .coach[data-coaching=compact] .coach-actions :is(#coachVoice,#showMe){display:none}
+body.drive-page #game .coach[data-coaching=compact] #hearAgain{display:inline-flex;align-items:center;justify-content:center;grid-area:hear;background:var(--a-lime);color:var(--a-on-lime);font-weight:700;min-width:64px}
+body.drive-page #game .coach[data-coaching=compact] .coach-toggle{grid-area:toggle;min-width:44px;padding:0 10px}
+body.drive-page #game .coach[data-coaching=compact]:not([data-wheel-preview=true]) .cabin-card{display:none}
+body.drive-page #game .coach[data-coaching=compact][data-wheel-preview=true] .cabin-card{grid-column:1/-1;justify-self:start;margin-top:6px}
+body.drive-page #game .coach[data-coaching=compact] #thumbnailToggle{display:none}
+
+/* ---------- Short landscape (rotated phones): one tight dock, no hint bar ---------- */
+@media(min-width:701px) and (max-height:600px){
+ body.drive-page #game #console{padding:6px 12px 6px;gap:4px 14px;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"quick quick quick assist" "transfer gear pedals pedals";align-items:end}
+ body.drive-page #game .drive-controls{display:contents}
+ body.drive-page #game .drive-controls fieldset{grid-area:transfer}
+ body.drive-page #game .drive-controls .gear-label{grid-area:gear}
+ body.drive-page #game .assist-controls{grid-area:assist;justify-self:end;flex-wrap:nowrap}
+ body.drive-page #game .pedals{justify-self:end}
+ body.drive-page #game[data-coaching] .coach :is(.coach-toggle,#showMe,#hearAgain,#coachVoice){font-size:14px;min-height:44px;padding:0 12px}
+ body.drive-page #game[data-coaching] .coach #coachText{font-size:14px;line-height:1.35}
+ body.drive-page #game[data-coaching] .coach :is(#coachKicker,#condition,#spokenStatus){font-size:14px}
+ body.drive-page #game .key-hint{display:none}
+ body.drive-page #game .drive-controls legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0}
+ body.drive-page #game .drive-controls .gear-label{margin:0;max-width:none;min-width:0}
+ body.drive-page #game .gear-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ body.drive-page #game .pedals button{height:56px}
+ body.drive-page #game .mission{left:8px;top:8px;width:230px;padding:6px 10px}
+ body.drive-page #game .mission>span{display:none}
+ body.drive-page #game .telemetry{right:8px;top:8px;padding:6px 10px}
+ body.drive-page #game .telemetry strong{font-size:26px}
+ body.drive-page #game #map{right:8px;top:88px;width:72px;height:72px}
+ body.drive-page #game .coach{left:8px;bottom:8px;width:min(420px,calc(100% - 100px));max-height:calc(100% - 16px)}
+}
+@media(prefers-reduced-motion:reduce){body.drive-page #game :where(#console,#hud) button:active{transform:none}}
