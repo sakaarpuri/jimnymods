@@ -34,7 +34,7 @@ test('all grille badges stay within the grille face, including cursive lettering
   gltf.scene.updateMatrixWorld(true);
   for(const name of assemblies.filter(n=>n.endsWith('Grille'))){
     const bounds=new Box3().setFromObject(gltf.scene.getObjectByName(name));
-    assert.ok(bounds.min.y>.80&&bounds.max.y<1.15,`${name} has stretched or misplaced badge geometry (${bounds.min.y}–${bounds.max.y})`);
+    assert.ok(bounds.min.y>.77&&bounds.max.y<1.065&&bounds.max.y-bounds.min.y<.30,`${name} has stretched or misplaced badge geometry (${bounds.min.y}–${bounds.max.y})`);
   }
 });
 
@@ -62,7 +62,7 @@ test('windscreen rake and rear glazing height survive model compression',async()
   const lean=(bottom.z-top.z)/(top.y-bottom.y);
   assert.ok(lean>.38&&lean<.52,`Windscreen rake drifted: ${lean}`);
   const height=Math.max(...rear.map(p=>p.y))-Math.min(...rear.map(p=>p.y));
-  assert.ok(height>.43&&height<.45,`Rear glazing must retain the smaller reference-guided aperture: ${height}`);
+  assert.ok(height>.415&&height<.425,`Rear glazing must retain the revised 420 mm aperture: ${height}`);
 });
 
 test('paint, roof and transparent glazing retain separate PBR materials',()=>{
@@ -147,7 +147,7 @@ test('all grille variants have real headlamp openings, not panels hiding the ref
     const panels=[];
     gltf.scene.getObjectByName(name).traverse(obj=>{if(obj.isMesh&&['BodyPaint','GrilleAnthracite','GlossBlackGrille','MouldedPlastic'].includes(obj.material.name)){obj.material.side=DoubleSide;panels.push(obj);}});
     for(const side of [-1,1])for(const angle of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
-      const origin=new Vector3(side*.550+Math.cos(angle)*.085,.977+Math.sin(angle)*.085,2.2);
+      const origin=new Vector3(side*.550+Math.cos(angle)*.085,.917+Math.sin(angle)*.085,2.2);
       const hits=new Raycaster(origin,new Vector3(0,0,-1),0,.50).intersectObjects(panels,false);
       assert.equal(hits.length,0,`${name} blocks the headlamp reflector at ${origin.toArray()}`);
     }

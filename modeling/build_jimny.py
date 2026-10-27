@@ -203,7 +203,20 @@ def window_frame(name, w, h, radius, wall, depth, at, mat, group='BodyShell', wa
         return points
     wall_h=wall if wall_h is None else wall_h
     inner_radius=max(.005,radius-min(wall,wall_h)) if inner_radius is None else inner_radius
-    outer=outline(w,h,radius);inner=outline(w-wall*2,h-wall_h*2,inner_radius);n=len(outer)
+    outer=outline(w,h,radius);inner=outline(w-wall*2,h-wall_h*2,inner_radius)
+    if name=='Open windscreen rubber surround':
+        # Sample the long edges as well as the corners, so the later glass
+        # bow also curves the upper/lower seals rather than only the centre.
+        sampled_outer=[];sampled_inner=[]
+        for i,p in enumerate(outer):
+            j=(i+1)%len(outer);q=outer[j]
+            count=max(1,math.ceil(math.dist(p,q)/.055))
+            for step in range(count):
+                t=step/count
+                sampled_outer.append(tuple(p[k]+(q[k]-p[k])*t for k in range(2)))
+                sampled_inner.append(tuple(inner[i][k]+(inner[j][k]-inner[i][k])*t for k in range(2)))
+        outer,inner=sampled_outer,sampled_inner
+    n=len(outer)
     vs=[(x,y,z) for z,points in [(-depth/2,outer),(depth/2,outer),(-depth/2,inner),(depth/2,inner)] for x,y in points]
     faces=[]
     for i in range(n):
@@ -214,40 +227,104 @@ def window_frame(name, w, h, radius, wall, depth, at, mat, group='BodyShell', wa
     return obj
 
 
+# Owner-marked side view: raise the closed bonnet nose by 3.5 degrees about
+# the rear lower joint. Rotate the complete lid, not its tapered cross-section.
+BONNET_POSE_ANGLE=math.radians(3.5)
+BONNET_REAR_HALF_WIDTH=.750
+BONNET_PLAN_TAPER=.025
+BONNET_FRONT_FOLD_HALF_WIDTH=BONNET_REAR_HALF_WIDTH-BONNET_PLAN_TAPER+.002
+def bonnet_pose(x,h,z):
+    dh,dz=h-1.135,z-.69
+    c,s=math.cos(BONNET_POSE_ANGLE),math.sin(BONNET_POSE_ANGLE)
+    return (x,1.135+dh*c+dz*s,.69+dz*c-dh*s)
+
+def bonnet_front_relief(z):
+    # The lid stops before the grille housing, not merely behind the chrome
+    # badge/headlamp tips. Ease the last section back without moving the hinge.
+    t=min(1,max(0,(z-1.35)/.43))
+    return .050*t*t*(3-2*t)
+
+def bonnet_joint_frame(z):
+    # Invert the final side-edge pose, including the curved rear boundary and
+    # nose turnover. A straight-line estimate left the fixed wing covering the
+    # shut line after the bonnet's plan outline changed.
+    def edge(t):
+        source_z=.69+1.16*t
+        # The wing follows the closing seam, not the top skin's nose roll.
+        # Copying that roll here pulled both front corners into a false dent.
+        h=1.125-.072*t
+        tip=min(1,max(0,(source_z-1.74)/.11));tip=tip*tip*(3-2*tip)
+        forward=source_z-.100*t+.120*(1-t)-.010*tip-bonnet_front_relief(source_z)
+        return bonnet_pose(0,h,forward)
+    low,high=0,1
+    for _ in range(24):
+        t=(low+high)/2
+        if edge(t)[2]<z:low=t
+        else:high=t
+    t=(low+high)/2
+    h=edge(t)[1]
+    # This is the bonnet's boundary, not the outside of the fixed wing.
+    # Do not pull the body inward or add a steep drop beyond the lid tip.
+    return h,BONNET_REAR_HALF_WIDTH-BONNET_PLAN_TAPER*t
+
+def bonnet_joint_lift(z):
+    return bonnet_joint_frame(z)[0]-(1.135-.090*min(1,max(0,(z-.69)/1.08)))
+
 def body_width(h):
     # Reference: the real lower door has a narrow stamped swage, not a broad
     # diagonal slab. The shoulder above the handles rolls into the glass belt.
     profile=[(.45,.721),(.48,.735),(.51,.739),(.635,.745),(.66,.749),
-             (.678,.751),(.690,.748),(.709,.740),(.73,.740),(.82,.745),
+             (.678,.751),(.690,.748),(.709,.746),(.73,.746),(.82,.748),
              (.98,.750),(1.075,.749),(1.105,.746),(1.13,.737),(1.18,.724)]
-    for (a,x),(b,y) in zip(profile,profile[1:]):
-        if h<=b:return x+(y-x)*max(0,(h-a)/(b-a))
+    # Monotone cubic interpolation keeps the pressed ridge but avoids the
+    # chain of hard slope changes that produced false horizontal reflections.
+    sec=[(y-x)/(b-a) for (a,x),(b,y) in zip(profile,profile[1:])]
+    slopes=[sec[0]]+[0 if a*b<=0 else 2*a*b/(a+b) for a,b in zip(sec,sec[1:])]+[sec[-1]]
+    for i,((a,x),(b,y)) in enumerate(zip(profile,profile[1:])):
+        if h<=b:
+            t=max(0,(h-a)/(b-a));d=b-a
+            return (2*t**3-3*t*t+1)*x+(t**3-2*t*t+t)*d*slopes[i]+(-2*t**3+3*t*t)*y+(t**3-t*t)*d*slopes[i+1]
     return profile[-1][1]
 
 
+def wheel_opening_height(z):
+    low=.40
+    for center in [-1.295,1.295]:
+        dz=z-center
+        arch=[(-.415,.40),(-.400,.545),(-.365,.675),(-.295,.765),(-.195,.810),(0,.830),
+              (.195,.810),(.295,.765),(.365,.675),(.400,.545),(.415,.40)]
+        for (a,ha),(b,hb) in zip(arch,arch[1:]):
+            if a<=dz<=b:low=max(low,ha+(hb-ha)*(dz-a)/(b-a))
+    return low
+
+def rear_panel_forward(z):
+    # Same lower-body closure datum as accuracy_revision.rear_map. Sample the
+    # arch at the FINISHED position, then author its boundary before normals
+    # and the solid sheet are generated. No second Boolean on a thin door skin.
+    return z+.078*min(1,max(0,(-z-1.25)/.45))
+
 def body_panel(side):
     # A connected, gently crowned sheet with open arches; no overlapping door boxes.
-    zs=sorted(set([-1.76+i*3.56/112 for i in range(113)]+[-.40,-.38,.64,.68]))
+    zs=sorted(set([-1.76+i*3.48/112 for i in range(113)]+[-.40,-.38,.64,.68]))
     # Shared height rows keep the pressed swage level around the wheel arches.
     levels=sorted(set([.46+i*.69/40 for i in range(41)]+[.48,.51,.635,.66,.678,.690,.709,.73,.82,.98,1.075,1.105,1.13,1.15]))
     vertices=[]
     for z in zs:
-        low=.46
-        for center in [-1.295,1.295]:
-            dz=z-center
-            arch=[(-.40,.40),(-.385,.53),(-.35,.66),(-.28,.75),(-.18,.795),(0,.815),
-                  (.18,.795),(.28,.75),(.35,.66),(.385,.53),(.40,.40)]
-            for (a,ha),(b,hb) in zip(arch,arch[1:]):
-                if a<=dz<=b:low=max(low,ha+(hb-ha)*(dz-a)/(b-a)+.012)
+        low=max(.46,wheel_opening_height(rear_panel_forward(z)))
         # End the painted rear apron at the bumper shoulder, not at the sill.
         rear=max(0,min(1,(-z-1.54)/.15))
         low=max(low,.46+.24*rear*rear*(3-2*rear))
-        # The wing/bonnet shut line is nearly level. The former 40 mm/m
-        # downhill seam left a long, deep wedge under a detached bonnet lid.
-        top=1.15-max(0,z-.69)*.011
+        # Follow the rebuilt bonnet return; keep the wing joined to the lid
+        # without the former tall wedge at the forward end.
+        wing=min(1,max(0,(z-.64)/.17));wing=wing*wing*(3-2*wing)
+        top=1.15-.015*min(1,max(0,(z-.64)/.05))-.090*min(1,max(0,(z-.69)/1.08))+bonnet_joint_lift(z)-.0055*wing
         for level in levels:
             h=max(low,min(top,level))
-            vertices.append((side*(body_width(h)-max(0,abs(z)-1.69)*.20),h,z))
+            # The bonnet taper must not change the fixed body or arch mounts.
+            width=body_width(h)-max(0,-z-1.69)*.20
+            shoulder=min(1,max(0,(h-top+.035)/.035));shoulder=shoulder*shoulder*(3-2*shoulder)*wing
+            width=width*(1-shoulder)+.746*shoulder
+            vertices.append((side*width,h,z))
     faces=[]
     for i in range(len(zs)-1):
         for j in range(len(levels)-1):
@@ -258,6 +335,7 @@ def body_panel(side):
     bmesh.ops.dissolve_degenerate(bm,edges=list(bm.edges),dist=.000001)
     bm.to_mesh(obj.data);bm.free()
     solid=obj.modifiers.new('Steel panel return','SOLIDIFY');solid.thickness=.012
+    return obj
 
 
 def rounded_polygon(points, radius=.035):
@@ -297,9 +375,12 @@ def upholstered_loft(name,sections,x,mat):
 
 
 def windscreen_bow(x,y,w=1.337,h=.480):
-    # Original photo-guided laminated-glass shape, not a measured Suzuki CAD
-    # radius. Keep a broad cross-car bow and a gentler vertical crown.
-    return .032*max(0,1-(2*x/w)**2)*max(0,1-.28*(2*y/h)**2)
+    # The windscreen and its surrounding seal share one flat plane.
+    return 0.0
+
+def windscreen_width(x,y):
+    # Slightly narrower at the header, following the inward A-pillar rake.
+    return x*(1-.025*min(1,max(0,(y+.240)/.480)))
 
 def glazing(name, w, h, radius, at, angle=0):
     # One optical surface. A bevelled transparent box renders front, back and
@@ -310,6 +391,12 @@ def glazing(name, w, h, radius, at, angle=0):
     # Use nested rounded contours so the shape remains rounded at every row.
     # Bow is photo-guided (not an unpublished factory glazing measurement).
     if name=='Laminated windscreen':
+        sampled=[]
+        for i,p in enumerate(points):
+            q=points[(i+1)%len(points)]
+            count=max(1,math.ceil(math.dist(p,q)/.055))
+            sampled.extend(tuple(p[k]+(q[k]-p[k])*step/count for k in range(2)) for step in range(count))
+        points=sampled
         rings=18;n=len(points)
         vertices=[(0,0,windscreen_bow(0,0,w,h))]
         for row in range(1,rings+1):
@@ -319,6 +406,7 @@ def glazing(name, w, h, radius, at, angle=0):
         for row in range(rings-1):
             a=1+row*n;b=a+n
             faces.extend((a+i,b+i,b+(i+1)%n,a+(i+1)%n) for i in range(n))
+        vertices=[(windscreen_width(x,y),y,windscreen_bow(windscreen_width(x,y),y,w,h)) for x,y,_ in vertices]
     else:
         vertices=[(0,0,0)]+[(x,y,0) for x,y in points]
         faces=[(0,i+1,(i+1)%len(points)+1) for i in range(len(points))]
@@ -328,17 +416,24 @@ def glazing(name, w, h, radius, at, angle=0):
 
 
 for side in [-1, 1]:
-    body_panel(side)
+    door_skin=body_panel(side)
     for front, rear in ([(.64,-.82)] if SHORT_BODY else [(.64,-.38),(-.40,-1.25)]):
         # Keep the fine seam clear of interpolated panel triangles. The older
         # almost-coplanar tube intersected the pressing and looked like a zipper.
         tube('Door shut line',[(side*(body_width(h)+.0045),h,front) for h in [.48+i*.67/80 for i in range(81)]],.0012,black)
         tube('Lower door seam',[(side*(body_width(.48)+.0024),.48,front-.02),(side*(body_width(.48)+.0024),.48,rear+.01)],.0017,black)
         tube('Window pillar door seam',[(side*(.746-max(0,h-1.14)*.105)+side*.001,h,front-(.234 if front>0 else 0)*(h-1.14)/.525) for h in [1.14,1.4,1.665]],.0013,black)
-        z = rear+(.40 if SHORT_BODY else .15)
-        cube('Recessed door handle bowl',(.010,.050,.151),(side*.750,1.065,z),trim,bevel=.021)
-        cube('Body colour pull handle',(.028,.033,.139),(side*.762,1.079,z+.002),paint,bevel=.014)
-        cylinder('Door lock barrel',.008,.006,(side*.766,1.060,z-.072),chrome,'side',vertices=16)
+        # Vehicle-forward shift, identical on left and right (not screen-left).
+        z = rear+(.44 if SHORT_BODY else .19)
+        # Cut the finger cup into the pressing; a raised black box read as an
+        # applied accessory rather than the factory recessed handle pocket.
+        cutter=rounded_flat_plate('Temporary door handle cup',.164,.074,.080,.023,(0,0,0),black)
+        cutter.rotation_euler.z=side*math.pi/2;cutter.location=pos(side*.780,.965,z)
+        subtract(door_skin,cutter)
+        cup=rounded_flat_plate('Recessed door handle bowl',.158,.068,.006,.022,(0,0,0),trim)
+        cup.rotation_euler.z=side*math.pi/2;cup.location=pos(side*.743,.965,z)
+        cube('Body colour pull handle',(.028,.033,.139),(side*.762,.979,z+.002),paint,bevel=.014)
+        cylinder('Door lock barrel',.008,.006,(side*.766,.960,z-.072),chrome,'side',vertices=16)
     cube('Sill moulding',(.055,.064,1.83),(side*.748,.463,-.11),trim,bevel=.016)
     # Moulded arch tapers from its body seam to a broad, curved shoulder.
     for center in [-1.295,1.295]:
@@ -373,88 +468,225 @@ for side in [-1, 1]:
         lining=[(side*width,h,center+z) for width in [.60,.817] for z,h in inner]
         geometry('Dark wheel well inner tub',lining,[(i,i+1,i+count+1,i+count) for i in range(count-1)],black,smooth=True)
         prism_side('Wheel well shadow backing',[(center+z,h+.015) for z,h in inner],side,black,inset=-.16,thickness=.006,bevel=0)
-    cylinder('Side repeater bezel',.026,.014,(side*.758,1.035,1.105),trim,'side',vertices=32)
-    cylinder('Amber side repeater',.021,.017,(side*.767,1.035,1.105),amber,'side',vertices=32)
+    cylinder('Side repeater bezel',.026,.014,(side*.758,.965,.875),trim,'side',vertices=32)
+    cylinder('Amber side repeater',.021,.017,(side*.767,.965,.875),amber,'side',vertices=32)
 
 # Square clamshell bonnet with a broad, shallow centre, defined shoulder
 # pressings and a continuous rolled leading edge. Photo-guided from Suzuki's
 # five-door ex_img04.jpg, not an unpublished factory tooling surface.
-xs=sorted(set([-.755+i*1.510/100 for i in range(101)]+[s*x for s in [-1,1] for x in [.748,.735,.72,.69,.60,.58,.54,.525,.51,.48,.465]]))
-zs=[.69,.70,.715,.735,.76,.80,.90,1.04,1.20,1.40,1.58,1.68,1.74,1.78,1.805,1.825,1.84,1.85]
+xs=sorted(set([-.755+i*1.510/160 for i in range(161)]+[s*x for s in [-1,1] for x in [.748,.735,.72,.69,.60,.58,.54,.525,.51,.48,.465]]))
+zs=sorted(set([.69+i*1.16/58 for i in range(59)]+[1.75+.10*math.sin(i*math.pi/2/24) for i in range(25)]))
+def bonnet_seam(z):
+    # Deeper hinge-end return, tapering to a slim folded nose. This lower
+    # edge must not run parallel to the top surface as it did previously.
+    return 1.125-.072*min(1,max(0,(z-.69)/1.16))
+def bonnet_width_x(x,z):
+    # Lid-only plan taper, approved against the Suzuki overhead drawing.
+    # The fixed wing/body perimeter stays wider and MUST NOT follow this.
+    t=min(1,max(0,(z-.69)/1.16))
+    return x*(BONNET_REAR_HALF_WIDTH-BONNET_PLAN_TAPER*t)/.755
+
+def bonnet_closing_edge(side,z,dh=0,inset=0):
+    # Upper skin and folded edge use the SAME perimeter, with only a 2mm
+    # manufacturing return. The former 33mm splay made the nose corners flare.
+    _,h,forward=bonnet_pose(0,bonnet_seam(z)+dh,bonnet_forward(side*.755,z))
+    t=min(1,max(0,(z-.69)/1.16))
+    width=BONNET_REAR_HALF_WIDTH-BONNET_PLAN_TAPER*t+.002-inset
+    return side*width,h,forward
 def bonnet_height(x,z):
-    t=min(1,max(0,(z-.70)/1.08))
-    centre=1.197-.019*t+.0015*(1-(abs(x)/.755)**2)
-    # Two distinct stamped shoulders: a short concave transition, a broad
-    # nearly planar rail, then a tight outer roll. A linear ramp across the
-    # whole width read as a padded cushion in the actual browser render.
-    s=min(1,max(0,(abs(x)-.465)/.075))
-    shoulder=.018*s*s*(3-2*s)
-    roll=.018*(max(0,(abs(x)-.718)/.037)**2)
-    # The pressed rear cross-edge closes the centre well into the scuttle.
-    # Keep it below the side rails and fade it before the longitudinal crease.
-    rear=.008*max(0,1-(z-.69)/.07)**2*(1-s)
-    nose=.042*(min(1,max(0,(z-1.78)/.07))**2)
-    seam=1.15-max(0,z-.69)*.011
-    height=max(seam+.0055,centre+shoulder+rear-roll-nose)
-    # Shoulder pressings terminate in the same straight folded leading lip.
-    # Carrying their full height to the edge made two raised ears over the lamps.
-    lead=min(1,max(0,(z-1.805)/.045));lead=lead*lead*(3-2*lead)
-    return height*(1-lead)+(seam+.0055)*lead
+    # One declining upper profile with a tangent rounded nose. The previous
+    # hinge ceiling, original slope and final smoothstep produced three
+    # different visible inclinations. Keep the existing closing seam intact.
+    t=min(1,max(0,(z-.69)/1.16))
+    def pressing(t):
+        # Broad radiused shoulder from the centre pressing to the outer rail.
+        # The narrower 40mm transition produced thin, over-sharp stripes.
+        s=min(1,max(0,(abs(x)-(.490-.110*t))/.085))
+        return s*s*(3-2*s)
+    roll=.005*(max(0,(abs(x)-.718)/.037)**2)
+    forward=bonnet_forward(x,z)
+    rear_forward=bonnet_forward(x,.69)
+    nose_forward=bonnet_forward(x,1.85)
+    hinge_height=1.197-.020*(rear_forward-.651)-.001*(1-pressing(0))-roll
+    # The broad centre pressing sits above the outer shoulder, as in the
+    # user's reference photos. The outer perimeter and folded seam stay fixed.
+    side_forward=bonnet_forward(.755,.69)
+    side_height=1.197-.020*(side_forward-.651)-.005
+    rear_offset=hinge_height-(side_height-.040*(rear_forward-side_forward))
+    section=.005-roll+.011*(1-pressing(t))
+    # Blend over the whole stamping. Ending this transition in the first
+    # quarter of the lid left a transverse kink in the centre reflection.
+    blend=t*t*(3-2*t)
+    base=side_height-.040*(forward-side_forward)+rear_offset*(1-blend)+section*blend
+    nose_base=side_height-.040*(nose_forward-side_forward)+.005-roll+.011*(1-pressing(1))
+    # Keep a visible folded nose, slimmer than the hinge-end return but not
+    # the previous 5.5mm knife edge. The closing seam itself stays in place.
+    nose_height=bonnet_pose(0,bonnet_seam(1.85)+.012,nose_forward)[1]
+    u=min(1,max(0,(forward-(nose_forward-.050))/.050))
+    world_height=base-(nose_base-nose_height)*(1-math.sqrt(max(0,1-u*u)))
+    # bonnet_pose applies the owner's approved closed-lid rotation once.
+    return 1.135+(world_height-1.135-(forward-.69)*math.sin(BONNET_POSE_ANGLE))/math.cos(BONNET_POSE_ANGLE)
 def bonnet_forward(x,z):
     # Plan-view front corners turn back into the side return rather than
     # producing knife-sharp rectangular ears alongside the round indicators.
-    return z-.022*(max(0,(abs(x)-.69)/.065)**2)*min(1,max(0,(z-1.74)/.11))
+    # Shorten the bonnet, not the measured wheelbase or whole car. The bumper
+    # projects beyond the face on the real Jimny and retains its length datum.
+    t=min(1,max(0,(z-.69)/1.16))
+    # The lid starts in front of the wiper trough, not against the glass.
+    # Its rear boundary bows forward at the centre and returns beside the
+    # hinge/scuttle cheeks, as visible in the owner's Suzuki reference.
+    # Spread the rear shoulder transition across a wider area so the cowl
+    # meets the bonnet without the abrupt pinched notch at either hinge.
+    cheek=min(1,max(0,(abs(x)-.43)/.27));cheek=cheek*cheek*(3-2*cheek)
+    # Keep the centre and hinge-end datums, but shape the two rear shoulders
+    # separately instead of drawing a single bow across the whole cowl.
+    rear_setback=(.180-.060*cheek)*(1-t)
+    # Viewed from above, the bonnet's leading edge bows gently forward in the
+    # middle. The face of the grille remains farther forward than this edge.
+    front_arc=.045*max(0,1-(abs(x)/.755)**2)*min(1,max(0,(z-1.65)/.20))**2
+    corner=min(1,max(0,(abs(x)-.68)/.075));corner=corner*corner*(3-2*corner)
+    tip=min(1,max(0,(z-1.74)/.11));tip=tip*tip*(3-2*tip)
+    return z-.100*t+rear_setback+front_arc-.010*corner*tip-bonnet_front_relief(z)
 verts=[]
 for z in zs:
     for x in xs:
-        verts.append((x,bonnet_height(x,z),bonnet_forward(x,z)))
+        verts.append(bonnet_pose(bonnet_width_x(x,z),bonnet_height(x,z),bonnet_forward(x,z)))
 faces=[]
 for j in range(len(zs)-1):
     for i in range(len(xs)-1):
         n=j*len(xs)+i
         faces.append((n,n+1,n+1+len(xs),n+len(xs)))
+top_faces=len(faces)
+nx,nz=len(xs),len(zs)
+boundary=(list(range(nx))+[j*nx+nx-1 for j in range(1,nz)]
+          +[(nz-1)*nx+i for i in range(nx-2,-1,-1)]
+          +[j*nx for j in range(nz-2,0,-1)])
+lower_start=len(verts)
+for index in boundary:
+    j,i=divmod(index,nx);x,z=xs[i],zs[j]
+    t=min(1,max(0,(z-.69)/1.16))
+    verts.append(bonnet_pose(x*(BONNET_REAR_HALF_WIDTH+.002-BONNET_PLAN_TAPER*t)/.755,bonnet_seam(z)+.0005,bonnet_forward(x,z)))
+for i,index in enumerate(boundary):
+    nxt=(i+1)%len(boundary)
+    faces.append((index,boundary[nxt],lower_start+nxt,lower_start+i))
+faces.append(tuple(reversed(range(lower_start,len(verts)))))
+# One continuous lid and folded return. The previous separate solidified top
+# and side sheets produced two visible lips and intersecting corner bevels.
 bonnet=geometry('Crowned clamshell bonnet',verts,faces,paint,bevel=0,smooth=True)
-mod=bonnet.modifiers.new('Bonnet sheet thickness','SOLIDIFY');mod.thickness=.005
-mod=bonnet.modifiers.new('Rolled bonnet edges','BEVEL');mod.width=.003;mod.segments=3
+for poly in bonnet.data.polygons:
+    if poly.index>=top_faces:poly.use_smooth=False
+mod=bonnet.modifiers.new('Rolled bonnet edges','BEVEL');mod.width=.004;mod.segments=3
 mod.limit_method='ANGLE';mod.angle_limit=.65;mod.harden_normals=True
 for side in [-1,1]:
-    vs=[]
-    for z in zs:
-        upper=bonnet_height(side*.755,z)
-        lower=1.15-max(0,z-.69)*.011+.0025
-        # The final leading-edge roll meets the return; no inverted flap.
-        upper=max(lower+.003,upper)
-        vs.extend([(side*.755,upper,bonnet_forward(side*.755,z)),(side*.748,lower,bonnet_forward(side*.755,z))])
     return_faces=[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(zs)-1)]
     if side>0:return_faces=[tuple(reversed(face)) for face in return_faces]
-    obj=geometry('Clamshell bonnet side return',vs,return_faces,paint,smooth=True)
-    mod=obj.modifiers.new('Folded bonnet side sheet','SOLIDIFY');mod.thickness=.003
-    tube('Bonnet panel shut line',[(side*.750,1.15-max(0,z-.69)*.011+.0005,bonnet_forward(side*.755,z)) for z in zs],.0011,black)
+    tube('Bonnet panel shut line',[bonnet_closing_edge(side,z,.0008,.0005) for z in zs],.00018,black)
+    # Recessed closing seal behind the 2mm panel gap. A round seam tube alone
+    # left a sub-millimetre sightline after SWB mesh quantisation. This follows
+    # the actual lid boundary, overlapping both hidden hems without changing
+    # either painted surface or covering a larger geometric discontinuity.
+    seal=[]
+    for z in zs:
+        # The former seal projected above the steel return, appearing as a
+        # broad dark stripe. Both its top and bottom now stay below the lid.
+        for dh in [.002,-.008]:
+            seal.append(bonnet_closing_edge(side,z,dh,.003))
+    geometry('Recessed painted wing return',seal,return_faces,paint,smooth=True)
+    # Actual fixed wing shoulder, between the independent bonnet shut line
+    # and the full-width body. This is not another lip following the lid.
+    ledge=[];shoulder_steps=10
+    for z in zs:
+        # Tuck the fixed panel beneath the folded lid, on both sides. This
+        # preserves a fine shut line without exposing the gap behind it.
+        x,h,forward=bonnet_closing_edge(side,z,.001,.006)
+        # Roll the wing's top into the side, with a shared outer edge. A
+        # straight horizontal strip formed a mirror-like white highlight and
+        # a hard crease that read as an opening from elevated views.
+        for j in range(shoulder_steps+1):
+            theta=(math.pi/2)*j/shoulder_steps
+            across=math.sin(theta)
+            ledge.append((x+(side*.746-x)*across,h-.002*(1-math.cos(theta)),forward))
+    # Close the triangular end of the genuine shoulder into the nose's back
+    # corner. Both surfaces use the same end point, not independent tapers.
+    last_inner,last_outer=len(ledge)-(shoulder_steps+1),len(ledge)-1
+    ledge.append((side*.746,ledge[last_outer][1],1.720))
+    n=shoulder_steps+1
+    shoulder_faces=[(i*n+j,i*n+j+1,(i+1)*n+j+1,(i+1)*n+j) for i in range(len(zs)-1) for j in range(shoulder_steps)]
+    shoulder_faces.extend((last_inner+j,last_inner+j+1,len(ledge)-1) for j in range(shoulder_steps))
+    if side>0:shoulder_faces=[tuple(reversed(face)) for face in shoulder_faces]
+    obj=geometry('Fixed wing shoulder beside tapered bonnet',ledge,shoulder_faces,paint,smooth=True)
+    mod=obj.modifiers.new('Wing shoulder sheet','SOLIDIFY');mod.thickness=.003
 # The solidified, bevelled bonnet already has a rolled lip. A second box here
 # previously intersected the front panel and made the nose look double-edged.
-cube('Cowl and scuttle',(1.45,.045,.16),(0,1.183,.635),paint,bevel=.018)
+def cowl_surface(x,t):
+    # Match the lid tangent at the shut line instead of ending a smoothstep
+    # ramp 4mm below it. That separate high lip read as a sharp hinge hump.
+    bx,bh,bz=bonnet_pose(x,bonnet_height(x,.69),bonnet_forward(x,.69))
+    _,next_h,next_z=bonnet_pose(x,bonnet_height(x,.692),bonnet_forward(x,.692))
+    rear_z=.651
+    h=1.188+.009*(abs(x)/.755)**4
+    span=bz-.0025-rear_z
+    tangent=(next_h-bh)/(next_z-bz)*span
+    delta=bh-.0008-h
+    # A cubic arriving with the opposite slope overshoots into a sharp hump.
+    # Keep its end tangent inside the monotone interval instead.
+    tangent=0 if tangent*delta<=0 else math.copysign(min(abs(tangent),3*abs(delta)),delta)
+    height=(2*t**3-3*t*t+1)*h+(-2*t**3+3*t*t)*(bh-.0008)+(t**3-t*t)*tangent
+    return x,height,rear_z+span*t
+cowl_xs=[-.755+i*1.51/64 for i in range(65)]
+cowl_rows=12
+cowl_verts=[cowl_surface(x,j/cowl_rows) for j in range(cowl_rows+1) for x in cowl_xs]
+cowl_faces=[(j*len(cowl_xs)+i,j*len(cowl_xs)+i+1,(j+1)*len(cowl_xs)+i+1,(j+1)*len(cowl_xs)+i) for j in range(cowl_rows) for i in range(len(cowl_xs)-1)]
+obj=geometry('Sculpted wiper trough and curved scuttle',cowl_verts,cowl_faces,paint,smooth=True)
+mod=obj.modifiers.new('Scuttle sheet return','SOLIDIFY');mod.thickness=.006
+tube('Curved rear bonnet shut line',[(*cowl_surface(x,1)[:2],cowl_surface(x,1)[2]+.002) for x in cowl_xs],.0013,black)
 for x in [-.43,-.38,-.33,.30,.35,.40]:
-    cube('Scuttle ventilation slots',(.011,.005,.07),(x,1.208,.627),black,bevel=.002)
+    px,h,z=cowl_surface(x,.42)
+    cube('Scuttle ventilation slots',(.010,.002,.034),(px,h+.001,z),black,bevel=.001)
+# The hinge is concealed below the lid, not an exposed door-style hinge.
+# Its visible identifying detail is the stepped scuttle side return and three
+# shallow stamped ribs below the rear edge of the bonnet.
+for side in [-1,1]:
+    # Follow the same top surface, not an independently positioned pointed cap.
+    cheek_top=[(cowl_surface(side*.755,t)[2],cowl_surface(side*.755,t)[1]) for t in [0,.2,.4,.6,.8,1]]
+    cheek_end=cheek_top[-1][0]+.025
+    prism_side('Stepped bonnet hinge scuttle return',cheek_top+[(cheek_end,1.130),(.681,1.130)],side,paint,inset=.002,thickness=.009,bevel=.004)
+    tube('Scuttle hinge panel separation',[(side*.749,1.130,cheek_end),(side*.750,cheek_top[-1][1],cheek_top[-1][0])],.0008,black)
+    for h in [1.148,1.162,1.176]:
+        # A pressed lip with a dark undercut, rather than three painted bars.
+        tube('Scuttle pressed rib lower reveal',[(side*.755,h-.002,.740),(side*.755,h-.002,.810)],.0013,black)
+        tube('Scuttle stamped rib',[(side*.755,h,.740),(side*.757,h+.001,.748),(side*.757,h+.001,.802),(side*.755,h,.810)],.0022,paint)
 
 # Cabin ring is formed from real pillars and window openings.
 for side in [-1,1]:
-    panel=prism_side('Continuous cabin side with window apertures',[(.715,1.14),(.475,1.68),(-1.76,1.68),(-1.76,1.14)],side,paint,thickness=.025,bevel=0)
-    prism_side('Roof edge rail',[(.522,1.63),(.495,1.69),(-1.74,1.69),(-1.74,1.63)],side,roof,'RoofShell',thickness=.04,bevel=.012)
-    windows=[[(.635,1.180),(.439,1.620),(-.305,1.620),(-.305,1.185),(.29,1.185),(.35,1.165)],
+    panel=prism_side('Continuous cabin side with window apertures',[(.715,1.14),(.492,1.637),(.466,1.650),(.425,1.666),(.36,1.676),(.28,1.68),(-1.76,1.68),(-1.76,1.14)],side,paint,thickness=.025,bevel=0)
+    prism_side('Roof edge rail',[(.483,1.653),(.470,1.667),(.450,1.680),(.415,1.688),(.38,1.69),(-1.74,1.69),(-1.74,1.63)],side,roof,'RoofShell',thickness=.04,bevel=.009)
+    windows=[[(.635,1.155),(.439,1.615),(-.305,1.615),(-.305,1.198),(.22,1.198),(.28,1.194),(.34,1.174),(.40,1.162),(.52,1.158)],
              [(-.445,1.185),(-.445,1.620),(-1.173,1.620),(-1.173,1.185)],
              [(-1.325,1.185),(-1.325,1.620),(-1.638,1.620),(-1.650,1.185)]]
     if SHORT_BODY:
         # JB74 has one longer front door and one uninterrupted rear quarter
         # window on each side; it is not a scaled five-door/kei JB64 shell.
-        windows=[[(.635,1.180),(.439,1.620),(-.770,1.620),(-.770,1.185),(.29,1.185),(.35,1.165)],
+        windows=[[(.635,1.155),(.439,1.615),(-.770,1.615),(-.770,1.198),(.22,1.198),(.28,1.194),(.34,1.174),(.40,1.162),(.52,1.158)],
                  [(-.940,1.185),(-.940,1.620),(-1.638,1.620),(-1.650,1.185)]]
-    for points in windows:
+    for window_index,points in enumerate(windows):
         boundary=rounded_polygon(points,.052)
-        cutter=prism_side('Temporary rounded window cutter',boundary,side,black,inset=.05,thickness=.12,bevel=0)
+        # Form the visible pressed reveal around the front door window rather
+        # than stopping the flat door sheet abruptly against the rubber.
+        centre_z=(min(z for z,h in boundary)+max(z for z,h in boundary))/2
+        outer_boundary=[(centre_z+(z-centre_z)*1.035,1.39+(h-1.39)*1.065) for z,h in boundary] if window_index==0 else boundary
+        cutter=prism_side('Temporary rounded window cutter',outer_boundary,side,black,inset=.05,thickness=.12,bevel=0)
         boolean=panel.modifiers.new('True window aperture','BOOLEAN');boolean.operation='DIFFERENCE';boolean.object=cutter
         bpy.context.view_layer.objects.active=panel
         bpy.ops.object.modifier_apply(modifier=boolean.name)
         bpy.data.objects.remove(cutter,do_unlink=True)
+        if window_index==0:
+            n=len(boundary)
+            rings=[(side*(.746-max(0,h-1.14)*.105+offset),h,z) for curve,offset in [(outer_boundary,0),(boundary,-.004)] for z,h in curve]
+            reveal=geometry('Front door pressed window reveal',rings,[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],paint,smooth=True)
+            for poly in reveal.data.polygons:
+                if poly.normal.x*side<0:
+                    bm=bmesh.new();bm.from_mesh(reveal.data);bmesh.ops.reverse_faces(bm,faces=list(bm.faces));bm.to_mesh(reveal.data);bm.free();break
         # A single sheet also prevents the far-side cabin from receiving four
         # layers of alpha at every window edge. Orient outward on either side.
         glass_vertices=[(side*(.746-max(0,h-1.14)*.105-.005),h,z) for z,h in boundary]
@@ -469,7 +701,7 @@ for side in [-1,1]:
     shut_z=-.82 if SHORT_BODY else -1.25
     tube('Front door trailing shut line' if SHORT_BODY else 'Rear door trailing shut line',[(side*(body_width(h)+.004 if h<1.14 else .747-max(0,h-1.14)*.105),h,shut_z) for h in ([.48,.65,.93,1.05,1.14,1.32,1.51,1.665] if SHORT_BODY else [.93,1.05,1.14,1.32,1.51,1.665])],.0013,black)
     bevel=panel.modifiers.new('Rolled window aperture edge','BEVEL');bevel.width=.004;bevel.segments=2
-    tube('Painted folded rain gutter',[(side*.720,1.672,.500),(side*.720,1.685,.475),(side*.720,1.685,-1.68),(side*.720,1.663,-1.76)],.008,roof,'RoofShell')
+    tube('Painted folded rain gutter',[(side*.696,1.680,.420),(side*.710,1.685,.38),(side*.720,1.685,.32),(side*.720,1.685,-1.68),(side*.720,1.663,-1.76)],.008,roof,'RoofShell')
     tube('Rain gutter shadow',[(side*.717,1.677,.38),(side*.717,1.677,-1.70)],.0025,trim)
     cube('Mirror mounting triangle',(.035,.16,.11),(side*.754,1.247,.575),trim,bevel=.015)
     cube('Mirror neck',(.14,.039,.05),(side*.817,1.257,.577),trim,bevel=.014)
@@ -480,17 +712,20 @@ for side in [-1,1]:
 
 # Flush fuel flap with rounded stamped perimeter on the left rear quarter.
 fuel_outline=rounded_polygon([(-1.495,1.004),(-1.495,1.125),(-1.665,1.125),(-1.665,1.004)],.025)
-tube('Fuel flap panel gap',[(-body_width(h)-.002,h,z) for z,h in fuel_outline],.0016,black,closed=True)
+tube('Fuel flap panel gap',[(-body_width(h)-.002,h,z+.10) for z,h in fuel_outline],.0016,black,closed=True)
 cylinder('Antenna foot',.025,.028,(-.42,1.714,-1.53),trim,'up',vertices=24)
 tube('Flexible roof antenna',[(-.42,1.725,-1.53),(-.42,1.825,-1.60),(-.42,1.89,-1.65)],.0035,trim)
 
 # Crowned roof, pressed roof channels and curved front/back window frames.
 roofverts=[]
 rxs=sorted(set([-.716+i*1.432/80 for i in range(81)]+[-.70,-.59,-.47,-.235,0,.235,.47,.59,.70]))
-rzs=[-1.76,-1.725,-1.65,-1.56,-1.50,-1.3,-.9,-.5,0,.25,.32,.36,.40,.43,.46,.485,.505]
+rzs=[-1.76,-1.725,-1.65,-1.56,-1.50,-1.3,-.9,-.5,0,.25,.32,.36,.38,.40,.42,.44,.46,.475,.485,.495,.505]
 for z in rzs:
     for x in rxs:
-        h=1.695+.026*(1-(x/.73)**2)-max(0,abs(z+.60)-1.10)*.15
+        # Keep the measured centre height, but fill out its broad shoulders
+        # and roll sharply into thin gutter edges instead of a shallow flat cap.
+        h=1.681+.040*(1-(abs(x)/.73)**6)-max(0,abs(z+.60)-1.10)*.15
+        h-=.043*min(1,max(0,(z-.38)/.125))**2
         rib=sum(.0024*math.exp(-((x-c)/.016)**2) for c in [-.47,-.235,0,.235,.47])
         h+=rib*min(1,max(0,(z+1.56)/.08))*min(1,max(0,(.40-z)/.08))
         roofverts.append((x,h,z))
@@ -499,17 +734,45 @@ for j in range(len(rzs)-1):
     for i in range(len(rxs)-1):
         n=j*len(rxs)+i
         rooffaces.append((n,n+1,n+len(rxs)+1,n+len(rxs)))
+top_count=len(roofverts)
+roofverts.extend((x,h-(.006+.025*(1-(abs(x)/.73)**6)),z) for x,h,z in list(roofverts))
+rooffaces += [tuple(i+top_count for i in reversed(face)) for face in list(rooffaces)]
+for j in [0,len(rzs)-1]:
+    for i in range(len(rxs)-1):
+        a=j*len(rxs)+i;rooffaces.append((a,a+top_count,a+top_count+1,a+1))
+for i in [0,len(rxs)-1]:
+    for j in range(len(rzs)-1):
+        a=j*len(rxs)+i;b=a+len(rxs);rooffaces.append((a,b,b+top_count,a+top_count))
 obj=geometry('Crowned pressed steel roof',roofverts,rooffaces,roof,'RoofShell',smooth=True)
-mod=obj.modifiers.new('Roof thickness','SOLIDIFY');mod.thickness=.024
 mod=obj.modifiers.new('Roof roll','BEVEL');mod.width=.008;mod.segments=3
-cube('Windshield upper header',(1.39,.061,.075),(0,1.668,.477),paint,bevel=.014)
+cube('Windshield upper header',(1.39,.041,.075),(0,1.653,.477),paint,bevel=.014)
 front=window_frame('Open windscreen rubber surround',1.385,.527,.042,.026,.018,(0,1.416,.570),trim)
 for vertex in front.data.vertices:
+    vertex.co.x=windscreen_width(vertex.co.x,vertex.co.z)
     vertex.co.y-=windscreen_bow(vertex.co.x,vertex.co.z)
 front.rotation_euler.x=math.radians(-24)
-glazing('Laminated windscreen',1.337,.480,.036,(0,1.416,.584),-24)
+glazing('Laminated windscreen',1.337,.480,.036,(0,1.416,.576),-24)
 for side in [-1,1]:
-    tube('Painted A pillar',[(side*.716,1.181,.689),(side*.699,1.647,.4815)],.025,paint)
+    # A tapered pressed pillar, bounded by the actual cabin side, rather
+    # than a constant 50mm tube projecting 30mm beyond the upper door skin.
+    vertices=[];rows=33
+    for row in range(rows):
+        h=1.181+(.647-.181)*row/(rows-1)
+        outer=.746-(h-1.14)*.105
+        inner=windscreen_width(.6925,(h-1.416)/math.cos(math.radians(24)))-.002
+        front=.715+(.492-.715)*(h-1.14)/.497 if h<=1.637 else .492+(.466-.492)*(h-1.637)/.013
+        section=[(outer-.003,front-.026),(outer,front-.014),(outer,front-.008),
+                 (outer-.003,front-.003),(outer-.010,front),
+                 (inner+.010,front),(inner+.003,front-.003),
+                 (inner,front-.010),(inner,front-.026)]
+        vertices.extend((side*x,h,z) for x,z in section)
+    count=len(section);faces=[tuple(reversed(range(count)))]
+    for row in range(rows-1):
+        for col in range(count):
+            a=row*count+col;b=row*count+(col+1)%count
+            faces.append((a,b,b+count,a+count))
+    faces.append(tuple(range((rows-1)*count,rows*count)))
+    geometry('Flush tapered windscreen pillar',vertices,faces,paint,smooth=True)
 for x in [-.45,.18]:
     tube('Wiper arm',[(x,1.194,.711),(x+.075,1.23,.702)],.005,trim)
     tube('Wiper blade',[(x-.11,1.233,.705),(x+.22,1.247,.700)],.008,trim)
@@ -523,16 +786,35 @@ def closure_outline(w,h,r,cy):
         for i in range(9):
             a=math.radians(start+i*11.25)
             points.append((cx+math.cos(a)*r,cy+yy+math.sin(a)*r))
-    return points
+    # Subdivide the long straight runs before the height-dependent body rake.
+    # Corner samples alone made the vertical seam cut diagonally across the
+    # tapered skin. Both outlines use the same point correspondence.
+    sampled=[]
+    for i,p in enumerate(points):
+        sampled.append(p)
+        if i%9==8:
+            q=points[(i+1)%len(points)]
+            sampled.extend((p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t) for t in [.2,.4,.6,.8])
+    return sampled
 outer=closure_outline(1.400,.966,.036,1.197)
-inner=closure_outline(1.178,.478,.056,1.39)
+inner=closure_outline(1.178,.458,.056,1.38)
 def rear_skin_depth(x,h):
     # The belt rolls inward above the handle rather than leaving a hard
     # horizontal join across the rear door. The lower sheet has a slight crown.
-    belt=.014*math.exp(-((h-1.135)/.030)**2)
-    crown=.005*max(0,1-(x/.70)**2)*max(0,1-((h-.94)/.25)**2)
-    return -1.800+belt-crown
-vs=[];steps=[0,.025,.07,.16,.30,.48,.68,.86,.97,1];n=len(outer)
+    # Broad, restrained pressing instead of the old sharp 14mm belt trough,
+    # which produced a rippled/embossed rectangle in the garage reflections.
+    # One monotone belt roll: a Gaussian trough reversed the surface twice
+    # and produced several parallel reflected ridges under the rear window.
+    belt_t=min(1,max(0,(h-1.075)/.085))
+    belt=.0045*belt_t*belt_t*(3-2*belt_t)
+    crown=.002*max(0,1-(x/.70)**2)**2*max(0,1-((h-.94)/.25)**2)**2
+    # The lower door is pressed inward within its rolled outer margin, not a
+    # flat board. Rounded transitions are geometry, never drawn dark bars.
+    def ease(v):
+        t=min(1,max(0,v));return t*t*(3-2*t)
+    inset=.004*ease((.655-abs(x))/.055)*ease((h-.760)/.055)*ease((1.080-h)/.085)
+    return -1.800+belt-crown+inset
+vs=[];steps=sorted(set([i/32 for i in range(33)]+[.025,.07,.97]));n=len(outer)
 for layer in [0,1]:
     for t in steps:
         for (xi,hi),(xo,ho) in zip(inner,outer):
@@ -540,7 +822,8 @@ for layer in [0,1]:
             # Taper the outer door into the same leaning pillars as its
             # perimeter seam; keep the glazing aperture itself unchanged.
             x-=math.copysign(max(0,h-1.14)*.085*t,x)
-            z=rear_skin_depth(x,h)+(.012*max(0,(t-.97)/.03)**2)
+            rim=min(1,max(0,t/.16));rim=rim*rim*(3-2*rim)
+            z=rear_skin_depth(x,h)+.006*(1-rim)+(.004*max(0,(t-.97)/.03)**2)
             vs.append((x,h,z+layer*.025))
 faces=[];count=n*len(steps)
 for layer in [0,1]:
@@ -551,30 +834,30 @@ for layer in [0,1]:
 for row in [0,len(steps)-1]:
     for i in range(n):
         a=row*n+i;b=row*n+(i+1)%n;faces.append((a,a+count,b+count,b))
-geometry('Continuous stamped tailgate skin',vs,faces,paint,smooth=True)
-tube('Tailgate perimeter shut line',[(x,h,-1.784) for x,h in closure_outline(1.408,.974,.039,1.197)],.0018,black,closed=True)
+tailgate=geometry('Continuous stamped tailgate skin',vs,faces,paint,smooth=True)
+subtract(tailgate,rounded_flat_plate('Temporary tailgate handle recess',.164,.092,.100,.021,(.54,1.007,-1.826),black))
+tube('Tailgate perimeter shut line',[(x,h,-1.790) for x,h in closure_outline(1.404,.974,.039,1.197)],.0012,black,closed=True)
 for side in [-1,1]:
     # Swept corner pressing joins the side wall to the rear face without
     # overlapping rounded cubes or diagonal pinched highlights at the roof.
-    profile=[(.700,-1.783),(.721,-1.779),(.739,-1.769),(.749,-1.752),(.752,-1.720),(.748,-1.675)]
+    profile=[(.704,-1.794),(.722,-1.790),(.739,-1.778),(.749,-1.758),(.752,-1.720),(.748,-1.675)]
     heights=[.700,.714,.80,.98,1.08,1.13,1.17,1.39,1.60,1.65,1.68]
-    vs=[(side*x,h,z) for h in heights for x,z in profile]
+    vs=[(side*x,max(h,wheel_opening_height(rear_panel_forward(z))),z) for h in heights for x,z in profile]
     faces=[(j*len(profile)+i,j*len(profile)+i+1,(j+1)*len(profile)+i+1,(j+1)*len(profile)+i) for j in range(len(heights)-1) for i in range(len(profile)-1)]
     corner=geometry('Rolled rear body corner',vs,faces,paint,smooth=True)
     mod=corner.modifiers.new('Stamped corner thickness','SOLIDIFY');mod.thickness=.008
-window_frame('Tailgate window seal',1.185,.485,.056,.018,.016,(0,1.39,-1.798),trim)
-glazing('Tailgate tinted glass',1.140,.440,.045,(0,1.39,-1.811),180)
+window_frame('Tailgate window seal',1.185,.465,.056,.018,.016,(0,1.38,-1.792),trim)
+glazing('Tailgate tinted glass',1.140,.420,.045,(0,1.38,-1.796),180)
 # Printed ceramic perimeter sits on the pane, inside the physical seal.
 # It is not another thick rubber gasket. The real rear view has a clear
 # distinction between painted surround, thin seal and the black glass frit.
-window_frame('Rear glass ceramic frit',1.140,.440,.045,.019,.001,(0,1.39,-1.812),black,wall_h=.018,inner_radius=.034)
-cube('High brake light painted recess',(.168,.039,.013),(0,1.649,-1.804),paint,bevel=.016)
-cube('High brake light bezel',(.149,.027,.012),(0,1.649,-1.814),trim,bevel=.012)
-cube('High brake light',(.130,.018,.013),(0,1.649,-1.820),red,bevel=.008)
+window_frame('Rear glass ceramic frit',1.140,.420,.045,.019,.001,(0,1.38,-1.797),black,wall_h=.018,inner_radius=.034)
+rounded_flat_plate('High brake light painted recess',.168,.039,.013,.016,(0,1.649,-1.804),paint)
+rounded_flat_plate('High brake light bezel',.149,.027,.012,.012,(0,1.649,-1.814),trim)
+rounded_flat_plate('High brake light',.130,.018,.013,.008,(0,1.649,-1.820),red)
 tube('Rear wiper',[(.43,1.190,-1.824),(.05,1.203,-1.828)],.006,trim)
-window_frame('Tailgate handle stamped surround',.168,.100,.018,.012,.009,(.54,1.007,-1.810),paint,inner_radius=.012)
-cube('Tailgate handle recessed cup',(.142,.074,.008),(.54,1.007,-1.812),paint,bevel=.012)
-cube('Tailgate handle finger shadow',(.127,.028,.006),(.54,1.000,-1.820),black,bevel=.008)
+rounded_flat_plate('Tailgate handle recessed cup',.154,.082,.004,.018,(.54,1.007,-1.777),paint)
+cube('Tailgate handle finger shadow',(.127,.028,.004),(.54,1.000,-1.797),black,bevel=.008)
 cube('Tailgate door handle',(.126,.023,.014),(.54,1.024,-1.824),paint,bevel=.005)
 for h in [.71,1.13]:
     cube('Tailgate hinge cover',(.105,.085,.035),(-.672,h,-1.812),trim,bevel=.018)
@@ -584,12 +867,40 @@ for h in [.71,1.13]:
 GRILLE_OUTLINE=[(-.680,1.120),(.680,1.120),(.725,1.109),(.747,1.079),
                 (.747,.915),(.734,.889),(.692,.871),(.430,.842),(0,.835),
                 (-.430,.842),(-.692,.871),(-.734,.889),(-.747,.915),(-.747,1.079),(-.725,1.109)]
+def front_body_bow(x):
+    # A shallow front-to-back crown shared by the body, grille and fittings.
+    return .020*max(0,1-(x/.755)**2)
 def fascia_plate(name,outline,back,front,mat,group='BodyShell'):
     outline=rounded_polygon(outline,.009);n=len(outline)
     vertices=[(x,h,z) for z in [back,front] for x,h in outline]
     return geometry(name,vertices,[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],mat,group,bevel=.0015)
 def grille_face(group,mat):
-    return fascia_plate('Reference shaped grille face',GRILLE_OUTLINE,1.8165,1.8615,mat,group)
+    # A regular curved sheet, not a triangulated bowed n-gon. A triangle fan
+    # made conspicuous radial facets around the lights in the preview.
+    sections=[(0,1.120,.835),(.430,1.120,.842),(.680,1.120,.870),
+              (.692,1.117,.871),(.725,1.109,.885),(.734,1.097,.889),(.747,1.079,.915)]
+    def bounds(x):
+        x=abs(x)
+        for (a,top,low),(b,top2,low2) in zip(sections,sections[1:]):
+            if x<=b:
+                t=(x-a)/(b-a)
+                return top+(top2-top)*t,low+(low2-low)*t
+        return sections[-1][1:]
+    xs=[-.747+i*1.494/96 for i in range(97)];rows=13;vertices=[]
+    for depth in [1.8165,1.8615]:
+        for x in xs:
+            top,low=bounds(x)
+            for j in range(rows):vertices.append((x,low+(top-low)*j/(rows-1),depth+front_body_bow(x)))
+    n=len(xs)*rows;faces=[]
+    for i in range(len(xs)-1):
+        for j in range(rows-1):
+            a=i*rows+j;faces.extend([(a,a+rows,a+rows+1,a+1),(n+a,n+a+1,n+a+rows+1,n+a+rows)])
+        for j in [0,rows-1]:
+            a=i*rows+j;faces.append((a,a+rows,n+a+rows,n+a))
+    for i in [0,len(xs)-1]:
+        for j in range(rows-1):
+            a=i*rows+j;faces.append((a,a+1,n+a+1,n+a))
+    return geometry('Reference shaped grille face',vertices,faces,mat,group,smooth=True)
 def factory_slot(name,x,mat,group):
     def outline(w,h,c):return [(-w/2+c,h/2),(w/2-c,h/2),(w/2,h/2-c),(w/2,-h/2+c),(w/2-c,-h/2),(-w/2+c,-h/2),(-w/2,-h/2+c),(-w/2,h/2-c)]
     outer,inner=outline(.132,.178,.021),outline(.106,.152,.015);n=8
@@ -598,9 +909,77 @@ def factory_slot(name,x,mat,group):
     for i in range(n):
         j=(i+1)%n;faces.extend([(i,j,n+j,n+i),(2*n+i,3*n+i,3*n+j,2*n+j),(i,2*n+i,2*n+j,j),(n+i,n+j,3*n+j,3*n+i)])
     return geometry(name,vertices,faces,mat,group,bevel=.0016)
-paint_outline=[(x*1.022,.980+(h-.980)*1.105) for x,h in GRILLE_OUTLINE]
-front_panel=fascia_plate('Reference shaped painted nose',paint_outline,1.752,1.834,paint)
-grille_faces=[front_panel,grille_face('OEMGrille',grillemetal)]
+# Meet the shortened bonnet's folded lip with a narrow shut gap. Extend only
+# the painted upper flange, not the grille slots or circular lamp apertures.
+# A single sloping closing flange meets the rolled lid. The previous constant-
+# height extrusion made a second horizontal shelf under it. Keep the front
+# surround/lamps in place; vary only the upper return behind the grille.
+nose_closing_height=bonnet_pose(0,bonnet_seam(1.85),bonnet_forward(.755,1.85))[1]
+# Preserve the approved grille-face height; the wing's new corner roll must
+# not move the whole face down through bonnet_joint_lift's continuation.
+paint_outline=[(x*1.0107,.980+(h-.980)*1.105+(.016+nose_closing_height-1.045-.070)*min(1,max(0,(h-1.079)/.041))) for x,h in GRILLE_OUTLINE]
+# The lower painted apron meets the bumper with a narrow shut line. The old
+# black closing block left a large false void below the grille and at its ends.
+for i,h in {4:.872,5:.811,6:.800,7:.800,8:.800,9:.800,10:.800,11:.811,12:.872}.items():
+    paint_outline[i]=(paint_outline[i][0],h)
+def nose_point(x,h,back):
+    # The grille surround retains its width. Only its BACK boundary follows
+    # the shared bonnet/wing junction; no separate corner scaling or pinching.
+    upper=min(1,max(0,(h-1.070)/.025))
+    upper=upper*upper*(3-2*upper)
+    if not back:return x,h-.006*upper,1.834+front_body_bow(x)
+    source_x=max(-.755,min(.755,x*.755/BONNET_FRONT_FOLD_HALF_WIDTH))
+    _,join_h,join_z=bonnet_pose(source_x,bonnet_seam(1.85),bonnet_forward(source_x,1.85))
+    outside=min(1,max(0,(abs(x)-BONNET_FRONT_FOLD_HALF_WIDTH)/(.755-BONNET_FRONT_FOLD_HALF_WIDTH)))
+    h=h*(1-upper)+(join_h+.060-.001)*upper
+    z=1.752+((join_z*(1-outside)+1.720*outside)+.080-1.752)*upper
+    if abs(x)>BONNET_FRONT_FOLD_HALF_WIDTH:
+        # The entire rear side edge lands on the fixed wing, including its
+        # vertical face. Matching only the top left a proud vertical step.
+        top=bonnet_joint_frame(1.720)[0]
+        world_h=h-.060
+        shoulder=min(1,max(0,(world_h-top+.035)/.035))
+        shoulder=shoulder*shoulder*(3-2*shoulder)
+        target=body_width(world_h)*(1-shoulder)+.746*shoulder
+        x=math.copysign(abs(x)*(1-outside)+target*outside,x)
+        z=z*(1-outside*(1-upper))+1.800*outside*(1-upper)
+    return x,h,z
+
+# An open, continuous surround: four connected rings instead of a warped
+# full-width n-gon with Boolean lamp cuts. The actual grille supplies the
+# separate lamp apertures; there is no painted sheet behind the optics.
+outer=rounded_polygon(paint_outline,.009)
+inner=rounded_polygon(GRILLE_OUTLINE,.009)
+# Sample the long straight portions too: otherwise their corner-only vertices
+# cannot express the shared curve across the front.
+sampled_outer=[];sampled_inner=[]
+for i,p in enumerate(outer):
+    j=(i+1)%len(outer);q=outer[j]
+    steps=max(1,math.ceil(math.dist(p,q)/.035))
+    for k in range(steps):
+        t=k/steps
+        sampled_outer.append(tuple(p[a]*(1-t)+q[a]*t for a in range(2)))
+        sampled_inner.append(tuple(inner[i][a]*(1-t)+inner[j][a]*t for a in range(2)))
+outer,inner=sampled_outer,sampled_inner
+count=len(outer);nose_rings=[[],[],[],[]]
+for (x,h),(ix,ih) in zip(outer,inner):
+    bx,bh,bz=nose_point(x,h,True)
+    fx,fh,fz=nose_point(x,h,False)
+    # Keep the outer rim outside the aperture at the clipped shoulders.
+    if abs(ix)>.68:fx=math.copysign(max(abs(fx),abs(ix)+.006),fx)
+    if ih>1.075:fh=max(fh,ih+.008)
+    nose_rings[0].append((bx,bh,bz))
+    nose_rings[1].append((fx,fh,fz))
+    nose_rings[2].append((ix,ih,1.834+front_body_bow(ix)))
+    nose_rings[3].append((ix,ih,1.752))
+nose_faces=[]
+for ring_index in range(4):
+    next_ring=(ring_index+1)%4
+    for i in range(count):
+        j=(i+1)%count
+        nose_faces.append((ring_index*count+i,ring_index*count+j,next_ring*count+j,next_ring*count+i))
+front_panel=geometry('Reference shaped painted nose',sum(nose_rings,[]),nose_faces,paint,bevel=.001,smooth=False)
+grille_faces=[grille_face('OEMGrille',grillemetal)]
 for x in [-.32,-.16,0,.16,.32]:
     factory_slot('Chamfered factory chrome slot',x,chrome,'OEMGrille')
     cube('Deep grille aperture',(.106,.152,.007),(x,.983,1.867),black,'OEMGrille',bevel=.015)
@@ -638,9 +1017,14 @@ def emblem():
             current=end
     if (Vector(points[-1])-Vector(points[0])).length<.01:points.pop()
     n=len(points)
-    vs=[((x-185.53)*.00135,.983-(y-123.45)*.00135,z) for z in [1.901,1.912] for x,y in points]
+    vs=[((x-185.53)*.00135,.983-(y-123.45)*.00135,z) for z in [1.904,1.910] for x,y in points]
     faces=[tuple(range(n)),tuple(reversed(range(n,n*2)))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
-    geometry('Raised Suzuki S emblem',vs,faces,chrome,'OEMGrille',.0011)
+    badge=geometry('Raised Suzuki S emblem',vs,faces,chrome,'OEMGrille')
+    # Bevel the solid boundary, not an inset of the concave cap: an inset
+    # self-intersects across the S's narrow diagonal cutouts and fills them.
+    bevel=badge.modifiers.new('Plated emblem bevel facets','BEVEL')
+    bevel.width=.0025;bevel.segments=1;bevel.limit_method='ANGLE'
+    bevel.use_clamp_overlap=True
     return points
 suzuki_outline=emblem()
 
@@ -760,6 +1144,10 @@ for x in [-.550,.550]:
 # Reference bumper: an upper horizontal ledge, inset central intake and two
 # angular lower pads. Fog lamps are INSIDE actual holes, not chrome rings glued
 # onto a rounded bar. Boolean apertures retain their full-depth moulded returns.
+def bumper_height(h):
+    # Keep the lower edge/approach clearance while lowering the upper ledge.
+    # Author apertures at their new centres so round fog optics remain round.
+    return .412+(h-.445)*(.320/.392)
 profile=[(.445,.565,1.905),(.47,.665,1.925),(.52,.765,1.946),(.60,.811,1.950),(.73,.811,1.950),(.78,.803,1.930),(.82,.786,1.878),(.837,.73,1.852)]
 rows=[]
 for i in range(len(profile)-1):
@@ -771,7 +1159,7 @@ for back in [False,True]:
     for h,width,depth in rows:
         for col in range(columns):
             u=col/(columns-1)*2-1
-            vs.append((u*width,h,1.66 if back else depth-.115*abs(u)**6))
+            vs.append((u*width,bumper_height(h),1.66 if back else depth-.115*abs(u)**6))
 count=len(rows)*columns;faces=[]
 for row in range(len(rows)-1):
     for col in range(columns-1):
@@ -783,40 +1171,41 @@ for row in [0,len(rows)-1]:
     for col in range(columns-1):
         a=row*columns+col;faces.append((a,a+1,a+count+1,a+count))
 bumper=geometry('Continuous curved moulded bumper',vs,faces,trim,'StockBumper',smooth=True)
-subtract(bumper,cube('Temporary intake opening',(.90,.183,.60),(0,.654,1.84),black,bevel=.018))
+subtract(bumper,cube('Temporary intake opening',(.90,.143,.60),(0,bumper_height(.654),1.84),black,bevel=.018))
 for side in [-1,1]:
-    subtract(bumper,cylinder('Temporary fog aperture',.068,.65,(side*.607,.667,1.87),black,vertices=64))
+    subtract(bumper,cylinder('Temporary fog aperture',.068,.65,(side*.607,bumper_height(.667),1.87),black,vertices=64))
     # The real fog lamps sit in broad trapezoidal moulded pockets, not round
     # chrome portholes on an inflated bar. Recess the surrounding face as well.
     pts=[(side*.472,.762),(side*.746,.755),(side*.748,.600),(side*.480,.572)]
-    vs=[(x,h,z) for z in [1.909,2.10] for x,h in pts]
+    vs=[(x,bumper_height(h),z) for z in [1.909,2.10] for x,h in pts]
     cutter=geometry('Temporary fog pocket',vs,[(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],black,bevel=.012)
     subtract(bumper,cutter)
 mod=bumper.modifiers.new('Injection moulded corner radii','BEVEL');mod.width=.017;mod.segments=4
 for poly in bumper.data.polygons:poly.use_smooth=True
 mod=bumper.modifiers.new('Stable bumper surface normals','WEIGHTED_NORMAL');mod.keep_sharp=True;mod.weight=50
-cube('Upper bumper ledge',(1.46,.058,.16),(0,.818,1.835),trim,'StockBumper',bevel=.018)
+# The moulded bumper already has a continuous rounded top return. Do not
+# place a second horizontal slab above it.
 for side in [-1,1]:
-    ring('Recessed fog moulding',.068,.051,.075,(side*.607,.667,1.894),trim,group='StockBumper',segments=48)
+    ring('Recessed fog moulding',.068,.051,.075,(side*.607,bumper_height(.667),1.894),trim,group='StockBumper',segments=48)
     cylinder('Fog reflector back',.049,.014,(side*.607,.667,1.876),chrome,group='StockBumper')
     ring('Fog reflector rim',.049,.040,.010,(side*.607,.667,1.891),chrome,group='StockBumper',segments=48)
     bpy.ops.mesh.primitive_uv_sphere_add(segments=32,ring_count=16,radius=1,location=pos(side*.607,.667,1.900))
     obj=bpy.context.object;obj.scale=(.045,.009,.045);finish(obj,'Inset fog lens',lens,'StockBumper',smooth=True)
     # Raised lower protectors have planar bevelled faces, not tubular outlines.
     points=[(side*.28,.45),(side*.28,.515),(side*.36,.551),(side*.51,.551),(side*.585,.495),(side*.555,.456)]
-    vertices=[(x,h,z) for z in [1.932,1.975] for x,h in points];count=len(points)
+    vertices=[(x,bumper_height(h),z) for z in [1.932,1.975] for x,h in points];count=len(points)
     geometry('Angular lower bumper pad',vertices,[tuple(range(count)),tuple(reversed(range(count,count*2)))]+[(i,(i+1)%count,(i+1)%count+count,i+count) for i in range(count)],trim,'StockBumper',.012)
-    cube('Headlight washer cap',(.045,.029,.013),(side*.52,.811,1.887),trim,'StockBumper',bevel=.005)
-cube('Deep central bumper intake',(.91,.19,.008),(0,.654,1.82),black,'StockBumper',bevel=.018)
+    cube('Headlight washer cap',(.045,.023,.013),(side*.52,bumper_height(.811),1.887),trim,'StockBumper',bevel=.005)
+cube('Deep central bumper intake',(.91,.149,.008),(0,bumper_height(.654),1.82),black,'StockBumper',bevel=.018)
 for row in range(5):
     for col in range(14):
         x=-.401+col*.061+(row%2)*.03
         if abs(x)>.42: continue
         h=.582+row*.036
-        pts=[(x+math.cos(i/6*math.tau)*.034,h+math.sin(i/6*math.tau)*.022,1.860) for i in range(6)]
+        pts=[(x+math.cos(i/6*math.tau)*.034,bumper_height(h+math.sin(i/6*math.tau)*.022),1.860) for i in range(6)]
         tube('Lower intake honeycomb',pts,.0023,trim,'StockBumper',closed=True)
-cube('Front registration mount',(.43,.125,.022),(0,.520,1.978),trim,'StockBumper',bevel=.007)
-cube('Blank front registration face',(.412,.101,.004),(0,.520,1.991),gunmetal,'StockBumper',bevel=.002)
+cube('Front registration mount',(.43,.110,.022),(0,bumper_height(.520),1.978),trim,'StockBumper',bevel=.007)
+cube('Blank front registration face',(.412,.090,.004),(0,bumper_height(.520),1.991),gunmetal,'StockBumper',bevel=.002)
 def vehicle_lettering(name,text,at,width,mat=chrome,group='BodyShell',rear=False):
     data=bpy.data.curves.new(name,'FONT');data.body=text;data.font=font_block;data.align_x='CENTER';data.align_y='CENTER';data.size=.09;data.extrude=.0007;data.resolution_u=3
     obj=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(obj);obj.parent=groups[group];data.materials.append(mat)
@@ -1224,6 +1613,56 @@ rounded_flat_plate('Interior rounded mirror glass',.18,.055,.004,.009,(0,1.522,.
 with open(os.path.join(ROOT,'modeling','accuracy_revision.py')) as revision:
     exec(compile(revision.read(),'accuracy_revision.py','exec'),globals())
 
+# The revision adds optical fog components after the bumper is authored.
+# Move those complete round lenses to the revised pocket, without squashing
+# their circular cross-sections along with the bumper's height change.
+for obj in list(groups['StockBumper'].children):
+    if obj.name.startswith('Fog pocket moulded rolled return'):
+        remap_points(obj,lambda x,h,z:(x,bumper_height(h),z))
+    elif obj.name.startswith(('Fog dark optical backing','Fog rolled reflector lip',
+                              'Fog bowl reflector quadrant','Fog lamp bulb shield','Fog clear cover')):
+        obj.location.z+=bumper_height(.667)-.667
+# The flatter windscreen must not leave the rear-view mirror outside the glass.
+for obj in list(groups['Cabin'].children):
+    if obj.name.startswith(('Interior rear-view mirror','Interior rounded mirror glass')):
+        obj.location.y+=.055
+
+# Bow the grille itself and its parts together, while shifting each round lamp
+# rigidly so its circular optics remain circular. Work before final transforms.
+for group_name in ['OEMGrille','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille','StockHeadlamps']:
+    for obj in list(groups[group_name].children):
+        if obj.type not in {'MESH','CURVE'}:continue
+        if obj.type=='MESH' and obj.name.startswith('Reference shaped grille face'):
+            continue  # authored with the shared curve already
+        else:
+            corners=[obj.matrix_world@Vector(corner) for corner in obj.bound_box]
+            centre=(min(p.x for p in corners)+max(p.x for p in corners))/2
+            if group_name!='StockHeadlamps' and max(p.x for p in corners)-min(p.x for p in corners)>.20:
+                remap_points(obj,lambda x,h,z:(x,h,z+front_body_bow(x)))
+            else:
+                obj.location.y-=front_body_bow(centre)
+
+# Move complete front assemblies, preserving circular optics and flat slots.
+# This is not the reverted nonlinear warp. New bonnet/wing geometry above is
+# authored at its final heights; transforms happen BEFORE normals are baked.
+front_groups=['OEMGrille','BlockGrille','RhinoGrille','ScriptGrille',
+              'GlossGrille','DeleteGrille','ClassicGrille','MeshGrille',
+              'StockHeadlamps']
+for name in front_groups:
+    # Keep the approved complete-fascia position under the revised bonnet's
+    # rolled leading edge. This is 45mm above the preceding fascia datum.
+    # All round optics and grille variants retain their dimensions.
+    groups[name].location.z-=.060
+    groups[name].location.y+=.080
+for obj in list(groups['BodyShell'].children):
+    if obj.name.startswith(('Reference shaped painted nose','Round front turn signal',
+                            'Domed amber indicator lens','Indicator lens fluting')):
+        obj.location.z-=.060
+        obj.location.y+=.080
+        if not obj.name.startswith('Reference shaped painted nose'):
+            corners=[obj.matrix_world@Vector(corner) for corner in obj.bound_box]
+            obj.location.y-=front_body_bow((min(p.x for p in corners)+max(p.x for p in corners))/2)
+
 # +Z is forward, so the driver's right is -X when sitting inside. Mirror the
 # symmetric cabin's dashboard layout into the India-market right-hand position.
 groups['Cabin'].scale.x=-1
@@ -1291,13 +1730,18 @@ for root in groups.values():
     by_material={}
     for obj in list(root.children):
         if obj.name == 'JimnyTailgateWordmark':continue
-        if obj.type=='MESH':by_material.setdefault(obj.data.materials[0].name,[]).append(obj)
-    for name,items in by_material.items():
+        if obj.type=='MESH':
+            matname=obj.data.materials[0].name
+            # Keep the curved bonnet and its immediate joins separate from
+            # the rest of the paint so the web optimizer can preserve them.
+            protected=matname=='BodyPaint' and obj.name.startswith(('Crowned clamshell bonnet','Fixed wing shoulder','Sculpted wiper trough','Reference shaped painted nose','Stepped bonnet hinge scuttle'))
+            by_material.setdefault((matname,protected),[]).append(obj)
+    for (name,protected),items in by_material.items():
         bpy.ops.object.select_all(action='DESELECT')
         for obj in items:obj.select_set(True)
         bpy.context.view_layer.objects.active=items[0]
         if len(items)>1:bpy.ops.object.join()
-        items[0].name=root.name+'__'+name
+        items[0].name=root.name+'__'+name+('__ProtectedBonnet' if protected else '')
 
 # Bake local cavity occlusion into vertex colour. This is geometry-derived,
 # not a photograph or a prepainted body texture: owners can still change paint.
@@ -1345,7 +1789,9 @@ print('Exporting web model',flush=True)
 bpy.ops.export_scene.gltf(filepath=os.path.join(OUT,MODEL_STEM+'-blender.glb'),export_format='GLB',export_yup=True,
                           export_apply=True,export_extras=True,export_cameras=False,export_lights=False,
                           export_vertex_color='ACTIVE',export_all_vertex_colors=False,
-                          export_meshopt_compression_enable=True,export_meshopt_extension='EXT_meshopt_compression')
+                          # Compress once in optimize-model.mjs. Blender's
+                          # scene-wide quantization erases the small S bevels.
+                          export_meshopt_compression_enable=False)
 
 # Native editable project contains each replaceable assembly plus a reproducible studio scene.
 for name in ['AllTerrainWheels','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille']:
@@ -1368,9 +1814,10 @@ scene.render.resolution_x=1100;scene.render.resolution_y=850;scene.render.resolu
 scene.render.film_transparent=True
 scene.render.image_settings.file_format='PNG';scene.render.filepath=os.path.join(ROOT,'modeling','jimny-blender-preview.png')
 # Reference stays in the editable project only, outside the web export.
-reference=bpy.data.objects.new('Real Jimny reference — Captainmorlypogi1959 CC BY-SA 4.0',None)
+reference=bpy.data.objects.new('Official Suzuki five-door bonnet reference — globalsuzuki.com',None)
 bpy.context.collection.objects.link(reference);reference.empty_display_type='IMAGE'
-reference.data=bpy.data.images.load(os.path.join(ROOT,'modeling','references','jimny-stock-reference.jpg'))
+# https://www.globalsuzuki.com/automobile/lineup/jimny5door/img/ex_img04.jpg
+reference.data=bpy.data.images.load(os.path.join(ROOT,'modeling','references','suzuki-official-bonnet-detail.jpg'))
 reference.empty_display_size=4;reference.location=(4,0,1.5);reference.hide_render=True
 for screen in bpy.data.screens:
     for area in screen.areas:
@@ -1378,7 +1825,9 @@ for screen in bpy.data.screens:
             area.spaces.active.region_3d.view_perspective='CAMERA'
             area.spaces.active.shading.type='MATERIAL'
 bpy.ops.file.pack_all()
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT,'modeling',MODEL_STEM+'.blend'))
+# Preserve the original editable masters while this geometry is under review.
+native=MODEL_STEM+'-body-review.blend'
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT,'modeling',native))
 print('MODEL_EXPORT',os.path.getsize(os.path.join(OUT,MODEL_STEM+'-blender.glb')))
 if '--skip-render' not in __import__('sys').argv:
     bpy.ops.render.render(write_still=True)

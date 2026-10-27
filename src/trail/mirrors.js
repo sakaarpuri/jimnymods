@@ -8,7 +8,7 @@ export function extractMirrorLenses(vehicleRoot, body='5door') {
   const specs=[
     {id:'right',x:-.863,y:1.285,z:.542+offset,w:.175,h:.117},
     {id:'left',x:.863,y:1.285,z:.542+offset,w:.175,h:.117},
-    {id:'centre',x:0,y:1.522,z:.536+offset,w:.18,h:.055},
+    {id:'centre',x:0,y:1.522,z:.481+offset,w:.18,h:.055},
   ].map(s=>({...s,vertices:[]}));
   const points=[new T.Vector3(),new T.Vector3(),new T.Vector3()];
   vehicleRoot.traverse(object=>{

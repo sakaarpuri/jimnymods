@@ -33,6 +33,8 @@ import { browserQuality } from './quality.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { projectBodyDecals } from './decals.js';
 import { slimlineRack, fittedVisors, mouldedSpareCover, extractFactoryBadge } from './refined-parts.js';
@@ -81,8 +83,13 @@ if(renderer){
   aoPass.updateGtaoMaterial({radius:.45,distanceExponent:1,thickness:1,distanceFallOff:1,scale:1.6,samples:16});
   aoPass.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:16});
   composer.addPass(aoPass);composer.addPass(new OutputPass());
+  // Native MSAA does not filter fine reflected/occlusion edges inside a
+  // polygon. A modest final pass reduces their sparkle during orbit, at the
+  // cost of slightly softer sub-pixel detail. Phones keep the cheaper path.
+  const edgeAA=new ShaderPass(FXAAShader);composer.addPass(edgeAA);
   function setRenderSize(width,height,ratio=renderer.getPixelRatio()){
     renderer.setPixelRatio(ratio);renderer.setSize(width,height,false);composer.setPixelRatio(ratio);composer.setSize(width,height);
+    edgeAA.uniforms.resolution.value.set(1/(width*ratio),1/(height*ratio));
   }
   function draw(){
     if(contactDirty){contactShadow.update(car);contactDirty=false;}

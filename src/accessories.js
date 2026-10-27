@@ -134,13 +134,14 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
     show(['skid'],()=>box(accessoryRig,1.22,.045,1.22,0,.38,.85,mats.metal));
     show(['headlamps'],()=>(detailed?[-.550,.550]:[-.6,.6]).forEach(x=>{
       const start=accessoryRig.children.length;
-      const y=detailed?.977:.95,z=1.889;
+      // Match the complete revised fascia, including its shallow plan-view bow.
+      const y=detailed?.917:.95,z=detailed?1.809+.020*(1-(x/.755)**2):1.889;
       cylinder(accessoryRig,.117,.117,.05,x,y,z-.035,mats.trim,'z',64);
       mesh(new THREE.TorusGeometry(.110,.005,12,64),mats.chrome,accessoryRig,x,y,z);
       mesh(new THREE.TorusGeometry(.099,.005,12,64),mats.white,accessoryRig,x,y,z+.008);
       for(const dy of [-.045,.036]){cylinder(accessoryRig,dy>0?.043:.030,dy>0?.043:.030,.014,x,y+dy,z+.005,mats.reflector,'z',40);const optic=mesh(new THREE.SphereGeometry(dy>0?.035:.023,32,20),mats.lens,accessoryRig,x,y+dy,z+.016);optic.scale.z=.38;}
       for(const side of [-1,1])for(const dy of [-.025,0,.025])box(accessoryRig,.022,.012,.008,x+side*.069,y+dy,z+.012,mats.reflector);
-      const lampGroup=new THREE.Group();lampGroup.position.set(x,y,0);accessoryRig.add(lampGroup);
+      const lampGroup=new THREE.Group();lampGroup.position.set(x,y,modelBody==='3door'?-.17:0);accessoryRig.add(lampGroup);
       for(const obj of accessoryRig.children.slice(start,-1)){obj.position.x-=x;obj.position.y-=y;lampGroup.add(obj);}lampGroup.scale.set(.9,.9,1);
     }));
     show(['dashcam'],()=>{box(accessoryRig,.10,.055,.055,-.25,1.55,.62,mats.trim);cylinder(accessoryRig,.017,.017,.012,-.25,1.55,.654,mats.lens,'z');box(accessoryRig,.03,.04,.018,-.25,1.594,.62,mats.trim);});

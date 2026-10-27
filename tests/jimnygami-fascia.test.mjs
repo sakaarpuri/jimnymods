@@ -15,7 +15,7 @@ for(const body of ['lwb','swb']){
   const root=await model(body),z=body==='swb'?-.17:0;
   for(const name of ['OEMGrille','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille']){
    const grille=root.getObjectByName(name);
-   const hit=(x,y)=>new Raycaster(new Vector3(x,y,2.05+z),new Vector3(0,0,-1),0,.28).intersectObject(grille,true).length>0;
+   const hit=(x,y)=>new Raycaster(new Vector3(x,y-.060,1.97+z),new Vector3(0,0,-1),0,.28).intersectObject(grille,true).length>0;
    assert(hit(0,.854),`${name}: lower central lip missing`);
    assert(!hit(.66,.854),`${name}: lower outer corner still rectangular`);
    assert(hit(.67,1.105),`${name}: flat upper shoulder missing`);
@@ -27,7 +27,7 @@ for(const body of ['lwb','swb']){
   grille.traverse(o=>{if(o.isMesh&&o.material.name==='BrightChrome'&&o.name!=='FactoryGrilleEmblem'){chrome.push(o);const a=o.geometry.attributes.position;for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);if(v.x>-.4&&v.x<-.25)b.expandByPoint(v);}}});
   const size=b.getSize(new Vector3());assert(Math.abs(size.x-.132)<.002);assert(Math.abs(size.y-.178)<.002);
   const z=body==='swb'?-.17:0;
-  const hit=(x,y)=>new Raycaster(new Vector3(x,y,2+z),new Vector3(0,0,-1),0,.2).intersectObjects(chrome,false).length>0;
+  const hit=(x,y)=>new Raycaster(new Vector3(x,y-.060,1.92+z),new Vector3(0,0,-1),0,.2).intersectObjects(chrome,false).length>0;
   assert(hit(-.32,1.069));assert(!hit(-.258,1.069),'Upper slot corner must be cut away');
  });
  test(`${body}: painted A-pillars follow the windscreen rake throughout their height`,async()=>{

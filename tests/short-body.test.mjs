@@ -20,9 +20,12 @@ test('SWB retains factory assembly dimensions and correct front/rear translation
  const {scene}=await model;scene.updateMatrixWorld(true);
  const lamps=new Box3().setFromObject(scene.getObjectByName('StockHeadlamps'),true);
  assert.ok(Math.abs(lamps.getSize(new Vector3()).y-.221)<.008);
- assert.ok(lamps.getCenter(new Vector3()).z>1.65&&lamps.getCenter(new Vector3()).z<1.8);
+ const lwbBytes=readFileSync(new URL('../assets/models/jimny-lwb-blender.glb',import.meta.url));
+ const lwb=(await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(lwbBytes.buffer.slice(lwbBytes.byteOffset,lwbBytes.byteOffset+lwbBytes.byteLength),'')).scene;
+ lwb.updateMatrixWorld(true);const lwbLamps=new Box3().setFromObject(lwb.getObjectByName('StockHeadlamps'),true);
+ assert.ok(Math.abs(lwbLamps.getCenter(new Vector3()).z-lamps.getCenter(new Vector3()).z-.17)<.002,'Both body styles must share the revised fascia, translated by exactly half the wheelbase difference');
  const roof=new Box3().setFromObject(scene.getObjectByName('RoofShell'),true);
- assert.ok(Math.abs(roof.getSize(new Vector3()).z-1.795)<.006,'Roof follows the revised upper rear taper and meets the aligned front header');
+ assert.ok(Math.abs(roof.getSize(new Vector3()).z-1.781)<.006,'Roof retains the upper rear taper without the protruding front gutter tip');
 });
 test('all three-door look thumbnails come from the matching SWB model',()=>{
  const manifest=JSON.parse(readFileSync(new URL('../assets/previews/manifest.json',import.meta.url)));

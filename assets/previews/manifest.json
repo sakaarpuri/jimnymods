@@ -1,14 +1,14 @@
 {
-  "generated": "2026-10-24",
+  "generated": "2026-10-27",
   "source": "Live Three.js renderer using the authored Blender model, not AI photographs",
-  "modelSha256": "0b7863dbf1533ebccd541cdb73f339981a88c6f40948b0396c61cc1ac741675b",
+  "modelSha256": "b2d2ad27dcfbe0da4d9f63f28fdf83f7193e387550916918aca0fb79dff9d74c",
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
-    "src/viewer3d.js": "a72dfc4a91cf9734f5225a7adb297673e4247b8b46afb0c79e4382d85334717e",
+    "src/viewer3d.js": "6a9e30ea0ea3d2241e660fa40c07d6bc88e3b8c7952891524fcd2836a920748a",
     "src/refined-parts.js": "67124a252e652c0587bdb780029897922712c9d72a1efa29bf689cca99472ad3",
     "src/decals.js": "ab5112e00b6affdca87142ab9885d2def01d43be47a244bee49047bb3553ccf1",
-    "src/accessories.js": "6039126f2417f6ad93a7f05c804ec5a869e7b0ed98220300003f13b02ebfdc59",
+    "src/accessories.js": "842f60d274ed4866d83e31bf5f0cce1cfb4625312c3bf813c9689ecaa1feb9bd",
     "src/trail/cabin-materials.js": "f7d403df42659d4360c9635d52a64c01eace973139c3858276b9e2f44571ccbf",
     "src/wheel-finishes.js": "5877fdf1ac063568ce37b119618cdf500b14bc0a4c44de006215e5cf858d1cd8",
     "src/tyre-types.js": "826ff6b9b97b1eed498fcdaa0afd74bdaae01aa4af934a606dd8fbaec6d90d6b",
@@ -30,7 +30,7 @@
     "src/trail/player.js": "c3b2374dde978ab8d415c7021293c1a56fcfc9a613dfbe6444cc314a3b42fe4e",
     "src/trail/replay.js": "c61c9be1184247b9a8844bc69968dba38b67ba41ff47d9c75fa863c6fe55e223",
     "src/scenery.js": "6c67b6b5d62e7b702a7451c3426cc48874e4a75efff6c704cfce3a747b9b1f1d",
-    "src/physical-materials.js": "c076249e39004e1edd5beeb9d9eab71c002e5484c050f7a8cd14e449fd089373",
+    "src/physical-materials.js": "3015be962e5a31cc004a72a9bb2500db038d133fcc9cead14fa02648fa34c663",
     "src/contact-shadow.js": "8b074bb89c554b58a9629652f4a5a337843808f4704bf4177ef99d5585987dde",
     "src/quality.js": "2f852d22ba4e999c0ad9605f61175def36cfbb17c4a0734a53e3f9fa09757db1",
     "src/workshop-stage.js": "fbf026648a1c2baa6ccaa4c7b1016336e74f5222a5a7789cbbfbcb2166dc9fb8",
@@ -96,7 +96,7 @@
     "ambient",
     "shelf"
   ],
-  "swbModelSha256": "48f13c24ef0673259eafd5e58ca1b37911e899ad69ceeb9106668efd3a7f4a80",
+  "swbModelSha256": "c63af355ecbbd6b0725889616420cd2e9b34582da71329933f091cc9d672de22",
   "swbPresets": [
     "classic",
     "retro",
@@ -112,7 +112,8 @@
   "swbParts": [
     "tires",
     "seats",
-    "doortrim"
+    "doortrim",
+    "snorkel"
   ],
   "wheelVariants": [
     "road-oem",

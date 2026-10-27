@@ -11,18 +11,17 @@ async function load(body){
  root.updateMatrixWorld(true);return root;
 }
 for(const body of ['lwb','swb']){
- test(`${body}: bonnet reaches the nose and has defined shoulders around a shallow centre`,async()=>{
+ test(`${body}: bonnet has the approved raised centre, shallow slope and shortened rolled nose`,async()=>{
   const shell=(await load(body)).getObjectByName('BodyShell'),offset=body==='swb'?-.17:0;
   // Garage replaces Blender's double-sided material with single-sided car
   // lacquer. Test the actual runtime culling, not the forgiving source mat.
   shell.traverse(o=>{if(o.isMesh&&o.material.name==='BodyPaint')o.material.side=FrontSide;});
   const top=(x,z)=>new Raycaster(new Vector3(x,1.4,z+offset),new Vector3(0,-1,0),0,.30).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint')?.point;
-  const nose=top(0,1.81),centre=top(0,1.50),shoulder=top(.58,1.50);
-  assert(nose&&nose.y>1.16&&nose.y<1.19,'Bonnet must roll forward over the painted nose, not stop behind it');
-  assert(centre&&shoulder&&shoulder.y-centre.y>.016,'Stamped shoulder must rise clearly above the centre, not read as a soft padded lid');
-  assert(shoulder.y-centre.y<.020,'Shoulder must not become an oversized scoop');
-  const lipCentre=top(0,1.84),lipShoulder=top(.58,1.84);
-  assert(lipCentre&&lipShoulder&&Math.abs(lipCentre.y-lipShoulder.y)<.006,'Shoulder pressings must fade into a near-level front lip rather than leave raised ears over the lamps');
+  const nose=top(0,1.70),centre=top(0,1.50),shoulder=top(.58,1.50),hinge=top(0,1.10);
+  assert(nose&&nose.y>1.15&&nose.y<1.18,'Rolled bonnet nose height drifted');
+  assert(centre&&shoulder&&centre.y-shoulder.y>.006&&centre.y-shoulder.y<.014,'Centre stamping must rise subtly above the shoulders, not be recessed');
+  assert(hinge&&hinge.y-centre.y>.005&&hinge.y-centre.y<.014,'Approved shallow bonnet slope drifted');
+  assert.equal(top(0,1.81),undefined,'Bonnet must finish behind the forward headlamp face, not overhang it');
   for(const side of [-1,1]){
    const edge=new Raycaster(new Vector3(side*1,1.174,1.10+offset),new Vector3(-side,0,0),0,.30).intersectObject(shell,true);
    assert.equal(edge[0]?.object.material.name,'BodyPaint','The folded bonnet side must face outward on both sides, without a see-through black slit');

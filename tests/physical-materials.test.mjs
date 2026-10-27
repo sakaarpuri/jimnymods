@@ -19,7 +19,8 @@ test('profiles restore full environment reflections and skip unknown materials',
   assert.equal(applyMaterialProfile(new MeshStandardMaterial({ name: 'CabinCarpet', roughness: 1 })), false);
 });
 test('paint finishes: lacquered gloss, softer satin, unlacquered matte', () => {
-  assert.ok(paintFinish('oem').clearcoat === 1 && paintFinish('oem').clearcoatRoughness < .05);
+  assert.equal(paintFinish('oem').clearcoat,.60);
+  assert.equal(paintFinish('oem').clearcoatRoughness,.30);
   assert.ok(paintFinish('satin').clearcoatRoughness > paintFinish('oem').clearcoatRoughness);
   assert.equal(paintFinish('matte').clearcoat, 0);
   assert.deepEqual(paintFinish('twotone'), paintFinish('gloss'));
