@@ -18,13 +18,23 @@ with `modeling/export-web-model.py`, optimize, and remove unused UV streams.
   retained because cabin metal uses a grain texture. No tyre or body detail
   was reduced to accommodate this follow-up.
 
-Final models are 3,245,576 bytes (five-door) and 3,196,960 bytes (three-door),
+## Bonnet taper and grille side visibility follow-up
+
+- The bonnet becomes progressively thinner toward its nose, retaining the
+  thicker hinge end, rounded turnover and unchanged fixed wing landing.
+- The painted surround no longer hides the grille's existing side return.
+  This is a local overlap correction, not extra trim or moved headlights.
+- Both body versions and all eight modelled grille assemblies are covered by
+  geometry checks. Workshop lighting, reflections, material settings and
+  phone quality tiers are unchanged.
+
+Final models are 3,250,676 bytes (five-door) and 3,199,840 bytes (three-door),
 both below the existing 3,300,000-byte ceiling. All 264 model-derived preview
 images and three course cards were regenerated from these assets.
 
 ## Verification before publication
 
-- Normal release build and all 554 automated tests pass.
+- Normal release build and all 556 automated tests pass.
 - A new shape assertion fails on the former flat grille and passes on both
   final assets; lamp apertures and replacement-light alignment remain checked.
 - Final compressed-model close-up and raised three-quarter renders inspected.
