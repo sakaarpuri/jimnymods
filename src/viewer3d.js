@@ -80,7 +80,11 @@ if(renderer){
   const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,samples:4}));
   composer.addPass(new RenderPass(scene,camera));
   const aoPass=new GTAOPass(scene,camera,1,1);aoPass.blendIntensity=.9;
-  aoPass.updateGtaoMaterial({radius:.45,distanceExponent:1,thickness:1,distanceFallOff:1,scale:1.6,samples:16});
+  // Local crevice shading, not a second long-range shadow. The former
+  // 45cm radius / 1m thickness projected the raised differential onto the
+  // ground as an isolated floating blob. Grounding remains the contact and
+  // directional shadow passes; keep AO within nearby surfaces instead.
+  aoPass.updateGtaoMaterial({radius:.10,distanceExponent:1,thickness:.10,distanceFallOff:1,scale:1.6,samples:16});
   aoPass.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:16});
   composer.addPass(aoPass);composer.addPass(new OutputPass());
   // Native MSAA does not filter fine reflected/occlusion edges inside a

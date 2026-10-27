@@ -47,7 +47,7 @@
     const slots=[...header.querySelectorAll('[data-site-header-slot]')];
     header.classList.add('site-header');
     header.innerHTML=`<div class="site-bar">
-<a class="site-logo" href="index.html#garage" aria-label="jimnygami Garage"><span class="site-logo-art"><img src="assets/jimnygami-logo-sticker.webp" width="1550" height="341" alt=""></span><span class="site-tagline">Built here.<br>Taken anywhere.</span></a>
+<a class="site-logo" href="index.html#garage" aria-label="jimnygami Garage"><span class="site-logo-art"><img src="assets/jimnygami-logo-sticker.webp" width="1550" height="341" alt=""></span><span class="site-tagline">Built here.<br>Taken everywhere.</span></a>
 <div class="site-menu-panel" id="siteMenu">
 <nav class="site-nav" id="siteNav" aria-label="Main navigation">${NAV.map(item=>navItem(item,page)).join('')}</nav>
 <details class="site-setup"><summary aria-label="Your setup: region, Jimny and style"><span class="site-setup-context">${esc(contextLabel(context))}</span>${icons.chevron}</summary>
