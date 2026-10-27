@@ -524,6 +524,12 @@ def bonnet_height(x,z):
     nose_height=bonnet_pose(0,bonnet_seam(1.85)+.012,nose_forward)[1]
     u=min(1,max(0,(forward-(nose_forward-.050))/.050))
     world_height=base-(nose_base-nose_height)*(1-math.sqrt(max(0,1-u*u)))
+    # Thin the lid itself progressively toward the front, not the fixed wing
+    # or closing seam. Zero value and tangent at the hinge preserve the cowl
+    # transition. Retain 78% of the nose fold, so it remains a rolled edge,
+    # not a knife edge; the raised centre and shoulder pressing stay intact.
+    seam_height=bonnet_pose(0,bonnet_seam(z),forward)[1]
+    world_height=seam_height+(world_height-seam_height)*(1-.22*blend)
     # bonnet_pose applies the owner's approved closed-lid rotation once.
     return 1.135+(world_height-1.135-(forward-.69)*math.sin(BONNET_POSE_ANGLE))/math.cos(BONNET_POSE_ANGLE)
 def bonnet_forward(x,z):
@@ -942,6 +948,14 @@ paint_outline=[(x*1.0107,.980+(h-.980)*1.105+(.016+nose_closing_height-1.045-.07
 # black closing block left a large false void below the grille and at its ends.
 for i,h in {4:.872,5:.811,6:.800,7:.800,8:.800,9:.800,10:.800,11:.811,12:.872}.items():
     paint_outline[i]=(paint_outline[i][0],h)
+def grille_side_clearance(x,h):
+    # Suzuki's side drawing/photo shows the moulded grille return standing
+    # ahead of the side landing. Our painted collar hid the entire 45mm-deep
+    # grille cheek. Relieve only that overlap, not the bonnet landing, upper
+    # lip, centre fascia or lamp positions. No added decorative black strip.
+    def smooth(t):
+        t=max(0,min(1,t));return t*t*(3-2*t)
+    return .032*smooth((abs(x)-.690)/.055)*smooth((h-.880)/.035)*smooth((1.100-h)/.035)
 def nose_point(x,h,back):
     # The grille surround retains its width. Only its BACK boundary follows
     # the shared bonnet/wing junction; no separate corner scaling or pinching.
@@ -950,7 +964,7 @@ def nose_point(x,h,back):
     # The painted lip must sit just ahead of the grille's 1.8615 front sheet.
     # The old 1.834 plane was behind the grille and even behind the bonnet
     # landing, making the rolled transition an inverted, recessed channel.
-    if not back:return x,h-.006*upper,1.871+front_body_bow(x)
+    if not back:return x,h-.006*upper,1.871+front_body_bow(x)-grille_side_clearance(x,h)
     source_x=max(-.755,min(.755,x*.755/BONNET_FRONT_FOLD_HALF_WIDTH))
     _,join_h,join_z=bonnet_pose(source_x,bonnet_seam(1.85),bonnet_forward(source_x,1.85))
     outside=min(1,max(0,(abs(x)-BONNET_FRONT_FOLD_HALF_WIDTH)/(.755-BONNET_FRONT_FOLD_HALF_WIDTH)))
@@ -993,7 +1007,7 @@ for (x,h),(ix,ih) in zip(outer,inner):
     if abs(ix)>.68:fx=math.copysign(max(abs(fx),abs(ix)+.006),fx)
     if ih>1.075:fh=max(fh,ih+.008)
     back=Vector((bx,bh,bz));crest=Vector((fx,fh,fz))
-    inner_front=Vector((ix,ih,1.864+front_body_bow(ix)))
+    inner_front=Vector((ix,ih,1.864+front_body_bow(ix)-grille_side_clearance(ix,ih)))
     # Roll the exposed painted crest rather than leaving the former sharp
     # two-plane crease. Explicit rings avoid a bevel being clamped to nearly
     # zero by the short edges in this sampled outline. Keep the wing landing,

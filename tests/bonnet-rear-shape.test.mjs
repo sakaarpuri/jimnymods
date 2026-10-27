@@ -11,6 +11,17 @@ async function load(body){
  root.updateMatrixWorld(true);return root;
 }
 for(const body of ['lwb','swb']){
+ test(`${body}: bonnet tapers in thickness toward the nose without moving its fixed wing landing`,async()=>{
+  const shell=(await load(body)).getObjectByName('BodyShell'),offset=body==='swb'?-.17:0;
+  const top=(x,z)=>new Raycaster(new Vector3(x,1.4,z+offset),new Vector3(0,-1,0),0,.35).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint')?.point.y;
+  for(const side of [-1,1]){
+   const hinge=top(side*.69,.90),front=top(side*.69,1.58),landing=top(side*.738,1.58);
+   assert(hinge>1.188&&hinge<1.191,'Keep the hinge-end height and cowl transition');
+   assert(Math.abs(landing-1.11775)<.0007,'Do not raise or lower the fixed wing to disguise the bonnet thickness');
+   assert(front-landing>.031&&front-landing<.040,'Front shoulder must taper to 31–40mm above the unchanged wing, not retain the old 45mm slab');
+   assert(Math.abs(top(side*.738,1.50)-1.1204)<.0007,'The side-panel landing must remain unchanged farther back too');
+  }
+ });
  test(`${body}: bonnet has the approved raised centre, shallow slope and shortened rolled nose`,async()=>{
   const shell=(await load(body)).getObjectByName('BodyShell'),offset=body==='swb'?-.17:0;
   // Garage replaces Blender's double-sided material with single-sided car
@@ -20,7 +31,9 @@ for(const body of ['lwb','swb']){
   const nose=top(0,1.70),centre=top(0,1.50),shoulder=top(.58,1.50),hinge=top(0,1.10);
   assert(nose&&nose.y>1.15&&nose.y<1.18,'Rolled bonnet nose height drifted');
   assert(centre&&shoulder&&centre.y-shoulder.y>.006&&centre.y-shoulder.y<.014,'Centre stamping must rise subtly above the shoulders, not be recessed');
-  assert(hinge&&hinge.y-centre.y>.005&&hinge.y-centre.y<.014,'Approved shallow bonnet slope drifted');
+  // Thinning the upper lid toward the unchanged lower seam adds about 7mm
+  // of fall over this 400mm span, while leaving the hinge tangent unchanged.
+  assert(hinge&&hinge.y-centre.y>.010&&hinge.y-centre.y<.020,'Tapered bonnet should retain a gentle, continuous slope');
   assert.equal(top(0,1.81),undefined,'Bonnet must finish behind the forward headlamp face, not overhang it');
   for(const side of [-1,1]){
    const edge=new Raycaster(new Vector3(side*1,1.174,1.10+offset),new Vector3(-side,0,0),0,.30).intersectObject(shell,true);

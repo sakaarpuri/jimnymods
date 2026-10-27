@@ -1,7 +1,7 @@
 {
   "generated": "2026-10-27",
   "source": "Live Three.js renderer using the authored Blender model, not AI photographs",
-  "modelSha256": "3066309efbb6cff68512713be3d0b86e36cc3f19b25b57909e8cbfcee8929c79",
+  "modelSha256": "86db37b62ad2fffa98d352b36183454b92bf57180e4d33b124022a5867b6518c",
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
@@ -96,7 +96,7 @@
     "ambient",
     "shelf"
   ],
-  "swbModelSha256": "daf9e8a7b9c1f2219d704c4fd8a7011fa7e1c11fa5232b24082ba99d92e2f54f",
+  "swbModelSha256": "6b2a831d62416e25312ee1728b672666f888c427408eb17ea5998289d002ad4e",
   "swbPresets": [
     "classic",
     "retro",

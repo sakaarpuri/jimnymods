@@ -12,6 +12,19 @@ for(const body of ['lwb','swb'])test(`${body}: revised headlamp apertures remain
   const root=(await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
     .parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'')).scene;
   root.updateMatrixWorld(true);
+  // The fascia has an actual rounded side return. It must be visible from
+  // either side, rather than wholly hidden behind the painted nose surround.
+  for(const name of ['OEMGrille','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille']){
+    const grille=root.getObjectByName(name),offset=body==='swb'?.17:0;
+    for(const side of [-1,1])for(const z of [1.764,1.770,1.775]){
+      const ray=new Raycaster(new Vector3(side*1,.93,z-offset),new Vector3(-side,0,0),0,.4);
+      const hit=ray.intersectObjects([root.getObjectByName('BodyShell'),grille],true)[0];
+      let assembly=hit?.object;
+      while(assembly&&assembly!==grille)assembly=assembly.parent;
+      assert(assembly===grille,`${name} side return is hidden by the painted surround`);
+      assert(Math.abs(hit.point.x)<.762,'Side return must not become an oversized projecting wing');
+    }
+  }
   for(const name of ['BodyShell','StockHeadlamps','OEMGrille','BlockGrille','RhinoGrille','ScriptGrille','GlossGrille','DeleteGrille','ClassicGrille','MeshGrille']){
     const panels=[];
     root.getObjectByName(name).traverse(obj=>{
