@@ -17,8 +17,9 @@ for(const path of targets){
   for(const mesh of document.getRoot().listMeshes())for(const primitive of mesh.listPrimitives()){
     if(primitive.getAttribute('TEXCOORD_1')){primitive.setAttribute('TEXCOORD_1',null);stripped++;}
     // These authored solid materials use neither maps nor UV-based procedural
-    // textures in Garage or Drive. Retain UV0 on paint, rubber and fabrics.
-    if(['MouldedPlastic','GrilleAnthracite','GlossBlackGrille'].includes(primitive.getMaterial()?.getName())&&primitive.getAttribute('TEXCOORD_0')){
+    // textures in Garage or Drive. Retain UV0 on paint, rubber, fabrics and
+    // BrightChrome (the cabin applies a fine grain to its metal fittings).
+    if(['MouldedPlastic','GrilleAnthracite','GlossBlackGrille','GrilleLettering','WheelGunmetal'].includes(primitive.getMaterial()?.getName())&&primitive.getAttribute('TEXCOORD_0')){
       primitive.setAttribute('TEXCOORD_0',null);stripped++;
     }
   }

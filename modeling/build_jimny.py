@@ -53,7 +53,7 @@ chrome = material('BrightChrome', (.72, .75, .77), .16, 1)
 alloy = material('MachinedAlloy', (.21, .225, .24), .43, .72)
 gunmetal = material('WheelGunmetal', (.065, .070, .076), .48, .62)
 wheel_barrel = material('WheelBarrelDark', (.035, .038, .041), .64, .45)
-grillemetal = material('GrilleAnthracite', (.12, .135, .15), .36, .30)
+grillemetal = material('GrilleAnthracite', (.020, .024, .026), .36, 0)
 glossblack = material('GlossBlackGrille', (.013, .017, .020), .17, .22, 1)
 badgewhite = material('GrilleLettering', (.76, .79, .81), .27, .35, .6)
 brake = material('BrakeSteel', (.19, .21, .22), .47, .88)
@@ -870,6 +870,29 @@ GRILLE_OUTLINE=[(-.680,1.120),(.680,1.120),(.725,1.109),(.747,1.079),
 def front_body_bow(x):
     # A shallow front-to-back crown shared by the body, grille and fittings.
     return .020*max(0,1-(x/.755)**2)
+def grille_bounds(x):
+    sections=[(0,1.120,.835),(.430,1.120,.842),(.680,1.120,.870),
+              (.692,1.117,.871),(.725,1.109,.885),(.734,1.097,.889),(.747,1.079,.915)]
+    x=abs(x)
+    for (a,top,low),(b,top2,low2) in zip(sections,sections[1:]):
+        if x<=b:
+            t=(x-a)/(b-a)
+            return top+(top2-top)*t,low+(low2-low)*t
+    return sections[-1][1:]
+def factory_grille_relief(x,h):
+    # Moulded polymer is not a flat plate: a shallow crown, rolled boundary
+    # and recessed lamp seats give real shape to its moving reflections.
+    # All dimensions remain small; lamps and slot inserts keep their datums.
+    def smooth(t):
+        t=max(0,min(1,t));return t*t*(3-2*t)
+    top,low=grille_bounds(x)
+    v=max(0,min(1,(h-low)/(top-low)))
+    edge=min(h-low,top-h,.747-abs(x))
+    depth=.004*math.sin(math.pi*v)-.004*(1-smooth(edge/.020))
+    for cx in [-.550,.550]:
+        radius=math.hypot(x-cx,h-.977)
+        depth-=.0025*(1-smooth((radius-.112)/.022))
+    return depth
 def fascia_plate(name,outline,back,front,mat,group='BodyShell'):
     outline=rounded_polygon(outline,.009);n=len(outline)
     vertices=[(x,h,z) for z in [back,front] for x,h in outline]
@@ -877,20 +900,15 @@ def fascia_plate(name,outline,back,front,mat,group='BodyShell'):
 def grille_face(group,mat):
     # A regular curved sheet, not a triangulated bowed n-gon. A triangle fan
     # made conspicuous radial facets around the lights in the preview.
-    sections=[(0,1.120,.835),(.430,1.120,.842),(.680,1.120,.870),
-              (.692,1.117,.871),(.725,1.109,.885),(.734,1.097,.889),(.747,1.079,.915)]
-    def bounds(x):
-        x=abs(x)
-        for (a,top,low),(b,top2,low2) in zip(sections,sections[1:]):
-            if x<=b:
-                t=(x-a)/(b-a)
-                return top+(top2-top)*t,low+(low2-low)*t
-        return sections[-1][1:]
-    xs=[-.747+i*1.494/96 for i in range(97)];rows=13;vertices=[]
+    factory=group=='OEMGrille'
+    segments=144 if factory else 96
+    xs=[-.747+i*1.494/segments for i in range(segments+1)];rows=33 if factory else 13;vertices=[]
     for depth in [1.8165,1.8615]:
         for x in xs:
-            top,low=bounds(x)
-            for j in range(rows):vertices.append((x,low+(top-low)*j/(rows-1),depth+front_body_bow(x)))
+            top,low=grille_bounds(x)
+            for j in range(rows):
+                h=low+(top-low)*j/(rows-1)
+                vertices.append((x,h,depth+front_body_bow(x)+(factory_grille_relief(x,h) if factory else 0)))
     n=len(xs)*rows;faces=[]
     for i in range(len(xs)-1):
         for j in range(rows-1):
@@ -900,7 +918,9 @@ def grille_face(group,mat):
     for i in [0,len(xs)-1]:
         for j in range(rows-1):
             a=i*rows+j;faces.append((a,a+1,n+a+1,n+a))
-    return geometry('Reference shaped grille face',vertices,faces,mat,group,smooth=True)
+    obj=geometry('Reference shaped grille face',vertices,faces,mat,group,smooth=True)
+    obj['factory_relief']=factory
+    return obj
 def factory_slot(name,x,mat,group):
     def outline(w,h,c):return [(-w/2+c,h/2),(w/2-c,h/2),(w/2,h/2-c),(w/2,-h/2+c),(w/2-c,-h/2),(-w/2+c,-h/2),(-w/2,-h/2+c),(-w/2,h/2-c)]
     outer,inner=outline(.132,.178,.021),outline(.106,.152,.015);n=8
@@ -927,7 +947,10 @@ def nose_point(x,h,back):
     # the shared bonnet/wing junction; no separate corner scaling or pinching.
     upper=min(1,max(0,(h-1.070)/.025))
     upper=upper*upper*(3-2*upper)
-    if not back:return x,h-.006*upper,1.834+front_body_bow(x)
+    # The painted lip must sit just ahead of the grille's 1.8615 front sheet.
+    # The old 1.834 plane was behind the grille and even behind the bonnet
+    # landing, making the rolled transition an inverted, recessed channel.
+    if not back:return x,h-.006*upper,1.871+front_body_bow(x)
     source_x=max(-.755,min(.755,x*.755/BONNET_FRONT_FOLD_HALF_WIDTH))
     _,join_h,join_z=bonnet_pose(source_x,bonnet_seam(1.85),bonnet_forward(source_x,1.85))
     outside=min(1,max(0,(abs(x)-BONNET_FRONT_FOLD_HALF_WIDTH)/(.755-BONNET_FRONT_FOLD_HALF_WIDTH)))
@@ -948,8 +971,8 @@ def nose_point(x,h,back):
 # An open, continuous surround: four connected rings instead of a warped
 # full-width n-gon with Boolean lamp cuts. The actual grille supplies the
 # separate lamp apertures; there is no painted sheet behind the optics.
-outer=rounded_polygon(paint_outline,.009)
-inner=rounded_polygon(GRILLE_OUTLINE,.009)
+outer=rounded_polygon(paint_outline,.018)
+inner=rounded_polygon(GRILLE_OUTLINE,.018)
 # Sample the long straight portions too: otherwise their corner-only vertices
 # cannot express the shared curve across the front.
 sampled_outer=[];sampled_inner=[]
@@ -961,24 +984,42 @@ for i,p in enumerate(outer):
         sampled_outer.append(tuple(p[a]*(1-t)+q[a]*t for a in range(2)))
         sampled_inner.append(tuple(inner[i][a]*(1-t)+inner[j][a]*t for a in range(2)))
 outer,inner=sampled_outer,sampled_inner
-count=len(outer);nose_rings=[[],[],[],[]]
+roll_steps=12
+count=len(outer);nose_rings=[[] for _ in range(roll_steps+4)]
 for (x,h),(ix,ih) in zip(outer,inner):
     bx,bh,bz=nose_point(x,h,True)
     fx,fh,fz=nose_point(x,h,False)
     # Keep the outer rim outside the aperture at the clipped shoulders.
     if abs(ix)>.68:fx=math.copysign(max(abs(fx),abs(ix)+.006),fx)
     if ih>1.075:fh=max(fh,ih+.008)
-    nose_rings[0].append((bx,bh,bz))
-    nose_rings[1].append((fx,fh,fz))
-    nose_rings[2].append((ix,ih,1.834+front_body_bow(ix)))
-    nose_rings[3].append((ix,ih,1.752))
+    back=Vector((bx,bh,bz));crest=Vector((fx,fh,fz))
+    inner_front=Vector((ix,ih,1.864+front_body_bow(ix)))
+    # Roll the exposed painted crest rather than leaving the former sharp
+    # two-plane crease. Explicit rings avoid a bevel being clamped to nearly
+    # zero by the short edges in this sampled outline. Keep the wing landing,
+    # bonnet seam and grille aperture exactly where they already are.
+    start=crest+(back-crest)*min(.80,.024/max(.0001,(back-crest).length))
+    end=crest+(inner_front-crest)*min(.80,.024/max(.0001,(inner_front-crest).length))
+    nose_rings[0].append(tuple(back))
+    for step in range(roll_steps+1):
+        t=step/roll_steps
+        point=(1-t)**2*start+2*t*(1-t)*crest+t*t*end
+        nose_rings[step+1].append(tuple(point))
+    nose_rings[roll_steps+2].append(tuple(inner_front))
+    nose_rings[roll_steps+3].append((ix,ih,1.752))
 nose_faces=[]
-for ring_index in range(4):
-    next_ring=(ring_index+1)%4
+for ring_index in range(len(nose_rings)):
+    next_ring=(ring_index+1)%len(nose_rings)
     for i in range(count):
         j=(i+1)%count
         nose_faces.append((ring_index*count+i,ring_index*count+j,next_ring*count+j,next_ring*count+i))
-front_panel=geometry('Reference shaped painted nose',sum(nose_rings,[]),nose_faces,paint,bevel=.001,smooth=False)
+front_panel=geometry('Reference shaped painted nose',sum(nose_rings,[]),nose_faces,paint,smooth=True)
+# Keep the opening/rear boundary from pulling the broad painted face's
+# shading inward. Only the new outer rolled crest is a smooth transition.
+for edge in front_panel.data.edges:
+    a,b=edge.vertices
+    if a//count==b//count and a//count in {0,roll_steps+2,roll_steps+3}:
+        edge.use_edge_sharp=True
 grille_faces=[grille_face('OEMGrille',grillemetal)]
 for x in [-.32,-.16,0,.16,.32]:
     factory_slot('Chamfered factory chrome slot',x,chrome,'OEMGrille')
@@ -1710,6 +1751,32 @@ if SHORT_BODY:
 else:
     groups['BodyShell']['body_style']='5-door long wheelbase'
     groups['BodyShell']['wheelbase_m']=2.590
+# Boolean lamp openings must not average their recessed walls into the broad
+# front face. That generated the dark, stair-stepped halo, even with runtime
+# shadows disabled. Give the bowed sheet its own continuous loop normals,
+# keeping the aperture wall normals independent. Do this after the SWB edit,
+# before material batching/export, so both versions keep the same surface.
+for obj in bpy.context.scene.objects:
+    if obj.type!='MESH' or not obj.name.startswith('Reference shaped grille face'):continue
+    mesh=obj.data;world=obj.matrix_world.copy()
+    inverse_normal=world.to_3x3().transposed()
+    front=1.7815-(.170 if SHORT_BODY else 0)
+    back=front-.045
+    factory=obj.get('factory_relief',False)
+    def surface(x,h):return front_body_bow(x)+(factory_grille_relief(x,h+.060) if factory else 0)
+    normals=[tuple(n.vector) for n in mesh.corner_normals]
+    for polygon in mesh.polygons:
+        points=[world@mesh.vertices[mesh.loops[i].vertex_index].co for i in polygon.loop_indices]
+        for depth,sign in [(front,1),(back,-1)]:
+            if all(abs(-p.y-depth-surface(p.x,p.z))<(.0008 if factory else .00015) for p in points):
+                for loop_index,p in zip(polygon.loop_indices,points):
+                    epsilon=.0001
+                    dx=(surface(p.x+epsilon,p.z)-surface(p.x-epsilon,p.z))/(2*epsilon)
+                    dh=(surface(p.x,p.z+epsilon)-surface(p.x,p.z-epsilon))/(2*epsilon)
+                    n=Vector((-dx,-1,-dh))*sign
+                    normals[loop_index]=tuple((inverse_normal@n).normalized())
+                break
+    mesh.normals_split_custom_set(normals)
 # Authored surface coordinates let the web paint/plastic microtexture actually
 # follow the mesh. Previously these materials had maps but no UV coordinates.
 for obj in bpy.context.scene.objects:
@@ -1768,6 +1835,10 @@ for obj in bpy.context.scene.objects:
     # Omit that unused stream (and fixed dark barrel AO) instead of reducing
     # the precision of visible hard-edged wheel faces to hit the web budget.
     if obj.type!='MESH' or obj.data.materials[0].name in transparent|{'MachinedAlloy','WheelBarrelDark'}:continue
+    # The grille sheet needs smooth material shading, not low-frequency
+    # per-vertex dark patches around its cut-outs. Recess walls remain dark
+    # IntakeShadow geometry; real-time lighting/occlusion still supplies depth.
+    if obj.name.startswith('OEMGrille__GrilleAnthracite') or obj.name.startswith(tuple(name+'__'+mat for name in hidden_groups if name.endswith('Grille') for mat in ['MouldedPlastic','GlossBlackGrille'])):continue
     data=obj.data;col=data.color_attributes.new(name='CavityOcclusion',type='BYTE_COLOR',domain='POINT')
     data.color_attributes.active_color=col
     normal_matrix=obj.matrix_world.to_3x3().inverted().transposed()

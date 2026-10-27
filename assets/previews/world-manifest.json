@@ -1,9 +1,9 @@
 {
   "generated": "2026-10-27",
-  "modelSha256": "b2d2ad27dcfbe0da4d9f63f28fdf83f7193e387550916918aca0fb79dff9d74c",
+  "modelSha256": "3066309efbb6cff68512713be3d0b86e36cc3f19b25b57909e8cbfcee8929c79",
   "images": {
-    "mountain": "25cc5846e64a3f0dc9e941cab7a4cc551a241c0573b7cbe2612b251bba64a255",
-    "sand": "64f29c2d4390397d3f8db43ac155ba1273f73633413f6d5a73d7174223130c1c",
-    "urban": "158bb0879de7b3d8e2b0bee72b2dc6116ab3d98e5b2bdfcac68944259f2543ca"
+    "mountain": "fae1cee07f6628c0cca7e6e7ac2f2b3c7185c9a97fdfc55dfc2f47f518ee71dc",
+    "sand": "6a8f5a5146a983430526c94dd7122540b8e2dba37896f6822ccdda33f7b84b2b",
+    "urban": "b494a828000d8646a114f9f89cd4cb1b3d68c2981ef9f6fc987ab7653405ca41"
   }
 }

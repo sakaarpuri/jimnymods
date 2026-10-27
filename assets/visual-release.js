@@ -1,2 +1,2 @@
 /* Generated model/preview identity. */
-window.JIMNY_VISUAL_RELEASE={"previewVersion":"685f9b9528a6","models":{"5door":"b2d2ad27dcfb","3door":"c63af355ecbb"}};
+window.JIMNY_VISUAL_RELEASE={"previewVersion":"ef4a1d4f987d","models":{"5door":"3066309efbb6","3door":"daf9e8a7b9c1"}};

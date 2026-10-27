@@ -11,7 +11,8 @@ export const MATERIAL_PROFILES=Object.freeze({
   CaliperMetal:{metalness:.6,roughness:.45},
   // Grained black bumper and arch plastic: dull, but still a dielectric sheen.
   MouldedPlastic:{metalness:0,roughness:.62},
-  GrilleAnthracite:{metalness:.2,roughness:.4},
+  // Factory moulded grille: dark satin polymer, not light metallic grey.
+  GrilleAnthracite:{metalness:0,roughness:.36},
   GlossBlackGrille:{metalness:0,roughness:.12,clearcoat:1,clearcoatRoughness:.04},
   TyreRubber:{metalness:0,roughness:.9},
 });

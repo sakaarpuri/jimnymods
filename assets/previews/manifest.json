@@ -1,7 +1,7 @@
 {
   "generated": "2026-10-27",
   "source": "Live Three.js renderer using the authored Blender model, not AI photographs",
-  "modelSha256": "b2d2ad27dcfbe0da4d9f63f28fdf83f7193e387550916918aca0fb79dff9d74c",
+  "modelSha256": "3066309efbb6cff68512713be3d0b86e36cc3f19b25b57909e8cbfcee8929c79",
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
@@ -30,7 +30,7 @@
     "src/trail/player.js": "c3b2374dde978ab8d415c7021293c1a56fcfc9a613dfbe6444cc314a3b42fe4e",
     "src/trail/replay.js": "c61c9be1184247b9a8844bc69968dba38b67ba41ff47d9c75fa863c6fe55e223",
     "src/scenery.js": "6c67b6b5d62e7b702a7451c3426cc48874e4a75efff6c704cfce3a747b9b1f1d",
-    "src/physical-materials.js": "3015be962e5a31cc004a72a9bb2500db038d133fcc9cead14fa02648fa34c663",
+    "src/physical-materials.js": "cf80a1cabe21929ef9da52c848ca1b8eaef21c64059f25cdc08268dea8775533",
     "src/contact-shadow.js": "8b074bb89c554b58a9629652f4a5a337843808f4704bf4177ef99d5585987dde",
     "src/quality.js": "2f852d22ba4e999c0ad9605f61175def36cfbb17c4a0734a53e3f9fa09757db1",
     "src/workshop-stage.js": "fbf026648a1c2baa6ccaa4c7b1016336e74f5222a5a7789cbbfbcb2166dc9fb8",
@@ -96,7 +96,7 @@
     "ambient",
     "shelf"
   ],
-  "swbModelSha256": "c63af355ecbbd6b0725889616420cd2e9b34582da71329933f091cc9d672de22",
+  "swbModelSha256": "daf9e8a7b9c1f2219d704c4fd8a7011fa7e1c11fa5232b24082ba99d92e2f54f",
   "swbPresets": [
     "classic",
     "retro",
