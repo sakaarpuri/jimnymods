@@ -13,7 +13,14 @@
   const partCount=MODS.filter(m=>!m.designOnly&&(!window.JimnyCatalogue||window.JimnyCatalogue.isActive(m))).length;
   const tripCount=globalThis.JIMNY_TRIP_PLANNER?.routes?.length||0;
   const numberWords=['No','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve'];
-  const carImage=body=>`assets/previews/${body==='3door'?'swb/':''}design-finish-oem.webp`;
+  const featuredLook='retro';
+  const carImage=body=>`assets/previews/${body==='3door'?'swb/':''}preset-${featuredLook}.webp?v=${window.JIMNY_VISUAL_RELEASE?.previewVersion||'current'}`;
+  // Only a genuinely new full-page visit starts with the featured build.
+  // Reopening Welcome or following a shared build must never replace saved work.
+  function canStartFeatured(){
+    try{return !localStorage.getItem(SEEN_KEY)&&!localStorage.getItem('thatsuvmod-region')&&!new URLSearchParams(location.search).has('build')&&!(window.getJimnyBuildState?.().parts?.length)&&location.hash!=='#welcome';}
+    catch{return false;}
+  }
   const arrow='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
   function markSeen(){try{localStorage.setItem(SEEN_KEY,'1');}catch{/* The welcome may show again next visit. */}}
@@ -36,13 +43,13 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
 
   function trackBodyImage(container,prefix){
     const img=container.querySelector('.welcome-car img');if(!img)return;
-    container.addEventListener('change',e=>{if(e.target.name===`${prefix}-body`){img.src=carImage(e.target.value);img.alt=`A ${e.target.value==='3door'?'three':'five'}-door Jimny in the jimnygami garage`;}});
+    container.addEventListener('change',e=>{if(e.target.name===`${prefix}-body`){img.src=carImage(e.target.value);img.alt=`Heritage Club: a customised ${e.target.value==='3door'?'three':'five'}-door Jimny with sunset decals, bronze wheels and a SUZUKI grille`;}});
   }
 
   function renderPage(){
     const page=document.createElement('section');
     page.className='welcome-page';page.id='welcome';page.setAttribute('aria-labelledby','welcomeTitle');
-    const body=bodyStyle==='3door'?'3door':'5door';
+    const body=bodyStyle==='3door'?'3door':'5door',startFeatured=canStartFeatured();
     page.innerHTML=`<div class="welcome-top"><span class="site-logo welcome-logo"><span class="site-logo-art"><img src="assets/jimnygami-logo-sticker.webp" width="1550" height="341" alt="jimnygami"></span></span><button type="button" class="welcome-skip" data-welcome-go="garage" data-welcome-skip><span class="welcome-skip-long">Skip to the Garage</span><span class="welcome-skip-short">Skip</span> ${arrow}</button></div>
 <div class="welcome-main">
  <div class="welcome-copy">
@@ -50,11 +57,12 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
   <h1 id="welcomeTitle" tabindex="-1">Build it<br>here first.</h1>
   <p class="welcome-lede">Try every mod on a live 3D Jimny, then find the parts and the people who fit them. Spend once you're sure.</p>
   <form class="welcome-form" data-welcome-form>${questions('welcomePage')}
-   <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">Open the Garage ${arrow}</button>
+   <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">${startFeatured?'Customise this Jimny':'Open the Garage'} ${arrow}</button>
+   ${startFeatured?'<button type="button" class="welcome-quiet" data-welcome-go="garage">Start with stock instead</button>':''}
    <nav class="welcome-routes" aria-label="Other places to start"><button type="button" data-welcome-go="parts">Browse parts</button><button type="button" data-welcome-go="fitters">Find a fitter</button><a href="trip-planner.html" data-welcome-go="trip">Plan a trip</a></nav></div>
   </form>
  </div>
- <figure class="welcome-car"><img src="${carImage(body)}" width="800" height="600" alt="A ${body==='3door'?'three':'five'}-door Jimny in the jimnygami garage" fetchpriority="high"><figcaption>Rendered from the live 3D model you'll edit in the Garage</figcaption></figure>
+ <figure class="welcome-car"><img src="${carImage(body)}" width="800" height="600" alt="Heritage Club: a customised ${body==='3door'?'three':'five'}-door Jimny with sunset decals, bronze wheels and a SUZUKI grille" fetchpriority="high"><figcaption>Heritage Club · sunset stripes, bronze wheels, all-terrain tyres. Change any part in the Garage.</figcaption></figure>
 </div>
 <ol class="welcome-features">
  <li><b>Try it in 3D</b><span>Try wheels, racks, bumpers, paint and decals on the car before you spend.</span></li>
@@ -64,8 +72,9 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
     const outside=[document.querySelector('.site-header'),document.querySelector('.wrap'),...document.querySelectorAll('body>footer,.planner-main>footer')].filter(Boolean);
     outside.forEach(el=>{el.inert=true;});
     document.body.prepend(page);trackBodyImage(page,'welcomePage');
-    const close=(go,{apply=true}={})=>{
+    const close=(go,{apply=true,featured=false}={})=>{
       if(apply)applyAnswers(page,'welcomePage');
+      if(featured&&startFeatured)applyPkg(featuredLook,'replace');
       markSeen();outside.forEach(el=>{el.inert=false;});page.remove();delete root.dataset.welcome;
       if(go==='trip')return;// The link navigates.
       const mode={garage:'garage',parts:'parts',fitters:'fitters'}[go]||'garage';
@@ -73,7 +82,7 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
       setWorkbenchMode(mode,{history:false});
       (mode==='garage'?document.querySelector('#garage h1,#garage [role=tab][aria-selected=true]'):$(MODE_TARGETS[mode]))?.focus?.({preventScroll:true});
     };
-    page.addEventListener('submit',e=>{e.preventDefault();close('garage');});
+    page.addEventListener('submit',e=>{e.preventDefault();close('garage',{featured:true});});
     page.addEventListener('click',e=>{
       const go=e.target.closest('[data-welcome-go]');if(!go||go.type==='submit')return;
       if(go.tagName!=='A')e.preventDefault();

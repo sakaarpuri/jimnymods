@@ -1,6 +1,22 @@
 import test from'node:test';import assert from'node:assert/strict';import{readFileSync}from'node:fs';
+import vm from 'node:vm';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const html=read('index.html'),welcome=read('assets/welcome.js'),css=read('assets/welcome.css');
+
+test('welcome uses current customised previews for both bodies and protects existing builds',()=>{
+ assert.match(welcome,/const featuredLook='retro'/);
+ assert.match(welcome,/preset-\$\{featuredLook\}\.webp\?v=/);
+ assert.match(welcome,/JIMNY_VISUAL_RELEASE\?\.previewVersion/);
+ assert.match(welcome,/Customise this Jimny/);assert.match(welcome,/Start with stock instead/);
+ assert.match(welcome,/if\(featured&&startFeatured\)applyPkg\(featuredLook,'replace'\)/);
+ const fn=welcome.match(/function canStartFeatured\(\)\{[\s\S]*?\n  \}/)[0];
+ const check=({seen=false,region=false,parts=[],hash='',search='',blocked=false}={})=>vm.runInNewContext(fn+';canStartFeatured()',{
+  SEEN_KEY:'seen',URLSearchParams,location:{hash,search},window:{getJimnyBuildState:()=>({parts})},
+  localStorage:{getItem:key=>{if(blocked)throw Error('Unavailable');return key==='seen'?seen:region;}}
+ });
+ assert.equal(check(),true);
+ for(const state of [{seen:true},{region:true},{parts:['rack']},{hash:'#welcome'},{search:'?build=shared'},{blocked:true}])assert.equal(check(state),false);
+});
 
 test('first-visit welcome uses the brief copy and asks only region and body',()=>{
  assert.match(welcome,/Build it<br>here first\./);
