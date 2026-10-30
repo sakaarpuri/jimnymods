@@ -77,8 +77,8 @@
 
   // --- Build bar: the same count and estimate text the build summary uses ----
   function refreshBar(){
-    const count=buildSelectionCount(),total=$('total')?.textContent||'',quote=total==='Quote required';
-    const line=!count?'Nothing fitted yet':quote?'Quote required':`${total} ${mode==='phone'?'est.':'estimated'}`;
+    const count=buildSelectionCount();
+    const line=!count?'Nothing fitted yet':'Prices need confirmation';
     buildbar.querySelector('b').textContent=count?`${count} part${count===1?'':'s'} fitted`:'Stock build';
     buildbar.querySelector('span').textContent=line;
     buildbar.querySelector('.garage-buildbar-summary').setAttribute('aria-label',`My build: ${buildbar.querySelector('b').textContent}. ${line}. Open build summary`);

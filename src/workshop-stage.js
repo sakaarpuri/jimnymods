@@ -8,7 +8,7 @@ export const WORKSHOP_LAYOUT=Object.freeze({width:20.32,depth:20.32,roof:10.26})
 // Every source has an actual visible fixture, not a camera-facing softbox.
 // Direct illumination and reflected highlights consume the same layout.
 export const WORKSHOP_LIGHT_SOURCES=Object.freeze([
- Object.freeze({role:'key',width:4,height:3.8,position:Object.freeze([10.04,3.1,5.2]),target:Object.freeze([0,.9,0]),intensity:8,colour:'#fffdf8'}),
+ Object.freeze({role:'key',width:4,height:3.8,position:Object.freeze([10.04,3.1,5.2]),target:Object.freeze([0,.9,0]),intensity:10,colour:'#fffdf8'}),
  Object.freeze({role:'ceiling-front',width:1.8,height:.12,position:Object.freeze([0,9.72,4.8]),target:Object.freeze([0,0,4.8]),intensity:85,colour:'#f7f7f2'}),
  Object.freeze({role:'ceiling-rear',width:1.8,height:.12,position:Object.freeze([0,9.72,-4.8]),target:Object.freeze([0,0,-4.8]),intensity:36,colour:'#f7f7f2'}),
  Object.freeze({role:'bench',width:.045,height:1.2,position:Object.freeze([-6.4,3.45,-9.54]),target:Object.freeze([-6.4,1.0,-8.1]),intensity:65,colour:'#fff4df'})
@@ -81,7 +81,7 @@ export function createWorkshopStage({onLoad=()=>{}}={}){
   box('Window wall north',.16,5.6,3.7,12.7,2.8,10.85,wall);
   box('Window sill wall',.16,1.2,5,12.7,.6,6.5,wall);
   box('Window lintel wall',.16,.6,5,12.7,5.3,6.5,wall);
-  const sky=material({color:'#d1d5d5',emissive:'#d1d5d5',emissiveIntensity:.6,roughness:1});
+  const sky=material({color:'#d1d5d5',emissive:'#d1d5d5',emissiveIntensity:.85,roughness:1});
   box('Open bay daylight',.03,3.8,5,12.78,3.1,6.5,sky);
   instances('Daylight bay mullions',new T.BoxGeometry(.12,3.9,.045),darkSteel,[4,6.5,9].map(z=>[12.59,3.1,z]));
   instances('Daylight bay frames',new T.BoxGeometry(.13,.07,5.1),steel,[1.2,5].map(y=>[12.58,y,6.5]));

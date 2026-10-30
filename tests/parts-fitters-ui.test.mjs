@@ -33,19 +33,16 @@ test('cards carry an image, badge, seller, one fit line and two buttons',()=>{
 
 test('price and fit lines use real data and never invent a price',()=>{
  const src=catalogue.slice(catalogue.indexOf('function priceText'),catalogue.indexOf('function sellerLine'));
- const context=vm.createContext({fmt:n=>'₹'+n,catalogueBodyStatus:m=>m.status,bodyStyle:'5door',escHtml:s=>String(s),esc:s=>String(s)});
+ const context=vm.createContext({fmt:n=>'₹'+n,catalogueBodyStatus:m=>m.status,bodyStyle:'5door',escHtml:s=>String(s),esc:s=>String(s),window:{jimnyRegion:'IN'},JimnyVerifiedPrices:{get:()=>null}});
  vm.runInContext(catalogue.match(/const bodyLabels=[^\n]*/)[0],context);
  vm.runInContext(src,context);
  const price=m=>vm.runInContext('priceText',context)(m);
- assert.equal(price({market:true,price:[0,0]}),'price on seller site');
- assert.equal(price({market:true,price:[8000,25000]}),'price on seller site','sourced products show the seller price');
- assert.equal(price({price:[0,0]}),'price on seller site');
- assert.equal(price({price:[8000,25000]}),'Typical ₹8000 – ₹25000');
- assert.equal(price({price:[21700,21700]}),'About ₹21700');
+ for(const m of [{market:true,price:[0,0]},{market:true,price:[8000,25000]},{price:[0,0]},{price:[8000,25000]},{price:[21700,21700]}])
+  assert.equal(price(m),'ask seller for current price','unverified legacy prices are withheld');
  const fit=m=>vm.runInContext('fitLine',context)(m);
- assert.match(fit({status:'listed',bodyStyles:['3door','5door'],market:true}),/Seller lists 3-door and 5-door · price on seller site/);
- assert.match(fit({status:'unknown',price:[8000,25000]}),/Typical ₹8000 – ₹25000 · fitment: ask seller/);
- assert.match(fit({status:'unknown',market:true}),/price on seller site · fitment: ask seller/);
+ assert.match(fit({status:'listed',bodyStyles:['3door','5door'],market:true}),/Seller lists 3-door and 5-door · ask seller for current price/);
+ assert.match(fit({status:'unknown',price:[8000,25000]}),/ask seller for current price · fitment: ask seller/);
+ assert.match(fit({status:'unknown',market:true}),/ask seller for current price · fitment: ask seller/);
 });
 
 test('category pills are counted from the catalogue, never typed in',()=>{

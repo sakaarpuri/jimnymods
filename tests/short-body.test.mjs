@@ -29,6 +29,6 @@ test('SWB retains factory assembly dimensions and correct front/rear translation
 });
 test('all three-door look thumbnails come from the matching SWB model',()=>{
  const manifest=JSON.parse(readFileSync(new URL('../assets/previews/manifest.json',import.meta.url)));
- assert.equal(manifest.swbModelSha256,createHash('sha256').update(bytes).digest('hex'));assert.equal(manifest.swbPresets.length,10);assert.deepEqual(manifest.swbPresets,manifest.presets,'Both bodies must cover the same ten curated looks');
+ assert.equal(manifest.swbModelSha256,createHash('sha256').update(bytes).digest('hex'));assert.equal(manifest.swbPresets.length,20);assert.deepEqual(manifest.swbPresets,manifest.presets,'Both bodies must cover the same twenty curated looks');
  for(const id of manifest.swbPresets){const image=readFileSync(new URL(`../assets/previews/swb/preset-${id}.webp`,import.meta.url));assert.equal(image.toString('ascii',8,12),'WEBP');assert.ok(image.length>8000);}
 });

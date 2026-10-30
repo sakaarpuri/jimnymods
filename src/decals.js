@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
 const materials=new Map();
-export const DECAL_STYLES=Object.freeze(['heritage','safari','mountain','geo','topo','pinstripe','rally','checker','compass','pixel','contour','sunset']);
+export const DECAL_STYLES=Object.freeze(['heritage','safari','mountain','geo','topo','pinstripe','rally','checker','compass','pixel','contour','sunset','mesa','rocker','switchback','summit','circuit','kanji','tideline','dunes','waypoint','heritageblock']);
 const supported=new Set(DECAL_STYLES);
 
 function materialFor(id,paint,customInk){
@@ -41,6 +41,26 @@ function materialFor(id,paint,customInk){
     const colours=validInk?[ink,ink,ink,ink]:['#b44b38','#d6793d','#e4ac55','#ead0a0'];colours.forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,150+i*45);ctx.lineTo(1150,150+i*45);ctx.lineTo(1500,60+i*45);ctx.lineTo(2048,60+i*45);ctx.lineTo(2048,91+i*45);ctx.lineTo(1500,91+i*45);ctx.lineTo(1150,181+i*45);ctx.lineTo(0,181+i*45);ctx.fill();});
   }else if(id==='contour'){
     ctx.strokeStyle=ink;ctx.lineWidth=9;for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(0,350+i*30);ctx.lineTo(430,350+i*30);ctx.lineTo(670,130+i*30);ctx.lineTo(870,310+i*30);ctx.lineTo(1150,70+i*30);ctx.lineTo(1550,350+i*30);ctx.lineTo(2048,350+i*30);ctx.stroke();}
+  }else if(id==='mesa'){
+    const colours=validInk?[ink,ink,ink]:['#b94e35','#d79042','#e7c185'];colours.forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,155+i*50);ctx.lineTo(1050,155+i*50);ctx.lineTo(1370,85+i*50);ctx.lineTo(2048,85+i*50);ctx.lineTo(2048,120+i*50);ctx.lineTo(1370,120+i*50);ctx.lineTo(1050,190+i*50);ctx.lineTo(0,190+i*50);ctx.fill();});
+  }else if(id==='rocker'){
+    ctx.fillStyle=ink;ctx.fillRect(0,330,2048,36);ctx.fillRect(0,382,2048,10);for(let i=0;i<5;i++)ctx.fillRect(130+i*55,280,30,35);
+  }else if(id==='switchback'){
+    ctx.strokeStyle=ink;ctx.lineWidth=24;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(0,340);ctx.lineTo(620,340);ctx.lineTo(850,140);ctx.lineTo(1170,140);ctx.lineTo(1370,305);ctx.lineTo(2048,305);ctx.stroke();
+  }else if(id==='summit'){
+    ctx.fillStyle=ink;ctx.beginPath();[[0,390],[440,390],[720,125],[900,285],[1110,65],[1390,390],[2048,390],[2048,425],[0,425]].forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();
+  }else if(id==='circuit'){
+    ctx.fillStyle=ink;ctx.fillRect(0,235,2048,48);for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(300+i*150,110);ctx.lineTo(370+i*150,110);ctx.lineTo(210+i*150,400);ctx.lineTo(140+i*150,400);ctx.closePath();ctx.fill();}
+  }else if(id==='kanji'){
+    ctx.fillStyle=ink;for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(160+i*210,130);ctx.lineTo(280+i*210,130);ctx.lineTo(210+i*210,370);ctx.lineTo(90+i*210,370);ctx.closePath();ctx.fill();}ctx.fillRect(1570,300,478,24);
+  }else if(id==='tideline'){
+    ctx.strokeStyle=ink;ctx.lineWidth=15;for(let i=0;i<3;i++){ctx.beginPath();for(let x=0;x<=2048;x+=16){const y=210+i*46+Math.sin(x/300+i*.3)*35;x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
+  }else if(id==='dunes'){
+    ctx.fillStyle=ink;ctx.beginPath();ctx.moveTo(0,380);ctx.quadraticCurveTo(430,160,850,300);ctx.quadraticCurveTo(1400,90,2048,275);ctx.lineTo(2048,325);ctx.quadraticCurveTo(1400,140,850,350);ctx.quadraticCurveTo(430,210,0,430);ctx.closePath();ctx.fill();
+  }else if(id==='waypoint'){
+    ctx.strokeStyle=ink;ctx.lineWidth=13;ctx.setLineDash([40,24]);ctx.beginPath();ctx.moveTo(0,310);ctx.bezierCurveTo(520,310,680,125,1120,200);ctx.bezierCurveTo(1450,255,1600,175,2048,175);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ink;[420,1120,1750].forEach(x=>{ctx.beginPath();ctx.arc(x,x===420?290:x===1120?200:175,22,0,Math.PI*2);ctx.fill();});
+  }else if(id==='heritageblock'){
+    ctx.fillStyle=ink;ctx.fillRect(0,175,2048,90);ctx.clearRect(1250,175,35,90);ctx.clearRect(1320,175,35,90);ctx.fillRect(0,285,2048,15);
   }else{
     ctx.strokeStyle=ink;ctx.lineWidth=4;
     for(let row=-3;row<15;row++){

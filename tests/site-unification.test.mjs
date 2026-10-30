@@ -5,7 +5,7 @@ test('the game is called Drive everywhere its nav label says so',()=>{
  const sources=['game.html','src/trail-game.js','README.md',...readdirSync(new URL('../src/trail/',import.meta.url)).filter(f=>f.endsWith('.js')).map(f=>'src/trail/'+f)];
  for(const file of sources)assert.doesNotMatch(read(file),/Build (&|&amp;) Trail|BUILD (&|&amp;) TRAIL/,file);
  assert.match(read('game.html'),/<title>Drive — jimnygami<\/title>/);
- assert.match(read('assets/site-header.js'),/label:'Drive',href:'game\.html'/);
+ assert.match(read('assets/site-header.js'),/label:'Play 4×4 game',href:'game\.html'/);
 });
 
 test('Drive menus use sentence case; in-world 3D signage keeps its own lettering',()=>{

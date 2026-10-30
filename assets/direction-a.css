@@ -79,12 +79,15 @@ html[data-ui-theme] body header.site-header{position:sticky;top:0;z-index:50;wid
 .site-build-count{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:999px;background:var(--a-on-chip);color:var(--a-chip);font-weight:700;font-size:14px}
 :root[data-ui-theme=rally] .site-build-count{color:var(--a-lime)}
 .site-menu-toggle{display:none;place-items:center;flex-shrink:0;width:48px;height:48px;padding:0;border:1px solid var(--a-line);border-radius:var(--a-radius-sm);background:transparent;color:var(--a-text);cursor:pointer}
+.site-game-mobile{display:none}
+@media(min-width:1351px){.site-nav .site-game-link{align-self:center;height:42px;min-height:42px;padding:0 12px;border:1px solid var(--a-line);border-radius:8px;background:var(--a-chip);color:var(--a-on-chip);font-weight:700}}
 
-@media(max-width:1099px){
+@media(max-width:1350px){
   .site-bar{gap:10px;padding:0 16px}
   .site-logo{padding:0 8px;margin-right:auto}
   .site-logo-art{width:118px}
   .site-menu-toggle{display:grid}
+  .site-game-mobile{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 10px;border-radius:8px;background:var(--a-chip);color:var(--a-on-chip);font:700 13px var(--font-body);white-space:nowrap;text-decoration:none}
   .site-menu-panel{display:none;position:absolute;left:0;right:0;top:100%;z-index:60;flex-direction:column;gap:14px;max-height:calc(100dvh - var(--site-header-h));overflow:auto;padding:12px 16px 20px;background:var(--a-panel);border-bottom:1px solid var(--a-line);box-shadow:0 18px 40px rgba(0,0,0,.35)}
   .site-header.menu-open .site-menu-panel{display:flex}
   .site-nav{flex-direction:column;justify-content:flex-start;height:auto;gap:0}
@@ -96,6 +99,7 @@ html[data-ui-theme] body header.site-header{position:sticky;top:0;z-index:50;wid
   .site-setup :is(.market-bar select,.ui-theme-picker select){background:var(--a-panel)}
 }
 @media(max-width:380px){.site-build{padding-left:12px;gap:8px}.site-logo-art{width:104px}}
+@media(max-width:480px){.site-bar{gap:6px;padding-inline:8px}.site-logo{padding:0;margin-right:auto}.site-logo-art{width:100px}.site-build{padding:0 6px;gap:4px}.site-build-label{font-size:12px}.site-menu-toggle{width:40px;height:44px}.site-game-mobile{padding:0 7px;font-size:12px}}
 /* Drive also carries Courses, so My build shrinks to its count on phones. */
 @media(max-width:480px){body.drive-page .site-build{padding:0 7px}body.drive-page .site-build-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}body.drive-page .site-bar>[data-site-header-slot]{padding:0 12px}}
 

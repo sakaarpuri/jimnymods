@@ -20,8 +20,8 @@ test('welcome uses current customised previews for both bodies and protects exis
 
 test('first-visit welcome uses the brief copy and asks only region and body',()=>{
  assert.match(welcome,/Build it<br>here first\./);
- assert.match(welcome,/Try every mod on a live 3D Jimny, then find the parts and the people who fit them\. Spend once you're sure\./);
- assert.match(welcome,/Open the Garage/);assert.match(welcome,/Browse parts/);assert.match(welcome,/Find a fitter/);assert.match(welcome,/Plan a trip/);
+ assert.match(welcome,/Explore modifications in 3D, find parts and fitters, and play the 4×4 driving game/);
+ assert.match(welcome,/Open the Garage/);assert.match(welcome,/Play & learn Jimny 4×4 controls/);assert.match(welcome,/Plan a trip/);
  assert.match(welcome,/Start building/);assert.match(welcome,/Just look around/);
  const fields=[...welcome.matchAll(/<(select|input) /g)].length;assert.equal(fields,2,'one radio group and one region select');
  // Answers go through the existing controls, so there is one source of truth.

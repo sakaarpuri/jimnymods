@@ -38,7 +38,7 @@
     select.value=window.jimnyRegion;
     const region=window.JIMNY_REGIONS.find(r=>r.code===select.value);
     document.getElementById('regionNote').textContent=region.note;
-    document.getElementById('priceRegionNote').textContent=select.value==='IN'?'Indian planning estimates in INR; current quotes may differ.':`Prices are approximate ${window.JimnyMoney.currency()} ranges converted from Indian ₹ reference estimates at ${window.JIMNY_FX.asOf} exchange rates. They are not local prices: ask the seller for a quote in ${window.JimnyMoney.currency()}.`;
+    document.getElementById('priceRegionNote').textContent='Dated supplier price snapshots apply only to the listed item and region. Confirm current prices; fitting labour requires a quote.';
     document.querySelectorAll('#goalBudget option').forEach(o=>{o.dataset.inrLabel??=o.textContent;o.textContent=select.value==='IN'?o.dataset.inrLabel:'Up to '+window.JimnyMoney.approx(+o.value);});
     document.querySelectorAll('[data-inr]').forEach(e=>{const [lo,hi]=e.dataset.inr.split(',').map(Number);e.textContent=fmt(lo)+' – '+fmt(hi);});
     try{update();}catch{}
