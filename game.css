@@ -282,6 +282,8 @@ html[data-ui-theme=rally]{color-scheme:dark}
 .pro-picker{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:16px 0}.pro-picker[hidden]{display:none}.pro-picker strong{grid-column:1/-1;font-size:12px;color:#edbb79;letter-spacing:.07em}.pro-picker button{min-height:44px;padding:9px 12px;text-align:left;background:#293538;border:1px solid #6c7978;color:#f0eee5;border-radius:5px;font-size:14px}.pro-picker button[aria-pressed=true]{background:#eab67b;border-color:#eab67b;color:#172123}.pro-picker button:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .coach[data-coaching=compact]{grid-template-columns:minmax(0,1fr) auto;row-gap:3px}
 .coach[data-coaching=compact] :is(#cabinPreview,#condition,#coachKicker,#coachVoice,#hearAgain,#spokenStatus){display:none}
+/* Voice guidance is paused; effects and on-screen advice remain available. */
+#coachVoice[hidden],#hearAgain[hidden],#speakInspection[hidden],.voice-start[hidden],.player-options label[hidden],#voiceStatus[hidden],#recapCoachingNote[hidden],label:has(#recapCoaching)[hidden]{display:none!important}
 .coach[data-coaching=compact] .coach-toggle{grid-column:1;grid-row:1;margin:0;min-height:32px}
 .coach[data-coaching=compact] .coach-actions{grid-column:2;grid-row:1;margin:0;display:block}
 .coach[data-coaching=compact] #showMe{min-height:32px;padding:5px 9px;font-size:11px}

@@ -38,9 +38,9 @@ const savedBuild=read('thatsuvmod-build',{}),build=savedBuild&&typeof savedBuild
 if(!read(progressKey,null)&&read('thatsuvmod-trail-progress-v1',null))save('thatsuvmod-trail-progress-v1-archive',read('thatsuvmod-trail-progress-v1',{}));
 const replayBuffer=new TrailReplay(),voiceEvents=[];const cueText=id=>getVoiceCue(id).text;let player={...playerProfile(read('thatsuvmod-player-v1',{})),driver:'none'},exportController=null,recapURL='',shareReturn='pause';
 if(Object.hasOwn(build.design||{},'nameDecal'))player={...playerProfile({name:build.design.nameDecal||player.name,decal:!!build.design.nameDecal}),driver:'none'};
-document.querySelector('.choices').insertAdjacentHTML('beforeend',`<fieldset class="player-setup"><legend>Your trail identity</legend><label>Player name <input id="playerName" maxlength="20" autocomplete="nickname" placeholder="Your trail name"></label><label class="check-label"><input id="playerDecal" type="checkbox"> Put my name on both front doors</label><p class="fine">Name and choices stay on this device; your name decal appears in exports. Human avatars are not shown.</p></fieldset>`);
+document.querySelector('.choices').insertAdjacentHTML('beforeend',`<fieldset class="player-setup"><legend>Your trail identity</legend><label>Player name <input id="playerName" maxlength="20" autocomplete="nickname" placeholder="Your trail name"></label><input id="playerDecal" type="checkbox" hidden><p class="fine">Your name stays on this device. Human avatars are not shown.</p></fieldset>`);
 $('playerName').value=player.name;$('playerDecal').checked=player.decal;
-const playerOptions=document.createElement('details');playerOptions.className='player-options';playerOptions.open=matchMedia('(min-width:701px)').matches;const playerSummary=document.createElement('summary');playerSummary.textContent='Your name & decal · optional';playerOptions.append(playerSummary,document.querySelector('.player-setup'));document.querySelector('.lobby-grid>section').append(playerOptions);
+const playerOptions=document.createElement('details');playerOptions.className='player-options';playerOptions.open=matchMedia('(min-width:701px)').matches;const playerSummary=document.createElement('summary');playerSummary.textContent='Player name · optional';playerOptions.append(playerSummary,document.querySelector('.player-setup'));document.querySelector('.lobby-grid>section').append(playerOptions);
 function updatePlayer(){player=playerProfile({name:$('playerName').value,driver:'none',decal:$('playerDecal').checked});$('playerName').value=player.name;save('thatsuvmod-player-v1',player);if(build.vehicle==='jimny'){build.design={...build.design,nameDecal:player.decal?player.name:''};save('thatsuvmod-build',build);}if(view){view.setPlayer({...player,nameStyle:build.design||{}});view.render(state,gate,0);}}
 for(const id of ['playerName','playerDecal'])$(id).addEventListener('change',updatePlayer);
 let selected=COURSES[0],course=COURSES[0],difficulty='explorer',state=createVehicle(build.body),world=makeWorld(course),gates=makeGates(course),gate=0,started=false,running=false,loading=false,view,accumulator=0,last=0,uiTick=0,notice='',noticeUntil=0,helpReturn='lobby',lastCollision=0,frameCount=0,frameSeconds=0,fps=0;
@@ -68,7 +68,7 @@ const keys=new Set(),physicalKeys=new Set(),touch=new Set(),savedRecords=read(pr
 const badgeCollection=mountBadges({getRecords:()=>records,getPlayer:()=>player,openDialog:showDialog,returnTo:showDialog});
 const trailAudio=new TrailAudio({mix:read('thatsuvmod-audio-v1',{})});
 const engineOption=document.createElement('label');engineOption.className='check-label sound-start';engineOption.innerHTML='<input id="soundEnabled" type="checkbox"> Engine & environment sound when driving';$('startButton').before(engineOption);$('soundEnabled').checked=soundWanted;$('soundEnabled').onchange=()=>{soundWanted=$('soundEnabled').checked;save('thatsuvmod-sound-enabled',soundWanted);};
-const spotter=new Spotter(),coachPrefs=read('thatsuvmod-coach-v1',{});let inspectionReturn='drive',inspectionProblem=null,autoInspect=coachPrefs.autoInspect!==false,voiceWanted=coachPrefs.voice===true,lastSpokenCue='',voiceControlState='';
+const spotter=new Spotter(),coachPrefs=read('thatsuvmod-coach-v1',{});let inspectionReturn='drive',inspectionProblem=null,autoInspect=coachPrefs.autoInspect!==false,voiceWanted=false,lastSpokenCue='',voiceControlState='';
 async function playLiveCoaching(cue,callbacks){
   let event=null;const finish=()=>{if(event&&event.end===undefined)event.end=state.elapsed;};
   callbacks.signal.addEventListener('abort',finish,{once:true});
@@ -87,12 +87,18 @@ function saveCoachPrefs(){save('thatsuvmod-coach-v1',{voice:voiceWanted,autoInsp
 voice.setMode(coachPrefs.mode);$('coachMode').value=voice.mode;$('coachMode').onchange=()=>{voice.setMode($('coachMode').value);saveCoachPrefs();};
 function populateVoices(){const voices=voice.voices;$('coachVoiceChoice').replaceChildren(...voices.map(v=>{const o=document.createElement('option');o.value=v.voiceURI;o.textContent=v.name+' · '+v.lang;return o;}));if(!voices.length){const o=document.createElement('option');o.textContent='No local English voice available';$('coachVoiceChoice').append(o);}else{$('coachVoiceChoice').value=voices.some(v=>v.voiceURI===voice.voiceURI)?voice.voiceURI:voices.find(v=>v.lang==='en-GB')?.voiceURI||voices[0].voiceURI;voice.voiceURI=$('coachVoiceChoice').value;}}
 populateVoices();globalThis.speechSynthesis?.addEventListener('voiceschanged',populateVoices);
-function enableVoice(on){voiceWanted=on;const enabled=voice.setEnabled(on);$('voiceEnabled').checked=enabled;saveCoachPrefs();syncVoiceUI();return enabled;}
+// Text coaching only, including when a returning player had enabled speech.
+function enableVoice(){voiceWanted=false;voice.setEnabled(false);$('voiceEnabled').checked=false;saveCoachPrefs();syncVoiceUI();return false;}
 $('voiceEnabled').onchange=()=>{if(enableVoice($('voiceEnabled').checked))voice.sayCue('start-drive',{force:true});};
 $('coachVoiceChoice').onchange=()=>{voice.voiceURI=$('coachVoiceChoice').value;saveCoachPrefs();if(voice.enabled)voice.say('This voice will guide your next control.','voice-test',{force:true});};
 $('autoSpotter').onchange=()=>{autoInspect=$('autoSpotter').checked;saveCoachPrefs();};
 $('coachVoice').onclick=()=>{if(enableVoice(!voice.enabled))voice.say(coaching(),'manual',{force:true});};
 $('hearAgain').onclick=()=>{if(voice.enabled||enableVoice(true))voice.say(coaching(),'repeat',{force:true});};
+$('voiceEnabled').closest('label').hidden=true;
+$('coachMode').closest('label').hidden=true;
+$('coachVoiceChoice').closest('label').hidden=true;
+$('voiceStatus').hidden=true;
+$('coachVoice').hidden=true;$('hearAgain').hidden=true;
 function showDialog(id){running=false;clearInputs();voice.stop();if(voice.enabled&&$('voiceStatus'))$('voiceStatus').textContent='Spoken coaching paused · captions remain available.';for(const key of dialogs)if($(key).open)$(key).close();if(id==='lobby')showLobby();else $(id).showModal();trailAudio.pause();}
 // The course lobby is the landing state, so it stays non-modal: the shared site header
 // above it remains usable while the paused game behind it is made inert.
@@ -174,7 +180,6 @@ function coaching(){
   const requirement=trainingRequirement();if(requirement)return requirement;
   if(['N','P'].includes(state.gear))return state.gear==='N'?cueText('neutral'):'Park selected. Hold the brake and choose D to set off.';
   if(spotter.problem?.id==='low-progress')return cueText('low-progress');
-  if(state.physics==='rigid-body'&&state.wheelContacts?.some(c=>!c))return cueText('wheel-airborne');
   if(world.surface(state.x,state.z)==='tarmac'&&state.range!=='2H')return cueText('dry-tarmac');
   if(gate===gates.length-1&&Math.hypot(state.x-gates[gate].x,state.z-gates[gate].z)<12)return cueText('finish-bay');
   if(state.slip>.18)return cueText('wheelspin');
@@ -333,6 +338,7 @@ function openInspection(from='drive'){
 }
 function closeInspection(){voice.stop();view.setInspection(null,false);view.endCapture();view.resetCamera();view.render(state,gate,0);if(inspectionReturn==='drive')resume();else showDialog('pause');}
 $('showMe').onclick=()=>openInspection('drive');$('closeInspection').onclick=closeInspection;$('speakInspection').onclick=()=>{if(voice.enabled||enableVoice(true))voice.say(inspectionProblem.title+'. '+inspectionProblem.advice,'inspection-repeat',{force:true});};
+$('speakInspection').hidden=true;
 document.querySelectorAll('[data-inspect-shot]').forEach(b=>b.onclick=()=>renderInspection(b.dataset.inspectShot,b.dataset.wheel===undefined?null:Number(b.dataset.wheel)));
 const frontInspection=document.createElement('button');frontInspection.type='button';frontInspection.dataset.inspectShot='front';frontInspection.textContent='Front overview';frontInspection.onclick=()=>renderInspection('front');$('inspectionAngles').prepend(frontInspection);
 const inspectionVoiceStatus=document.createElement('p');inspectionVoiceStatus.id='inspectionVoiceStatus';inspectionVoiceStatus.className='fine';inspectionVoiceStatus.setAttribute('role','status');$('inspectionAdvice').after(inspectionVoiceStatus);
@@ -344,6 +350,7 @@ function closeShare(){clearRecap();$('recapCanvas').hidden=true;showDialog(share
 function exportBusy(on){for(const id of ['createRecap','saveTrailImage','closeRecap','recapLength','recapStyle','recapFormat','recapAudio','recapCoaching'])$(id).disabled=on||id==='recapCoaching'&&!voiceEvents.some(e=>e.end>e.time);$('cancelRecap').hidden=!on;$('recapProgress').hidden=!on;}
 const exportAudioLabel=document.createElement('label');exportAudioLabel.className='check-label';exportAudioLabel.innerHTML='<input id="recapAudio" type="checkbox" checked> Include engine, tyre and environment audio';document.querySelector('.share-options').after(exportAudioLabel);
 const exportCoachLabel=document.createElement('label');exportCoachLabel.className='check-label';exportCoachLabel.innerHTML='<input id="recapCoaching" type="checkbox" checked> Include recorded instructor';exportAudioLabel.after(exportCoachLabel);const exportCoachNote=document.createElement('p');exportCoachNote.id='recapCoachingNote';exportCoachNote.className='fine';exportCoachLabel.after(exportCoachNote);
+exportCoachLabel.hidden=true;exportCoachNote.hidden=true;$('recapCoaching').checked=false;
 document.querySelector('#shareRun>.fine:last-child').textContent='Camera cuts replay your recorded motion. Optional game audio and recorded coaching follow the drive. MP4 or WebM depends on your browser. Keep this tab visible; nothing is uploaded. Device speech is not recorded.';
 $('closeRecap').onclick=closeShare;$('cancelRecap').onclick=()=>exportController?.abort();
 for(const id of ['recapLength','recapStyle','recapFormat','recapAudio','recapCoaching'])$(id).onchange=()=>{clearRecap();$('recapCanvas').hidden=true;$('recapStatus').textContent='Options changed. Create a new recap to preview this edit.';};

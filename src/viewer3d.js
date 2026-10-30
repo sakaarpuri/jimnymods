@@ -230,7 +230,9 @@ if(renderer){
     renderer.toneMappingExposure=outdoor?config.exposure:garage?1.10:.95;
     floor.visible=!outdoor;floor.material=night?nightFloor:workshop.floorMaterial;road.visible=false;
     hemi.groundColor.set(garage?'#969694':'#747572');
-    hemi.intensity=night?.12:outdoor?0:workshopEnvironment?1.05:1.35;
+    // Let the daylight opening shape the vehicle; the softer hemisphere is
+    // only fill, so opposite panels no longer receive equally flat light.
+    hemi.intensity=night?.12:outdoor?0:workshopEnvironment?.84:1.35;
     // Outdoors: the sun's measured direction, turned with the panorama. Garage: the bay opening.
     if(outdoor&&config.sun)sunDirection.fromArray(config.sun.direction);else if(outdoor)sunDirection.fromArray(config.key);else sunDirection.fromArray(WORKSHOP_LIGHT_SOURCES[0].position).normalize();
     sunDirection.applyAxisAngle(THREE.Object3D.DEFAULT_UP,outdoor?config.rotation:0);

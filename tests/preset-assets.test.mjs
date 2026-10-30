@@ -51,7 +51,7 @@ test('reference-guided catalogue and interior parts have distinct body-compatibl
 test('all ten curated looks have local WebP renders from the current Blender model',()=>{
   const model=readFileSync(new URL('assets/models/jimny-lwb-blender.glb',root));
   assert.equal(manifest.modelSha256,createHash('sha256').update(model).digest('hex'),'Regenerate preset renders after changing the model');
-  assert.equal(new Set(manifest.presets).size,10);
+  assert.equal(new Set(manifest.presets).size,20);
   for(const id of manifest.presets){
     const image=readFileSync(new URL(`assets/previews/preset-${id}.webp`,root));
     assert.equal(image.toString('ascii',0,4),'RIFF');

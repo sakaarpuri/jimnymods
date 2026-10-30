@@ -32,5 +32,5 @@ test('fitting shows the change on the car with Undo; My build stays reachable',(
  assert.match(js,/garage-fitted-undo[^]*undoLastChange\(\)/);
  assert.match(js,/Shown on \$\{peek\?'your':'the'\} car/);
  assert.match(js,/class="garage-buildbar-summary" data-build-open/);
- assert.match(js,/quote\?'Quote required'/,'estimate wording follows the build summary');
+ assert.match(js,/Prices need confirmation/,'unverified prices are not presented as estimates');
 });

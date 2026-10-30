@@ -10,7 +10,7 @@ test('every vinyl style projects onto both actual body surfaces and no-design st
   try{
     const body=new Mesh(new BoxGeometry(1.496,.70,3.6),new MeshBasicMaterial());
     body.position.y=.91;
-    assert.equal(DECAL_STYLES.length,12);
+    assert.equal(DECAL_STYLES.length,22);
     for(const id of DECAL_STYLES){
       const parent=new Group();
       assert.equal(projectBodyDecals([body],parent,id,'#c8af7e'),2,id);

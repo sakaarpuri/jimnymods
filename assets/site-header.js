@@ -10,7 +10,7 @@
     {label:'Fitters & sellers',mode:'fitters',hash:'shops-title'},
     {label:'Clubs',mode:'clubs',hash:'clubs-title'},
     {label:'Trip planner',href:'trip-planner.html',page:'trip',tripPlanner:true},
-    {label:'Drive',href:'game.html',page:'drive'},
+    {label:'Play 4×4 game',href:'game.html',page:'drive'},
     {label:'Owner tools',mode:'tools',hash:'owner-tools'}
   ];
   // Written by index.html whenever the build, region or body changes.
@@ -27,10 +27,10 @@
     if(page==='garage'){
       if(item.primaryMode)return `<button type="button" data-primary-mode="${item.primaryMode}" class="active">${esc(item.label)}</button>`;
       if(item.mode)return `<button type="button" data-mode-select="${item.mode}">${esc(item.label)}</button>`;
-      return `<a href="${item.href}"${item.tripPlanner?' data-open-trip-planner':''}>${esc(item.label)}</a>`;
+      return `<a href="${item.href}"${item.page==='drive'?' class="site-game-link"':''}${item.tripPlanner?' data-open-trip-planner':''}>${esc(item.label)}</a>`;
     }
     const href=item.href||`index.html#${item.hash}`,current=item.page===page;
-    return `<a href="${href}"${current?' aria-current="page"':''}>${esc(item.label)}</a>`;
+    return `<a href="${href}"${item.page==='drive'?' class="site-game-link"':''}${current?' aria-current="page"':''}>${esc(item.label)}</a>`;
   }
   const icons={
     chevron:'<svg class="site-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
@@ -53,6 +53,7 @@
 <details class="site-setup"><summary aria-label="Your setup: region, Jimny and style"><span class="site-setup-context">${esc(contextLabel(context))}</span>${icons.chevron}</summary>
 <div class="site-setup-panel"><div class="site-setup-heading"><strong>Your setup</strong><button type="button" data-close-setup>Close</button></div><div class="site-setup-fields">${fields}</div><div class="site-setup-theme"></div><p class="site-setup-note">Body and region shape the previews and sources. Style changes the look of every page.</p><a class="site-setup-welcome" href="${page==='garage'?'':'index.html'}#welcome">What is jimnygami?</a></div></details>
 </div>
+${page==='drive'?'':'<a class="site-game-mobile" href="game.html" aria-label="Play the Jimny 4×4 game">Play 4×4</a>'}
 ${build}
 <button type="button" class="site-menu-toggle" aria-expanded="false" aria-controls="siteMenu" aria-label="Menu">${icons.menu}</button>
 </div>`;

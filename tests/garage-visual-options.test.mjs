@@ -26,7 +26,7 @@ test('all published design/paint thumbnails exist for both bodies',()=>{
  const manifest=JSON.parse(readFileSync(new URL('../assets/previews/manifest.json',import.meta.url)));
  for(const body of ['5door','3door']){
   const files=manifest.studioPreviews?.[body]||[];
-  assert.equal(files.filter(f=>f.startsWith('design-')).length,28);
+  assert.equal(files.filter(f=>f.startsWith('design-')).length,38);
   assert.equal(files.filter(f=>f.startsWith('paint-')).length,28);
   for(const file of files){const bytes=readFileSync(new URL(`../assets/previews/${body==='3door'?'swb/':''}${file}.webp`,import.meta.url));assert.equal(bytes.toString('ascii',8,12),'WEBP');}
  }
