@@ -3,10 +3,11 @@ import * as T from 'three';
 // Optional distant LOD. The caller must retain existing vegetation on failure
 // and decide which physical tree records are replaced; this module adds none.
 let cache=null,pending=null,generation=0;
-export function preloadAuthoredPines({baseUrl='assets/vegetation/authored-pine/'}={}){
+export function preloadAuthoredPines({baseUrl=(typeof window!=='undefined'&&window.innerWidth<700?'assets/vegetation/authored-pine/mobile/':'assets/vegetation/authored-pine/')}={}){
  if(cache)return Promise.resolve(true);
  if(typeof document==='undefined')return Promise.resolve(false);
  if(pending)return pending;
+ if(baseUrl==='assets/vegetation/authored-pine/'&&typeof matchMedia==='function'&&matchMedia('(max-width: 700px)').matches)baseUrl+='mobile/';
  const ticket=generation;
  const request=Promise.allSettled(['pine-tree-b-atlas.webp','pine-tree-b-atlas-normal.webp'].map(file=>Promise.resolve().then(()=>new T.TextureLoader().loadAsync(baseUrl+file)))).then(results=>{
   const maps=results.filter(r=>r.status==='fulfilled').map(r=>r.value);

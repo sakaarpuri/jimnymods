@@ -6,7 +6,8 @@ import { promisify } from 'node:util';
 import vm from 'node:vm';
 const exec=promisify(execFile);
 const manifest=JSON.parse(await readFile('assets/previews/manifest.json','utf8'));
-const inventory=JSON.parse(await readFile('/tmp/jimny-preview-inventory.json','utf8'));
+const inventory=JSON.parse(await readFile(process.argv[2]||'/tmp/jimny-preview-inventory.json','utf8'));
+const outputRoot=process.argv[3]||'/tmp';
 for(const [body,stem]of [['5door','lwb'],['3door','swb']]){
  const actual=createHash('sha256').update(await readFile(`assets/models/jimny-${stem}-blender.glb`)).digest('hex').slice(0,12);
  if(inventory.release?.models?.[body]!==actual)throw new Error(`Preview inventory has an outdated ${body} model. Rerender before finalizing.`);
@@ -27,7 +28,7 @@ for(const body of ['5door','3door']){
   const studio=inventory.studioPreviews[body];
   manifest.studioPreviews[body]=studio;
   const files=[...new Set(inventory.files.filter(item=>item.body===body).map(item=>item.file))];
-  for(const file of files)await exec('/opt/homebrew/bin/cwebp',['-quiet','-q','90',`/tmp/jimny-${body}-${file}.png`,'-o',`assets/previews/${body==='3door'?'swb/':''}${file}.webp`]);
+  for(const file of files)await exec('/opt/homebrew/bin/cwebp',['-quiet','-q','90',`${outputRoot}/jimny-${body}-${file}.png`,'-o',`assets/previews/${body==='3door'?'swb/':''}${file}.webp`]);
   count+=files.length;
 }
 const hash=async path=>createHash('sha256').update(await readFile(path)).digest('hex');
@@ -39,7 +40,7 @@ manifest.swbPresets=[...manifest.presets];manifest.swbParts=['tires','seats','do
 manifest.wheelVariants=wheelVariants;
 manifest.tyreTypes=tyreTypes;
 manifest.catalogueParts=catalogueParts;
-for(const path of [...Object.keys(manifest.renderSources).filter(path=>existsSync(path)),'src/viewer3d.js','src/scenery.js','src/workshop-stage.js','src/workshop-gear.js','src/outdoor-ground.js','assets/jimnygami-logo-original.png','src/physical-materials.js','src/contact-shadow.js','src/quality.js','src/practical-accessories.js','assets/practical-accessories-data.js','src/accessories.js','src/surface-finishes.js','assets/surface-style-state.js','src/trail/cabin-materials.js','src/trail/cabin.js','assets/look-packages.js','src/wheel-finishes.js','src/tyre-types.js','src/catalogue-parts.js','src/interior-storage.js','src/grille-colours.js','src/steering-badge.js','src/interior-fabrics.js','src/cabin-upgrades.js','src/touring-interior.js'])manifest.renderSources[path]=await hash(path);
+for(const path of [...Object.keys(manifest.renderSources).filter(path=>existsSync(path)),'src/exterior-parts.js','src/detailed-wheels.js','src/front-mounts.js','assets/exterior-parts-data.js','src/viewer3d.js','src/scenery.js','src/workshop-stage.js','src/workshop-gear.js','src/outdoor-ground.js','assets/jimnygami-logo-original.png','src/physical-materials.js','src/contact-shadow.js','src/quality.js','src/practical-accessories.js','assets/practical-accessories-data.js','src/accessories.js','src/surface-finishes.js','assets/surface-style-state.js','src/trail/cabin-materials.js','src/trail/cabin.js','assets/look-packages.js','src/wheel-finishes.js','src/tyre-types.js','src/catalogue-parts.js','src/interior-storage.js','src/grille-colours.js','src/steering-badge.js','src/interior-fabrics.js','src/cabin-upgrades.js','src/touring-interior.js'])manifest.renderSources[path]=await hash(path);
 // Sources that no longer exist (the retired workshop stage) stop being fingerprints.
 for(const path of Object.keys(manifest.renderSources))if(!existsSync(path))delete manifest.renderSources[path];
 manifest.generated=new Date().toISOString().slice(0,10);

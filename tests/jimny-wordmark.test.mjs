@@ -33,14 +33,16 @@ for(const body of ['lwb','swb'])test(`${body} tailgate wordmark preserves the of
   assert(Math.abs(size.x-.184)<.001);
   assert(Math.abs(size.y-.184*artwork.height/artwork.width)<.001);
   assert(size.z>.0005&&size.z<.003);
-  assert(Math.abs(box.min.z-(-1.7357+(body==='swb'?.17:0)))<.001);
+  // The five-door's replacement tailgate is deeper and its Jimny emblem sits
+  // to the viewer's left of the spare, as in the supplied NEXA rear reference.
+  assert(Math.abs(box.min.z-(body==='lwb'?-1.81446:-1.5657))<.001);
   let checked=0,mismatches=0,filled=0;
   const scale=.184/artwork.width;
   for(let y=4;y<artwork.height;y+=7)for(let x=4;x<artwork.width;x+=7){
     // Avoid bevel edges and mesh-compression rounding; test the letter faces and gaps.
     if(Math.min(...artwork.polygons.map(p=>edgeDistance(x,y,p)))<3)continue;
     const expected=artwork.polygons.some(p=>inside(x,y,p));
-    const ray=new Raycaster(new Vector3(-.53-(x-artwork.width/2)*scale,.826-y*scale,-2),new Vector3(0,0,1),0,.5);
+    const ray=new Raycaster(new Vector3((body==='lwb'?.5322:-.53)-(x-artwork.width/2)*scale,(body==='lwb'?.841:.826)-y*scale,-2),new Vector3(0,0,1),0,.5);
     const actual=ray.intersectObject(badge,true).length>0;
     checked++;filled+=Number(actual);mismatches+=Number(expected!==actual);
   }

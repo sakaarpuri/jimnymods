@@ -3,7 +3,7 @@
 // Keys are the material names authored in the Blender model.
 export const MATERIAL_PROFILES=Object.freeze({
   BrightChrome:{metalness:1,roughness:.07},
-  GrilleLettering:{metalness:.9,roughness:.18},
+  GrilleLettering:{metalness:0,roughness:.72,clearcoat:0},
   MachinedAlloy:{metalness:.9,roughness:.3},
   WheelGunmetal:{metalness:.8,roughness:.38},
   WheelBarrelDark:{metalness:.55,roughness:.55},

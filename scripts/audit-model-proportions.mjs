@@ -23,7 +23,7 @@ export async function auditModel(body='lwb'){
  const centres=wheels.map(b=>b.getCenter(new Vector3())),sizes=wheels.map(b=>b.getSize(new Vector3()));
  const stock=new Box3();for(const name of ['BodyShell','RoofShell','OEMGrille','StockBumper','StockWheels','SpareWheel','Cabin','StockHeadlamps'])stock.union(new Box3().setFromObject(root.getObjectByName(name),true));
  const roof=new Box3().setFromObject(root.getObjectByName('RoofShell'),true),lamps=new Box3().setFromObject(root.getObjectByName('StockHeadlamps'),true);
- const badge=extractFactoryBadge(root.getObjectByName('OEMGrille')),cover=mouldedSpareCover({trim:null,darkmetal:null,chrome:null},badge);if(body==='swb')cover.position.z+=.17;
+ const badge=extractFactoryBadge(root.getObjectByName('OEMGrille')),cover=mouldedSpareCover({trim:null,darkmetal:null,chrome:null},badge);if(body==='swb')cover.position.z+=.17;else cover.position.z-=.060;
  const coveredLength=stock.max.z-Math.min(stock.min.z,new Box3().setFromObject(cover,true).min.z);badge.dispose();cover.traverse(o=>o.geometry?.dispose());
  const mm=n=>Math.round(n*10000)/10;
  return {

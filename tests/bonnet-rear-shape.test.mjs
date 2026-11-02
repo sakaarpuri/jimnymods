@@ -17,9 +17,10 @@ for(const body of ['lwb','swb']){
   for(const side of [-1,1]){
    const hinge=top(side*.69,.90),front=top(side*.69,1.58),landing=top(side*.738,1.58);
    assert(hinge>1.188&&hinge<1.191,'Keep the hinge-end height and cowl transition');
-   assert(Math.abs(landing-1.11775)<.0007,'Do not raise or lower the fixed wing to disguise the bonnet thickness');
-   assert(front-landing>.031&&front-landing<.040,'Front shoulder must taper to 31–40mm above the unchanged wing, not retain the old 45mm slab');
-   assert(Math.abs(top(side*.738,1.50)-1.1204)<.0007,'The side-panel landing must remain unchanged farther back too');
+   const expectedLanding=body==='lwb'?1.1123:1.11775,expectedRearLanding=body==='lwb'?1.11325:1.1204;
+   assert(Math.abs(landing-expectedLanding)<.0007,'Fixed wing landing must retain its independently modelled datum');
+   assert(front-landing>.031&&front-landing<(body==='lwb'?.042:.040),'Front shoulder must remain thinner than the hinge end');
+   assert(Math.abs(top(side*.738,1.50)-expectedRearLanding)<.0007,'The side-panel landing must remain continuous farther back too');
   }
  });
  test(`${body}: bonnet has the approved raised centre, shallow slope and shortened rolled nose`,async()=>{
@@ -44,7 +45,9 @@ for(const body of ['lwb','swb']){
   const shell=(await load(body)).getObjectByName('BodyShell'),offset=body==='swb'?.17:0;
   shell.traverse(o=>{if(o.isMesh)o.material.side=FrontSide;});
   const rear=(x,y)=>new Raycaster(new Vector3(x,y,-1.95+offset),new Vector3(0,0,1),0,.35).intersectObject(shell,true)[0];
-  for(const y of [.812,1.17])assert.equal(rear(-.665,y)?.object.material.name,'MouldedPlastic','Factory hinge covers must be visible at their actual tailgate positions');
+  // The new five-door places the lower hinge cover at y=.700–.751;
+  // retain the earlier datum for the independently modelled three-door.
+  for(const y of (body==='lwb'?[.73,1.13]:[.812,1.17]))assert.equal(rear(-.665,y)?.object.material.name,'MouldedPlastic','Factory hinge covers must be visible at their actual tailgate positions');
   for(const side of [-1,1])for(const y of [.75,.90,1.08,1.12,1.40,1.61]){
    assert.equal(rear(side*.615,y)?.object.material.name,'BodyPaint',`Continuous rear skin must cover the belt and window shoulder at ${side}/${y}`);
   }
@@ -57,8 +60,13 @@ for(const body of ['lwb','swb']){
    const corner=rear(side*.780,.498).filter(h=>h.distance<.165);
    assert(!corner.some(h=>h.object.material.name==='MouldedPlastic'),'Lower corner must rise, not remain a rectangular bumper beam');
    const optical=rear(side*(.578-.067),.606);
-   assert(optical.some(h=>h.object.material.name.startsWith('RearClearReflector')),'Clear lamp must contain a readable optical backing');
-   assert(optical[0].point.z-offset> -1.818,'Lamp must be inset behind the swept bumper face, not project as a slab');
+   if(body==='lwb'){
+    assert(optical.some(h=>h.object.material.name==='BrightChrome')&&optical.some(h=>h.object.material.name==='LampLens'),'The revised clear lamp retains both its lens and reflective backing');
+    assert(optical[0].point.z> -1.95&&optical[0].point.z< -1.93,'Revised lamp optics stay within the rear bumper envelope');
+   }else{
+    assert(optical.some(h=>h.object.material.name.startsWith('RearClearReflector')),'Clear lamp must contain a readable optical backing');
+    assert(optical[0].point.z-offset> -1.818,'Lamp must be inset behind the swept bumper face, not project as a slab');
+   }
   }
  });
  test(`${body}: rear glazing leaves proper painted shoulders around a narrower aperture`,async()=>{

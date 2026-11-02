@@ -6,6 +6,7 @@ import {DefaultLoadingManager} from 'three';
 const view=createTrailScene(document.getElementById('preview'));let engine;
 window.worldPreviews={async render(id,options={}){
  const course=COURSES.find(c=>c.id===id),world=makeWorld(course,'driver');
+ await view.prepareWorld(course);
  await view.loadVehicle('5door',{colour:id==='sand'?'#b5a080':id==='urban'?'#8d1c25':'#586a45',parts:[],design:{finish:'oem',grille:'oem',decal:'none'}});
  let resolveTextures;const textures=new Promise(resolve=>resolveTextures=resolve);let loading=false;DefaultLoadingManager.onStart=()=>loading=true;DefaultLoadingManager.onLoad=()=>resolveTextures();
  view.setWorld(world,makeGates(course,'driver',options.mission||(id==='mountain'?'cross-axle':id==='sand'?'crest':id==='school'?'lesson-controls':'slalom')));if(loading)await textures;

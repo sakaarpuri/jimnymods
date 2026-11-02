@@ -1,3 +1,5 @@
+import {EXTERIOR_PARTS,WHEEL_PARTS,normalizeExteriorParts} from './exterior-parts.js';
+import {frontLampMount} from './front-mounts.js';
 import {accessoryBuilder} from './accessories.js';
 import {applyCabinMaterials,applySeatCoverPalette} from './trail/cabin-materials.js';
 import {applyCabinUpgrades} from './cabin-upgrades.js';
@@ -112,7 +114,7 @@ if(renderer){
     controls.enableZoom=!inside;controls.enableRotate=!inside;controls.enablePan=false;
     controls.minDistance=['doors-cutaway','touring'].includes(cameraView)?1.2:2;
     controls.maxDistance=CAMERA_RADIUS;
-    controls.minPolarAngle=.15;controls.maxPolarAngle=cameraView==='underside'?Math.PI*.75:Math.PI*.49;
+    controls.minPolarAngle=['reference-top','bonnet-top'].includes(cameraView)?.001:.15;controls.maxPolarAngle=cameraView==='underside'?Math.PI*.75:Math.PI*.49;
     updateInputMode();
   }
   function applyInsideCamera(){
@@ -288,7 +290,7 @@ if(renderer){
   const cylinder=(parent,rTop,rBottom,length,x,y,z,mat=mats.trim,axis='y',segments=24)=>{const obj=mesh(new THREE.CylinderGeometry(rTop,rBottom,length,segments),mat,parent,x,y,z);if(axis==='x')obj.rotation.z=Math.PI/2;if(axis==='z')obj.rotation.x=Math.PI/2;return obj;};
   const tube=(parent,points,r=.025,mat=mats.darkmetal)=>mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),false,'centripetal',.1),Math.max(12,points.length*3),r,8,false),mat,parent);
   const lineTube=(parent,points,r=.01,mat=mats.trim)=>{const vectors=points.map(p=>new THREE.Vector3(...p));const path=new THREE.CurvePath();for(let i=1;i<vectors.length;i++)path.add(new THREE.LineCurve3(vectors[i-1],vectors[i]));return mesh(new THREE.TubeGeometry(path,points.length*2,r,6,false),mat,parent);};
-  function clear(group){while(group.children.length){const obj=group.children[0];obj.traverse(child=>{child.geometry?.dispose();if(child.isInstancedMesh)child.dispose();if(child.userData.disposableMaterial){child.material.map?.dispose();child.material.dispose();}});group.remove(obj);}}
+  function clear(group){while(group.children.length){const obj=group.children[0];obj.traverse(child=>{child.geometry?.dispose();if(child.isInstancedMesh)child.dispose();child.userData.ownedMaterials?.forEach(m=>m.dispose());if(child.userData.disposableMaterial){child.material.map?.dispose();child.material.dispose();}});group.remove(obj);}}
   function label(parent,text,w,h,x,y,z,rotationY=0,foreground='#e9e9df',background='#222827',italic=false){
     const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle=background;ctx.fillRect(0,0,512,128);ctx.fillStyle=foreground;ctx.font=`${italic?'italic ':''}700 ${text.length>8?'52':'72'}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,68,490);
     const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;const material=new THREE.MeshStandardMaterial({map:tex,roughness:.6,transparent:false});const obj=mesh(new THREE.PlaneGeometry(w,h),material,parent,x,y,z);obj.rotation.y=rotationY;obj.userData.disposableMaterial=true;return obj;
@@ -484,7 +486,7 @@ if(renderer){
     // tyres. Do not display a long-wheelbase rack/interior as a JB74 product.
     const shortBodyVisuals=new Set(['tires','snorkel','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim']);
     for(const product of window.JIMNY_MARKET_PRODUCTS||[])if(product.visual&&product.bodyStyles?.includes('3door'))shortBodyVisuals.add(product.visual);
-    const parts=new Set(modelBody==='3door'?resolved.filter(id=>shortBodyVisuals.has(id)):resolved);const design=stock?{finish:'oem',decal:'none',grille:'oem'}:{...current.design};
+    const parts=new Set(normalizeExteriorParts(modelBody==='3door'?resolved.filter(id=>shortBodyVisuals.has(id)||EXTERIOR_PARTS[id]?.bodyStyles.includes('3door')):resolved,modelBody));const design=stock?{finish:'oem',decal:'none',grille:'oem'}:{...current.design};
     design.tyreType=stock?'highway':resolveTyreType(design,parts);
     if(design.tyreType==='highway')parts.delete('tires');else parts.add('tires');
     if(detailed){detailed.headlamps.visible=!parts.has('headlamps');detailed.bumper.visible=!['bull','autostylenn_bumper_v1'].some(id=>parts.has(id));Object.values(detailed.grilles).forEach(group=>applyGrilleColours(group,design,colour,modelBody));}
@@ -510,7 +512,7 @@ if(renderer){
     cabinFill.intensity=isInside()?.85:['cargo','doors-cutaway','touring'].includes(cameraView)?.95:cutawayViews.has(cameraView)?.35:0;
     clear(baseRig);buildBase();const r=buildWheels(parts);bodyRig.position.y=(parts.has('lift')?.055:0)+(r-(detailed?.3465:.335));
     if(detailed){for(const group of [detailed.stockWheels,detailed.atWheels,detailRig.getObjectByName('SpareWheel')]){if(design.partColours?.wheels)applyWheelColour(group,design.partColours.wheels);else applyWheelFinish(group,design.wheelFinish);// The steel wheel part and a spoke design both replace the rim face: hand over in order.
-      const steel=modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel');if(steel){applyWheelDesign(group,{wheelDesign:'factory'});applyCatalogueWheel(group,true);}else{applyCatalogueWheel(group,false);applyWheelDesign(group,design);}applyTyreType(group,design.tyreType);}}
+      const selectedWheel=WHEEL_PARTS.find(p=>parts.has(p.visual))?.visual||(modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel'));if(selectedWheel){applyWheelDesign(group,{wheelDesign:'factory'});applyCatalogueWheel(group,selectedWheel,design.wheelFinish,design.partColours?.wheels);}else{applyCatalogueWheel(group,false);applyWheelDesign(group,design);}applyTyreType(group,design.tyreType);}}
     applyCabinUpgrades(detailRig.getObjectByName('Cabin'),{body:modelBody,seats:parts.has('seats'),fabric:design.seatFabric,colour:'#'+mats.upholstery.color.getHexString(),touring:parts.has('touring'),camp:design.touringMode==='camp'});
     buildAccessories(parts,design);consolidateAccessories();
     if(cutawayViews.has(cameraView)){
@@ -520,6 +522,7 @@ if(renderer){
     }
     markSurfaceMaterials(mats,lampEmitters);surfaceStyler.apply([car],design);selectedLightProfiles=activeLightProfiles(parts);updateLamps();dirty=true;
     if(detailed&&modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel'))visiblePartIds.push('suzuki_nomade_steelwheel');
+    visiblePartIds.push(...WHEEL_PARTS.filter(p=>parts.has(p.visual)).map(p=>p.visual));
     const visibleCount=visiblePartIds.length;
     status.textContent=assetError?'Simplified preview · detailed model unavailable':!detailed?'Loading detailed Jimny…':stock?'Stock preview':visibleCount?`${visibleCount} fitted · click a part to edit`:mount.dataset.touchMode==='scroll'?'Live 3D · expand to rotate':'Click a part · drag to rotate';
     if(isInside())status.textContent='Click an accessory · drag to look around';
@@ -530,7 +533,7 @@ if(renderer){
   function consolidateAccessories(){
     // Share one draw call per material instead of one per LED cell, fin or bolt.
     accessoryRig.updateWorldMatrix(true,true);const inverse=accessoryRig.matrixWorld.clone().invert(),groups=new Map();
-    accessoryRig.traverse(obj=>{if(!obj.isMesh||obj.userData.disposableMaterial||Array.isArray(obj.material))return;let target='';for(let p=obj;p&&p!==accessoryRig;p=p.parent)if(p.userData.finishTarget){target=p.userData.finishTarget;break;}const key=target+':'+obj.material.uuid+':'+obj.castShadow+':'+obj.receiveShadow+':'+Object.keys(obj.geometry.attributes).sort().join(',');if(!groups.has(key))groups.set(key,{material:obj.material,objects:[],target});groups.get(key).objects.push(obj);});
+    accessoryRig.traverse(obj=>{if(!obj.isMesh||obj.isInstancedMesh||obj.userData.disposableMaterial||Array.isArray(obj.material))return;let target='';for(let p=obj;p&&p!==accessoryRig;p=p.parent)if(p.userData.finishTarget){target=p.userData.finishTarget;break;}const key=target+':'+obj.material.uuid+':'+obj.castShadow+':'+obj.receiveShadow+':'+Object.keys(obj.geometry.attributes).sort().join(',');if(!groups.has(key))groups.set(key,{material:obj.material,objects:[],target});groups.get(key).objects.push(obj);});
     for(const {material,objects,target} of groups.values()){if(objects.length<2)continue;const geometries=objects.map(obj=>{const g=obj.geometry.index?obj.geometry.toNonIndexed():obj.geometry.clone();g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverse,obj.matrixWorld));return g;});
       const merged=mergeGeometries(geometries,false);geometries.forEach(g=>g.dispose());if(!merged)continue;objects.forEach(obj=>{obj.geometry.dispose();obj.removeFromParent();});const combined=mesh(merged,material,accessoryRig);combined.userData.finishTarget=target;combined.castShadow=objects[0].castShadow;combined.receiveShadow=objects[0].receiveShadow;
     }
@@ -595,10 +598,13 @@ if(renderer){
     mount.dataset.cameraMode=isInside()?'inside':cutawayViews.has(name)?'cutaway':'exterior';mount.dataset.cameraView=name;
     configureCameraControls();
     fitViewport(camera.aspect);
-    const poses={front:[0,1.25,6.7],side:[6.6,1.3,0],rear:[-4,1.62,-5.5],orbit:[4.25,1.62,5.35],roof:[3.9,4.2,-4.5],cabin:[3.9,3.4,-3.3],cargo:[0,2.8,-5.5],underside:[3.8,-1.5,4.5],beam:[8,9,-6],'reference-front':[.7,1.45,8],'reference-rear':[-.7,1.45,-8],'reference-side':[-8,1.3,0]};
+    const poses={front:[0,1.25,6.7],side:[6.6,1.3,0],rear:[-4,1.62,-5.5],orbit:[4.25,1.62,5.35],roof:[3.9,4.2,-4.5],cabin:[3.9,3.4,-3.3],cargo:[0,2.8,-5.5],underside:[3.8,-1.5,4.5],beam:[8,9,-6],'reference-front':[.7,1.45,8],'reference-rear':[-.7,1.45,-8],'reference-side':[-8,1.3,0],'reference-top':[0,8,.001],'bonnet-top':[0,8,.001],'bonnet-quarter':[4.1,3.2,5.2]};
     camera.position.set(...(poses[name]||poses.orbit));controls.target.set(0,.9,0);updateCameraControls();sync();
     if(isInside())resetInsideCamera();else {controls.target.copy(fitCameraToVehicle());updateCameraControls();}
     if(name==='cargo'){camera.position.set(1.65,2.25,-3.4);controls.target.set(0,1.01,modelBody==='3door'?-1.23:-1.40);updateCameraControls();}
+    if(name==='front-quarter'){const axle=modelBody==='3door'?1.125:1.295;camera.position.set(2.6,1.42,3.25);controls.target.set(.76,1.02,axle+.18);updateCameraControls();}
+    if(name==='rear-quarter'){const axle=modelBody==='3door'?1.125:1.295;camera.position.set(2.6,1.4,-3.25);controls.target.set(.76,1.02,-axle-.18);updateCameraControls();}
+    if(name==='bonnet-top'){const z=1.20+(modelBody==='3door'?-.17:0);camera.position.set(0,4.4,z+.004);controls.target.set(0,1.10,z);updateCameraControls();status.textContent='Bonnet · overhead surface inspection';}
     if(name==='touring'){camera.position.set(2.55,3.15,-3.1);controls.target.set(0,.93,-.60);updateCameraControls();status.textContent='Touring interior · cutaway inspection';}
     if(name==='doors-cutaway'){camera.position.set(-2.3,2.5,-1.5);controls.target.set(0,.91,modelBody==='3door'?-.17:-.32);updateCameraControls();status.textContent='Door cutaway · optional inspection';}
     if(name==='headliner-cutaway'){camera.position.set(2.3,2.6,-2.8);controls.target.set(0,1.46,modelBody==='3door'?-.64:-.81);updateCameraControls();status.textContent='Roof removed · overhead storage inspection';}
@@ -705,6 +711,10 @@ if(renderer){
           lift:[[2.7,.75,2.9],[.45,.52,1.18]],mudflaps:[[2.7,.8,-2.8],[.65,.38,-1.25]],flares:[[3,1.15,2.8],[.7,.79,1.1]]
         };
         let frame=frames[part];
+        const exterior=EXTERIOR_PARTS[part];
+        if(exterior&&!exterior.diameter){const axle=modelBody==='3door'?1.125:1.295;
+          frame=exterior.camera==='side'?[[3.4,1.13,.7],[.76,.65,0]]:exterior.camera==='rear-quarter'?[[2.6,1.4,-3.25],[.76,1.02,-axle-.18]]:exterior.camera==='front-quarter'?[[2.6,1.42,3.25],[.76,1.02,axle+.18]]:[[1.5,1.03,4.1],[0,.63,modelBody==='3door'?1.78:1.95]];
+        }
         if(frame&&modelBody==='3door'&&['exea_cupholder','exea_phone_mount','armoro_console_organizer','exea_switch_extensions'].includes(part))frame=frame.map(point=>[point[0],point[1],point[2]-.17]);
         if(product?.lightProfile)frame=product.lightProfile==='work'?[[1.8,2.7,-4],[0,1.9,-1.45]]:product.lightProfile==='bar'?frames.led:product.lightProfile==='headlamps'?frames.headlamps:frames.pods;
         if(frame){camera.position.set(...frame[0]);camera.lookAt(...frame[1]);}
@@ -722,7 +732,7 @@ if(renderer){
   window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady:!!workshopEnvironment&&workshop.ready,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
   const previousGetState=window.jimny3D.getState;
   Object.assign(window.jimny3D,{beginPreview,endPreview,renderPreset});
-  window.jimny3D.getState=()=>({...previousGetState(),quality:quality.id,body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-10'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:scenery==='studio'?workshop.root.visible:!!sceneryCache.get(scenery)?.ground?.visible,workshopReady:workshop.ready,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
+  window.jimny3D.getState=()=>({...previousGetState(),quality:quality.id,body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-r38'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:scenery==='studio'?workshop.root.visible:!!sceneryCache.get(scenery)?.ground?.visible,workshopReady:workshop.ready,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
   sync(window.getJimnyBuildState?.()||current);
   let savedScenery='studio';try{savedScenery=localStorage.getItem('thatsuvmod-scenery');}catch{/* Private mode fallback. */}
   refreshWorkshopEnvironment();
@@ -741,7 +751,7 @@ if(renderer){
     surfaceStyler.clear();
     if(detailed){car.remove(detailed.stockWheels,detailed.atWheels);for(const group of [detailed.stockWheels,detailed.atWheels]){disposeCatalogueWheels(group);group.traverse(o=>o.geometry?.dispose());}detailed.sBadgeGeometry?.dispose();}
     garageCabinControls?.dispose();garageCabinControls=null;
-    clear(detailRig);detailed=null;modelBody=body;
+    disposeCatalogueWheels(detailRig.getObjectByName('SpareWheel'));clear(detailRig);detailed=null;modelBody=body;
     gltf.scene.traverse(obj=>{if(!obj.isMesh)return;obj.castShadow=true;obj.receiveShadow=true;
       const material=obj.material;applyMaterialProfile(material);
       // Millimetre-wide panel-gap tubes are already dark. Shadow-map texels
@@ -771,7 +781,9 @@ if(renderer){
     detailed.paintMeshes=[];objects.BodyShell.traverse(obj=>{if(obj.isMesh&&obj.material===finishMaterial)detailed.paintMeshes.push(obj);});
     Object.values(detailed.grilles).forEach(group=>group.traverse(obj=>{if(obj.isMesh&&['BrightChrome','GrilleLettering'].includes(obj.material.name))obj.userData.brightGrilleMaterial=obj.material;}));
     mount.dataset.model='blender';mount.dataset.body=body;car.visible=true;modelLoading=false;mount.setAttribute('aria-busy','false');
-    beams.forEach(light=>light.position.z=body==='3door'?1.79:1.96);
+    const lampMount=frontLampMount(body);
+    beams.forEach(light=>{light.position.z=(body==='3door'?1.79:1.89)-lampMount.setback;light.position.y=lampMount.y;});
+    headlightGlow.children.forEach(light=>{light.position.z=(body==='3door'?1.77:1.89)-lampMount.setback;light.position.y=lampMount.y;});
     sync();if(isInside())resetInsideCamera();else {controls.target.copy(fitCameraToVehicle());updateCameraControls();}
     window.dispatchEvent(new CustomEvent('jimny-model-ready',{detail:{body}}));
     }catch(error){if(request!==modelRequest)return;modelLoading=false;assetError=true;mount.setAttribute('aria-busy','false');car.visible=false;dirty=true;status.textContent='This model could not load. Switch model or reload to retry; your build is saved.';}

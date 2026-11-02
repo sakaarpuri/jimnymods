@@ -1,4 +1,4 @@
-async (page, bodyFilter=null, mode='all') => {
+async (page, bodyFilter=null, mode='all', baseURL='http://localhost:8080/', outputRoot='/tmp') => {
   // Run with the browser runner's filename option. The PNGs are temporary
   // renderer outputs; cwebp converts them to the shipped thumbnails.
   const context=await page.context().browser().newContext({viewport:{width:1600,height:1200},deviceScaleFactor:1});
@@ -6,7 +6,7 @@ async (page, bodyFilter=null, mode='all') => {
   // A returning owner: the first-visit welcome page would otherwise hold back the viewer.
   await p.addInitScript(()=>{localStorage.setItem('thatsuvmod-ui-theme-v1','rally');localStorage.setItem('thatsuvmod-welcomed','1');localStorage.setItem('thatsuvmod-scenery','studio');});
   try {
-    await p.goto('http://localhost:8080/');
+    await p.goto(baseURL);
     await p.waitForFunction(()=>window.jimny3D?.getState().detailedReady&&!window.jimny3D.getState().modelLoading&&window.jimny3D.getState().studioEnvironmentReady,null,{timeout:120000});
     const results=[],studioPreviews={};
     for(const body of ['5door','3door']){
@@ -26,7 +26,7 @@ async (page, bodyFilter=null, mode='all') => {
       ],body);
       studioPreviews[body]=await p.evaluate(()=>window.getJimnyStudioPreviews().map(p=>p.file));
       for(const item of [...new Map(items.map(item=>[item.file,item])).values()]){
-        const path=`/tmp/jimny-${body}-${item.file}.png`;
+        const path=`${outputRoot}/jimny-${body}-${item.file}.png`;
         results.push({body,id:item.id,file:item.file,path});
         if(mode==='inventory'||(mode==='storage'&&item.angle!=='storage')||(mode==='headliner'&&item.angle!=='headliner-cutaway'))continue;
         if(item.angle==='storage')item.angle='cargo';

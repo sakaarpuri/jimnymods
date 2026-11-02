@@ -2,7 +2,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
-const exec=promisify(execFile),inventory=JSON.parse(await readFile('/tmp/jimny-world-preview-inventory.json','utf8'));
+const exec=promisify(execFile),inventory=JSON.parse(await readFile(process.argv[2]||'/tmp/jimny-world-preview-inventory.json','utf8'));
 const hash=async p=>createHash('sha256').update(await readFile(p)).digest('hex');
 const modelSha256=await hash('assets/models/jimny-lwb-blender.glb');
 if(inventory.release.models['5door']!==modelSha256.slice(0,12))throw new Error('Course preview inventory uses an outdated Jimny.');

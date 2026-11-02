@@ -20,7 +20,7 @@ test('at least five spoke alloy styles besides the factory wheel, built from one
  for(const d of spoke){assert(W.windows(d.id).length>=5,d.id+' has spoke windows');assert.match(W.svg(d.id),/^<svg/);}
  assert.equal(W.clean({wheelDesign:'nope'}).wheelDesign,'factory');
  const src=read('src/wheel-designs.js');assert.match(src,/W\.windows\(id\)/,'3D face uses the thumbnail outline');
- assert.match(read('src/viewer3d.js'),/if\(steel\)\{applyWheelDesign\(group,\{wheelDesign:'factory'\}\);applyCatalogueWheel\(group,true\);\}/,'the steel wheel part takes priority');
+ assert.match(read('src/viewer3d.js'),/if\(selectedWheel\)\{applyWheelDesign\(group,\{wheelDesign:'factory'\}\);applyCatalogueWheel\(group,selectedWheel/,'catalogue wheels take priority over spoke styles');
  assert.match(read('src/trail/scene.js'),/applyWheelDesign\(spare,design\)/,'Drive matches the spare');
 });
 

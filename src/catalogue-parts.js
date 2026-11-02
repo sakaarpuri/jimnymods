@@ -1,3 +1,4 @@
+import {detailedWheel} from './detailed-wheels.js';
 import * as T from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
@@ -131,25 +132,27 @@ export function nomadeSteelWheel(material){
 }
 
 const wheelStates=new WeakMap();
-export function applyCatalogueWheel(root,enabled=false){
+export function applyCatalogueWheel(root,enabled=false,finish='oem',colour=null){
  if(!root?.traverse)return 0;
  let state=wheelStates.get(root);
- if(!enabled){if(!state)return 0;for(const [m,visible]of state.hidden)m.visible=visible;for(const g of state.added){g.removeFromParent();g.traverse(m=>m.geometry?.dispose());}state.material.dispose();wheelStates.delete(root);return state.added.length;}
+ const key=JSON.stringify([enabled,finish,colour]);
+ if(state&&enabled&&state.key!==key){applyCatalogueWheel(root,false);state=null;}
+ if(!enabled){if(!state)return 0;for(const [m,visible]of state.hidden)m.visible=visible;for(const g of state.added){g.removeFromParent();g.traverse(m=>{m.geometry?.dispose();m.userData.ownedMaterials?.forEach(mat=>mat.dispose());});}state.material.dispose();wheelStates.delete(root);return state.added.length;}
  if(state)return state.added.length;
  // Satin black paint is a coating, not exposed dark metal: enough diffuse
  // reflectance to reveal the pressings, with restrained broad reflections.
- state={hidden:[],added:[],material:new T.MeshStandardMaterial({name:'CatalogueSteelWheel',color:'#303438',roughness:.58,metalness:.30})};
- const frames=[];root.traverse(g=>{if(['StockWheels','AllTerrainWheels'].includes(g.name)||(!g.name&&g.children.some(m=>m.isMesh&&m.material?.name==='TyreRubber')))frames.push(g);});
+ state={key,hidden:[],added:[],material:new T.MeshStandardMaterial({name:'CatalogueSteelWheel',color:'#303438',roughness:.58,metalness:.30})};
+ const frames=[];root.traverse(g=>{if(['StockWheels','AllTerrainWheels','SpareWheel'].includes(g.name)||(!g.name&&g.children.some(m=>m.isMesh&&m.material?.name==='TyreRubber')))frames.push(g);});
  for(const frame of frames){
-  const named=!!frame.name;frame.updateWorldMatrix(true,true);
+  const named=['StockWheels','AllTerrainWheels'].includes(frame.name);frame.updateWorldMatrix(true,true);
   const bounds=new T.Box3(),clusters=new Map(),v=new T.Vector3(),inverse=frame.matrixWorld.clone().invert();
   frame.traverse(m=>{if(!m.isMesh)return;if(['MachinedAlloy','WheelGunmetal'].includes(m.material?.name)){state.hidden.push([m,m.visible]);m.visible=false;}if(m.material?.name!=='TyreRubber')return;const p=m.geometry.attributes.position,matrix=inverse.clone().multiply(m.matrixWorld);for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(matrix);bounds.expandByPoint(v);if(named){const key=`${Math.sign(v.x)},${Math.sign(v.z)}`;if(!clusters.has(key))clusters.set(key,new T.Box3());clusters.get(key).expandByPoint(v);}}});
   if(bounds.isEmpty())continue;
   const c=bounds.getCenter(new T.Vector3());
   // Geometry extraction retains a small lateral offset for the wider AT
   // wheel. Its actual tyre bounds, not the spin pivot, determine the centre.
-  const locations=named?[...clusters.values()].map(b=>{const p=b.getCenter(new T.Vector3());return {side:Math.sign(p.x),x:p.x,y:p.y,z:p.z};}):[{side:Math.sign(frame.parent?.position.x||1),x:c.x,y:c.y,z:c.z}];
-  for(const p of locations){const g=nomadeSteelWheel(state.material);g.position.set(p.x+p.side*.086,p.y,p.z);g.rotation.y=p.side*Math.PI/2;frame.add(g);state.added.push(g);}
+  const locations=named?[...clusters.values()].map(b=>{const p=b.getCenter(new T.Vector3());return {side:Math.sign(p.x),x:p.x,y:p.y,z:p.z};}):[{side:frame.name==='SpareWheel'?1:Math.sign(frame.parent?.position.x||1),x:c.x,y:c.y,z:c.z}];
+  for(const p of locations){const g=typeof enabled==='string'?detailedWheel(enabled,finish,colour):nomadeSteelWheel(state.material);if(!g)continue;g.position.set(p.x+p.side*.086,p.y,p.z);g.rotation.y=p.side*Math.PI/2;frame.add(g);state.added.push(g);}
  }
  if(!state.added.length){state.material.dispose();return 0;}wheelStates.set(root,state);return state.added.length;
 }

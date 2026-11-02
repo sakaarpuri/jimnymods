@@ -6,8 +6,10 @@ import {accessoryBuilder,accessoryMaterials} from '../src/accessories.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 
-// Probe the revised five-door lamp centres, not the earlier model's datum.
-for(const body of ['lwb','swb'])test(`${body}: revised headlamp apertures remain open in every grille`,async()=>{
+// The independent five-door R38 geometry uses different lamp/fascia datums.
+// Its stronger both-sided side-return, aperture, amber-lens and lower-corner
+// checks are in site-r38-returns.test.mjs. Retain these probes for the JB74.
+for(const body of ['swb'])test(`${body}: revised headlamp apertures remain open in every grille`,async()=>{
   const bytes=await readFile(new URL(`../assets/models/jimny-${body}-blender.glb`,import.meta.url));
   const root=(await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
     .parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'')).scene;
@@ -83,8 +85,9 @@ test('replacement headlamps share the corrected stock lamp centre',()=>{
     const rig=new Group(),mats=accessoryMaterials();
     accessoryBuilder({accessoryRig:rig,mats,detailed:true,modelBody:body,colour:'#aaa',effectiveDesign:{},lampEmitters:{}})(new Set(['headlamps']),{});
     const bounds=new Box3().setFromObject(rig,true),centre=bounds.getCenter(new Vector3());
-    assert(Math.abs(centre.y-.917)<.005);
-    assert(centre.z>(body==='3door'?1.60:1.77)&&centre.z<(body==='3door'?1.70:1.87));
+    // R37's five-door fascia and the retained JB74 use different lamp datums.
+    assert(Math.abs(centre.y-(body==='3door'?.917:.955))<.005);
+    assert(centre.z>(body==='3door'?1.60:1.72)&&centre.z<(body==='3door'?1.70:1.77));
     rig.traverse(o=>o.geometry?.dispose());for(const m of Object.values(mats))m.dispose();
   }
 });
