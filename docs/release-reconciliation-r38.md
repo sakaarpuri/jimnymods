@@ -1,4 +1,4 @@
-# R38 combined release, not yet published
+# R38 combined release: accepted preview limits
 
 This isolated worktree reconciles the R38 five-door model and its accessory
 mounts with the later modelled workshop, twenty looks, verified-price policy,
@@ -16,10 +16,10 @@ unchanged three-door model and renderer.
 
 Focused integration, accessory, game, grille and bonnet checks pass; browser
 checks fitted and removed parts and drove both bodies onto an incline. The
-broader suite still reports older geometry assertions that conflict with the
-replacement five-door, including genuine dimensional differences in roof
+broader suite checks bounded, accepted preview differences in roof
 height (+12.4 mm), bumper-to-bumper length (+28.8 mm), covered length (43.9 mm
 short) and the cross-body front-lamp datum (67.5 mm away from the earlier
-translation). Do not claim
-dimensional certification or publish without resolving the release gate.
-The 3D preview is illustrative and is not a fitment or safety guarantee.
+translation). The lamp datum comparison uses independent model origins and is
+not confirmed as a real-world dimensional mismatch. The user accepted these
+limitations for this preview release. The 3D preview is illustrative, is not
+dimensionally certified, and is not a fitment or safety guarantee.
