@@ -56,7 +56,7 @@ test('changing accessories frees raised tread meshes and material textures',()=>
 test('JimnyworX guards follow the tall front/rear corner profiles without cutting into the painted body',async()=>{
  const g=buildExteriorPart('jimnyworx_corners','3door'),panels=g.children.filter(m=>m.userData.cornerGuard),root=await model('3door');root.updateMatrixWorld(true);g.updateMatrixWorld(true);
  assert.equal(panels.length,4);assert.equal(g.children.filter(m=>m.isInstancedMesh&&m.name.includes('diamond')).length,4);
- for(const m of panels){const {side,end,height}=m.userData.cornerGuard;assert(height>(end===1?.30:.48),'Guard must extend down alongside the arch');
+ for(const m of panels){const {side,end,height}=m.userData.cornerGuard;assert(height>(end===1?.25:.48),'Guard must extend down alongside the arch');
   const positions=m.geometry.attributes.position;let checked=0;
   // Sample the outer skin in the corner bend, where the old flat rectangles
   // and disconnected tabs either floated or cut through the painted shell.

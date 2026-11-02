@@ -4,7 +4,7 @@ async (page, bodyFilter=null, mode='all', baseURL='http://localhost:8080/', outp
   const context=await page.context().browser().newContext({viewport:{width:1600,height:1200},deviceScaleFactor:1});
   const p=await context.newPage();
   // A returning owner: the first-visit welcome page would otherwise hold back the viewer.
-  await p.addInitScript(()=>{localStorage.setItem('thatsuvmod-ui-theme-v1','rally');localStorage.setItem('thatsuvmod-welcomed','1');localStorage.setItem('thatsuvmod-scenery','studio');});
+  await p.addInitScript(()=>{localStorage.setItem('thatsuvmod-ui-theme-v1','rally');localStorage.setItem('thatsuvmod-welcomed','1');localStorage.setItem('jimnygami-gray-default-v1','1');localStorage.setItem('thatsuvmod-scenery','studio');});
   try {
     await p.goto(baseURL);
     await p.waitForFunction(()=>window.jimny3D?.getState().detailedReady&&!window.jimny3D.getState().modelLoading&&window.jimny3D.getState().studioEnvironmentReady,null,{timeout:120000});

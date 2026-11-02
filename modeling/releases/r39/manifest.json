@@ -1,0 +1,14 @@
+{
+  "lwb": {
+    "path": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r39/jimny-lwb-blender.glb",
+    "bytes": 4579296,
+    "sha256": "4259a17bd896d95afa0bd2cfed7d5d8eb669761a31280e9111d79596072ad6b3",
+    "native": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r39/jimny-lwb.blend"
+  },
+  "swb": {
+    "path": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r39/jimny-swb-blender.glb",
+    "bytes": 3923124,
+    "sha256": "efdcc094db81b2daa485b86846a1e1b5fdb8f55f899cd6975ceb68b9b2b99649",
+    "native": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r39/jimny-swb.blend"
+  }
+}

@@ -19,6 +19,7 @@ for(const body of ['5door','3door']){
   const originals=[];root.traverse(o=>{if(o.isMesh)originals.push([o.material.name,o.material.color.getHexString()]);});
   applyGrilleColours(root,{grilleColour:'body',badgeColour:'#a8322e'},'#697868',body);
   const badge=root.getObjectByName('FactoryGrilleEmblem');assert(badge);assert.equal(badge.material.color.getHexString(),'a8322e');
+  for(const colour of ['#d4aa53','#c7cdd1']){applyGrilleColours(root,{grilleColour:'body',badgeColour:colour},'#697868',body);assert.equal(badge.material.color.getHexString(),colour.slice(1));assert.equal(badge.material.metalness,.85);assert.equal(badge.material.roughness,.28);}
   root.traverse(o=>{if(o.isMesh&&o.material.name!=='IntakeShadow'&&o!==badge)assert.equal(o.material.color.getHexString(),'697868');});
   for(const [material,colour]of lamps)assert.equal(material.color.getHexString(),colour);
   applyGrilleColours(root,{grilleColour:'original',badgeColour:'original'},'#697868',body);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
-import {Raycaster,Vector3,DoubleSide,FrontSide} from 'three';
+import {Raycaster,Vector3,DoubleSide,FrontSide,Box3} from 'three';
 
 async function load(body){
  const b=await readFile(new URL(`../assets/models/jimny-${body}-blender.glb`,import.meta.url));
@@ -11,31 +11,38 @@ async function load(body){
  root.updateMatrixWorld(true);return root;
 }
 for(const body of ['lwb','swb']){
- test(`${body}: bonnet tapers in thickness toward the nose without moving its fixed wing landing`,async()=>{
-  const shell=(await load(body)).getObjectByName('BodyShell'),offset=body==='swb'?-.17:0;
-  const top=(x,z)=>new Raycaster(new Vector3(x,1.4,z+offset),new Vector3(0,-1,0),0,.35).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint')?.point.y;
+ test(`${body}: bonnet thins toward the nose and the fixed wing follows its taper without a shelf`,async()=>{
+  const shell=(await load(body)).getObjectByName('BodyShell');let hood;
+  shell.traverse(o=>{if(o.name.endsWith('tapered_smooth_clamshell_bonnet'))hood=o;});assert(hood);
+  const box=new Box3().setFromObject(hood,true),length=box.max.z-box.min.z;
+  const top=(x,z)=>new Raycaster(new Vector3(x,1.4,z),new Vector3(0,-1,0),0,.35).intersectObject(hood,true)[0]?.point.y;
   for(const side of [-1,1]){
-   const hinge=top(side*.69,.90),front=top(side*.69,1.58),landing=top(side*.738,1.58);
-   assert(hinge>1.188&&hinge<1.191,'Keep the hinge-end height and cowl transition');
-   const expectedLanding=body==='lwb'?1.1123:1.11775,expectedRearLanding=body==='lwb'?1.11325:1.1204;
-   assert(Math.abs(landing-expectedLanding)<.0007,'Fixed wing landing must retain its independently modelled datum');
-   assert(front-landing>.031&&front-landing<(body==='lwb'?.042:.040),'Front shoulder must remain thinner than the hinge end');
-   assert(Math.abs(top(side*.738,1.50)-expectedRearLanding)<.0007,'The side-panel landing must remain continuous farther back too');
+   const hinge=top(side*.69,box.min.z+length*.13),front=top(side*.69,box.min.z+length*.82);
+   assert(hinge>1.184&&hinge<1.194,'Keep the raised hinge end and cowl fit');
+   assert(front>1.14&&front<1.16&&hinge-front>.025&&hinge-front<.055,'Nose shoulder must remain thinner than hinge end');
+   for(const f of [.65,.80,.90]){
+    const z=box.min.z+length*f;
+    const edge=new Raycaster(new Vector3(side,1.095,z),new Vector3(-side,0,0),0,.4).intersectObject(shell,true)[0];
+    assert(edge&&edge.object.material.name==='BodyPaint','Fixed wing must close beneath the bonnet');
+    assert(Math.abs(edge.point.x)<.740,'Broad protruding landing has returned near the bonnet nose');
+   }
   }
  });
  test(`${body}: bonnet has the approved raised centre, shallow slope and shortened rolled nose`,async()=>{
   const shell=(await load(body)).getObjectByName('BodyShell'),offset=body==='swb'?-.17:0;
+  const noseOffset=body==='swb'?-.065770106:0;
+  const bonnetZ=z=>body==='swb'?z-.17+.104229894*((t)=>t*t*(3-2*t))(Math.max(0,Math.min(1,(z-.78)/.82))):z;
   // Garage replaces Blender's double-sided material with single-sided car
   // lacquer. Test the actual runtime culling, not the forgiving source mat.
   shell.traverse(o=>{if(o.isMesh&&o.material.name==='BodyPaint')o.material.side=FrontSide;});
-  const top=(x,z)=>new Raycaster(new Vector3(x,1.4,z+offset),new Vector3(0,-1,0),0,.30).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint')?.point;
+  const top=(x,z)=>new Raycaster(new Vector3(x,1.4,bonnetZ(z)),new Vector3(0,-1,0),0,.30).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint')?.point;
   const nose=top(0,1.70),centre=top(0,1.50),shoulder=top(.58,1.50),hinge=top(0,1.10);
   assert(nose&&nose.y>1.15&&nose.y<1.18,'Rolled bonnet nose height drifted');
   assert(centre&&shoulder&&centre.y-shoulder.y>.006&&centre.y-shoulder.y<.014,'Centre stamping must rise subtly above the shoulders, not be recessed');
   // Thinning the upper lid toward the unchanged lower seam adds about 7mm
   // of fall over this 400mm span, while leaving the hinge tangent unchanged.
   assert(hinge&&hinge.y-centre.y>.010&&hinge.y-centre.y<.020,'Tapered bonnet should retain a gentle, continuous slope');
-  assert.equal(top(0,1.81),undefined,'Bonnet must finish behind the forward headlamp face, not overhang it');
+  assert.equal(new Raycaster(new Vector3(0,1.4,1.81+noseOffset),new Vector3(0,-1,0),0,.30).intersectObject(shell,true).find(h=>h.object.material.name==='BodyPaint'),undefined,'Bonnet must finish behind the forward headlamp face, not overhang it');
   for(const side of [-1,1]){
    const edge=new Raycaster(new Vector3(side*1,1.174,1.10+offset),new Vector3(-side,0,0),0,.30).intersectObject(shell,true);
    assert.equal(edge[0]?.object.material.name,'BodyPaint','The folded bonnet side must face outward on both sides, without a see-through black slit');

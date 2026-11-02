@@ -33,6 +33,8 @@ for(const body of ['5door','3door']){
 }
 const hash=async path=>createHash('sha256').update(await readFile(path)).digest('hex');
 manifest.renderSources['src/garage-cameras.js']=await hash('src/garage-cameras.js');
+// Badge silhouette and rear-logo visibility are visible in generated cards.
+for(const file of ['src/grille-scripts.js','src/grille-script-data.js','src/spare-badge.js'])manifest.renderSources[file]=await hash(file);
 for(const file of ['src/trail/player.js','src/trail/replay.js'])manifest.renderSources[file]=await hash(file);
 manifest.modelSha256=await hash('assets/models/jimny-lwb-blender.glb');
 manifest.swbModelSha256=await hash('assets/models/jimny-swb-blender.glb');

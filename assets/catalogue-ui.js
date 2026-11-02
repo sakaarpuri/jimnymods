@@ -14,7 +14,7 @@
  const bodyLabels=list=>list.map(b=>b==='3door'?'3-door':'5-door').join(' and ');
 
  function canTry(m){return catalogueBodyStatus(m,bodyStyle)!=='incompatible'&&(m.market?cataloguePreviewKind(m,bodyStyle)!=='research-only':garageCanPreview(m.id));}
- function previewImage(m){const grilles={autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script',autostylenn_s_grille:'smesh'};if(grilles[m.visual||m.id])return studioPreviewPath('design-grille-'+grilles[m.visual||m.id]);const v=m.visual||m.id,specific=window.getJimnyStudioPreviews?.().some(p=>p.id===m.id);return m.lightProfile?garagePartImage(m.id):specific||!m.market?garagePartImage(m.id):garagePartImage(v);}
+ function previewImage(m){const grilles={autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script-loop',autostylenn_s_grille:'smesh'};if(grilles[m.visual||m.id])return studioPreviewPath('design-grille-'+grilles[m.visual||m.id]);const v=m.visual||m.id,specific=window.getJimnyStudioPreviews?.().some(p=>p.id===m.id);return m.lightProfile?garagePartImage(m.id):specific||!m.market?garagePartImage(m.id):garagePartImage(v);}
 
  // The Parts pills follow the old "popular" shortcuts that other screens still set.
  function categoryKey(){const v=activePartFilter;if(!v||['all','popular','products','exterior','international','verified'].includes(v))return 'all';if(v==='interior')return 'Interior';if(v==='lighting')return 'Lighting';return v;}
