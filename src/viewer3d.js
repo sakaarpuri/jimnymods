@@ -159,7 +159,9 @@ if(renderer){
     hidden.forEach(obj=>{obj.visible=false;});workshop.root.visible=true;workshopLights.forEach(l=>{l.visible=true;});floor.material=workshop.floorMaterial;
     scene.background=new THREE.Color('#20272b');scene.environment=fallbackEnvironment.texture;
     const generator=new THREE.PMREMGenerator(renderer);
-    const next=generator.fromScene(scene,0,.1,60,{position:new THREE.Vector3(0,1.2,0)});generator.dispose();
+    // A small environment blur softens workshop reflections without replacing
+    // the visible workshop with an unrelated studio photograph.
+    const next=generator.fromScene(scene,.08,.1,60,{position:new THREE.Vector3(0,1.2,0)});generator.dispose();
     workshopEnvironment?.dispose();workshopEnvironment=next;
     hidden.forEach(obj=>{obj.visible=true;});workshop.root.visible=state.visible;workshopLights.forEach((l,i)=>{l.visible=state.lights[i];});floor.material=state.floor;
     scene.background=state.background;scene.environment=state.environment;
@@ -190,7 +192,7 @@ if(renderer){
   finishMaterial.bumpMap=grain;finishMaterial.bumpScale=.00035;
   mats.rubber.name='TyreRubber';mats.rubber.bumpMap=grain;mats.rubber.bumpScale=.0002;mats.rubber.color.set('#171919');mats.rubber.roughness=.9;
   // Smooth tinted glass: a full-strength reflection over a partly see-through cabin.
-  mats.glass=new THREE.MeshPhysicalMaterial({color:'#101b1d',roughness:.02,metalness:0,ior:1.52,specularIntensity:1,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});
+  mats.glass=new THREE.MeshPhysicalMaterial({color:'#101b1d',roughness:.06,metalness:0,ior:1.52,specularIntensity:1,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});
   mats.lens=new THREE.MeshPhysicalMaterial({color:'#e0e7e7',metalness:.05,roughness:.08,clearcoat:1,transparent:true,opacity:.40,depthWrite:false});
   mats.chrome=new THREE.MeshStandardMaterial({color:'#e8eeed',metalness:1,roughness:.17});
   mats.reflector=new THREE.MeshStandardMaterial({color:'#d4d9d7',metalness:1,roughness:.24});
@@ -310,11 +312,11 @@ if(renderer){
       const inner=[[-.40,.38],[-.39,.53],[-.35,.66],[-.28,.75],[-.18,.795],[0,.815],[.18,.795],[.28,.75],[.35,.66],[.39,.53],[.40,.38]];
       const positions=[],indices=[],segments=64;
       const curves=[outer,inner].map(points=>new THREE.CatmullRomCurve3(points.map(([depth,height])=>new THREE.Vector3(0,height,depth))));
-      for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890]])for(let i=0;i<=segments;i++){
+      for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890],[1,.752]])for(let i=0;i<=segments;i++){
         const point=curves[0].getPoint(i/segments).lerp(curves[1].getPoint(i/segments),t);
         positions.push(side*width,point.y,z+point.z);
       }
-      for(let row=0;row<5;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
+      for(let row=0;row<6;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
       if(side<0)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
       const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
       mesh(geometry,mats.trim,parent);return;
@@ -484,7 +486,7 @@ if(renderer){
     const resolved=resolvePreviewParts(stock?[]:current.parts||[],window.JIMNY_MARKET_PRODUCTS||[]);
     // SWB launch scope: body finishes, original vinyl, authored grilles and
     // tyres. Do not display a long-wheelbase rack/interior as a JB74 product.
-    const shortBodyVisuals=new Set(['tires','snorkel','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim']);
+    const shortBodyVisuals=new Set(['tires','flares','snorkel','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim']);
     for(const product of window.JIMNY_MARKET_PRODUCTS||[])if(product.visual&&product.bodyStyles?.includes('3door'))shortBodyVisuals.add(product.visual);
     const parts=new Set(normalizeExteriorParts(modelBody==='3door'?resolved.filter(id=>shortBodyVisuals.has(id)||EXTERIOR_PARTS[id]?.bodyStyles.includes('3door')):resolved,modelBody));const design=stock?{finish:'oem',decal:'none',grille:'oem'}:{...current.design};
     design.tyreType=stock?'highway':resolveTyreType(design,parts);
@@ -498,7 +500,7 @@ if(renderer){
     // Solid colours have a dielectric lacquer; silver retains a metallic base coat.
     finishMaterial.metalness=['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0;
     finishMaterial.clearcoat=lacquer.clearcoat;finishMaterial.clearcoatRoughness=lacquer.clearcoatRoughness;finishMaterial.bumpScale=design.finish==='matte'?.00055:.00008;
-    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');}
+    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');roofMaterial.roughness=Math.max(roofMaterial.roughness,.52);roofMaterial.clearcoat=Math.min(roofMaterial.clearcoat,.35);roofMaterial.clearcoatRoughness=Math.max(roofMaterial.clearcoatRoughness,.35);}
     [finishMaterial,roofMaterial].forEach(mat=>{const cutaway=cutawayViews.has(cameraView);if(mat.transparent!==cutaway)mat.needsUpdate=true;mat.transparent=cutaway;mat.opacity=cutaway?.12:1;mat.depthWrite=!cutaway;});mats.glass.opacity=cutawayViews.has(cameraView)||isInside()?.12:.6;mats.glass.envMapIntensity=isInside()?.12:1;
     // Keep the overhead net/rails below 1.63 m, cut the authored headliner
     // (bottom 1.6325 m) as well as the exterior roof, not just the roof shell.

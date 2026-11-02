@@ -9,8 +9,8 @@ export const WORKSHOP_LAYOUT=Object.freeze({width:20.32,depth:20.32,roof:10.26})
 // Direct illumination and reflected highlights consume the same layout.
 export const WORKSHOP_LIGHT_SOURCES=Object.freeze([
  Object.freeze({role:'key',width:4,height:3.8,position:Object.freeze([10.04,3.1,5.2]),target:Object.freeze([0,.9,0]),intensity:10,colour:'#fffdf8'}),
- Object.freeze({role:'ceiling-front',width:1.8,height:.12,position:Object.freeze([0,9.72,4.8]),target:Object.freeze([0,0,4.8]),intensity:85,colour:'#f7f7f2'}),
- Object.freeze({role:'ceiling-rear',width:1.8,height:.12,position:Object.freeze([0,9.72,-4.8]),target:Object.freeze([0,0,-4.8]),intensity:36,colour:'#f7f7f2'}),
+ Object.freeze({role:'ceiling-front',width:2.8,height:.55,position:Object.freeze([0,9.72,4.8]),target:Object.freeze([0,0,4.8]),intensity:16,colour:'#f7f7f2'}),
+ Object.freeze({role:'ceiling-rear',width:2.8,height:.55,position:Object.freeze([0,9.72,-4.8]),target:Object.freeze([0,0,-4.8]),intensity:7,colour:'#f7f7f2'}),
  Object.freeze({role:'bench',width:.045,height:1.2,position:Object.freeze([-6.4,3.45,-9.54]),target:Object.freeze([-6.4,1.0,-8.1]),intensity:65,colour:'#fff4df'})
 ]);
 
@@ -93,8 +93,8 @@ export function createWorkshopStage({onLoad=()=>{}}={}){
   for(const [name,w,h,d,y] of [['Roof beam lower flange',25.1,.045,.20,12.24],['Roof beam web',25.1,.28,.045,12.4],['Roof beam upper flange',25.1,.045,.20,12.56]]){
     instances(name,new T.BoxGeometry(w,h,d),steel,[-9,-3,3,9].map(z=>[0,y,z]));
   }
-  instances('Ceiling light housings',new T.BoxGeometry(2.4,.075,.22),darkSteel,[-6,6].map(z=>[0,12.17,z]));
-  instances('Ceiling light diffusers',new T.BoxGeometry(2.25,.018,.15),lamp,[-6,6].map(z=>[0,12.12,z]));
+  instances('Ceiling light housings',new T.BoxGeometry(3.6,.075,.75),darkSteel,[-6,6].map(z=>[0,12.17,z]));
+  instances('Ceiling light diffusers',new T.BoxGeometry(3.5,.018,.6875),lamp,[-6,6].map(z=>[0,12.12,z]));
   box('Back protective plinth',25.2,.64,.08,0,.32,-12.36,plinth);
   box('Front protective plinth',25.2,.64,.08,0,.32,12.36,plinth);
   for(const side of [-1,1])box('Side protective plinth',.08,.64,25.2,side*12.56,.32,0,plinth);

@@ -29,8 +29,10 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
   if(!arch)arch=(parent,x,z)=>{
     const side=x<0?-1:1,outer=[[-.49,.38],[-.49,.58],[-.45,.77],[-.36,.90],[-.22,.95],[0,.96],[.22,.95],[.36,.90],[.45,.77],[.49,.58],[.49,.38]],inner=[[-.40,.38],[-.39,.53],[-.35,.66],[-.28,.75],[-.18,.795],[0,.815],[.18,.795],[.28,.75],[.35,.66],[.39,.53],[.40,.38]];
     const curves=[outer,inner].map(points=>new THREE.CatmullRomCurve3(points.map(([depth,height])=>new THREE.Vector3(0,height,depth)))),positions=[],indices=[],segments=64;
-    for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890]])for(let i=0;i<=segments;i++){const p=curves[0].getPoint(i/segments).lerp(curves[1].getPoint(i/segments),t);positions.push(side*width,p.y,z+p.z);}
-    for(let row=0;row<5;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
+    // Turn the inner lip back to the wing. The sixth strip is a real moulded
+    // return surface rather than an open arch through which body shows.
+    for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890],[1,.752]])for(let i=0;i<=segments;i++){const p=curves[0].getPoint(i/segments).lerp(curves[1].getPoint(i/segments),t);positions.push(side*width,p.y,z+p.z);}
+    for(let row=0;row<6;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
     if(side<0)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();mesh(geometry,mats.trim,parent);
   };
@@ -105,9 +107,9 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
     });
     show(['winch'],()=>{box(accessoryRig,.45,.12,.19,0,.72,2.13,mats.trim);cylinder(accessoryRig,.055,.055,.27,0,.74,2.21,mats.metal,'x');box(accessoryRig,.07,.09,.03,0,.69,2.25,mats.accent);});
     show(['sliders'],()=>[-1,1].forEach(side=>{tube(accessoryRig,[[side*.91,.45,-.95],[side*.97,.45,-.85],[side*.97,.45,.85],[side*.91,.45,.95]],.035);box(accessoryRig,.18,.035,1.80,side*.86,.46,0,mats.darkmetal);}));
-    show(['flares'],()=>[-1,1].forEach(side=>[-1.295,1.295].forEach(z=>arch(accessoryRig,side===1?.82:-.97,z,true))));
+    show(['flares'],()=>{const axle=modelBody==='3door'?1.125:1.295;[-1,1].forEach(side=>[-axle,axle].forEach(z=>arch(accessoryRig,side===1?.82:-.97,z,true)));});
     show(['ladder'],()=>{const start=accessoryRig.children.length;[-.65,-.35].forEach(x=>{tube(accessoryRig,[[x,.60,-1.99],[x,1.66,-1.99],[x,1.75,-1.80],[x,1.73,-1.66]],.02);box(accessoryRig,.065,.02,.10,x,1.72,-1.68,mats.rubber);box(accessoryRig,.065,.04,.16,x,.64,-1.91,mats.trim);});for(let y=.68;y<1.7;y+=.19)box(accessoryRig,.32,.025,.035,-.5,y,-1.99,mats.darkmetal);for(const piece of accessoryRig.children.slice(start))piece.position.z+=.078;});
-    show(['led','lamp_bar20'],()=>{const y=hasRack?1.91:1.77,w=parts.has('lamp_bar20')?.51:1.02;box(accessoryRig,w,.065,.085,0,y,.68,mats.trim);for(let x=-w/2+.035;x<=w/2-.03;x+=.06){cylinder(accessoryRig,.023,.023,.008,x,y,.726,mats.reflector,'z',16);cylinder(accessoryRig,.009,.009,.01,x,y,.734,lampEmitters.bar,'z',12);}for(const x of [-w*.46,w*.46])box(accessoryRig,.014,.065,.06,x,y-.05,.68,mats.darkmetal);for(let z=.65;z<.70;z+=.012)box(accessoryRig,w-.03,.075,.004,0,y,z,mats.darkmetal);});
+    show(['led','lamp_bar20'],()=>{const y=hasRack?1.91:1.77,w=parts.has('lamp_bar20')?.51:1.02,z=modelBody==='3door'?.21:.38;box(accessoryRig,w,.065,.085,0,y,z,mats.trim);for(let x=-w/2+.035;x<=w/2-.03;x+=.06){cylinder(accessoryRig,.023,.023,.008,x,y,z+.046,mats.reflector,'z',16);cylinder(accessoryRig,.009,.009,.01,x,y,z+.054,lampEmitters.bar,'z',12);}for(const x of [-w*.46,w*.46]){box(accessoryRig,.025,hasRack?.14:.065,.10,x,hasRack?1.845:y-.05,z,mats.darkmetal);box(accessoryRig,.08,.015,.14,x,hasRack?1.78:1.725,z-.02,mats.rubber);}for(let dz=-.03;dz<.02;dz+=.012)box(accessoryRig,w-.03,.075,.004,0,y,z+dz,mats.darkmetal);});
     show(['pods','lamp_cube'],()=>[-1,1].forEach(side=>lampHousing(side*.78,1.22,.92,parts.has('pods')?.062:.043,'combo',parts.has('pods'))));
     show(['lamp_round_spot','lamp_round_flood'],()=>[-1,1].forEach(side=>lampHousing(side*.28,.87,2.08,.089,parts.has('lamp_round_flood')?'flood':'spot',true)));
     show(['lamp_fog','lamp_dual'],()=>[-1,1].forEach(side=>lampHousing(side*.62,.62,2.01,.043,parts.has('lamp_dual')?'dual':'fog')));

@@ -235,6 +235,11 @@ html[data-ui-theme] .spin360.expanded .preset-preview-banner :is(strong){color:v
 html[data-ui-theme] .spin360.expanded .preset-preview-banner small{color:var(--a-muted)!important}
 html[data-ui-theme] .spin360.expanded #applyPreviewSetup{background:var(--a-lime)!important;color:var(--a-on-lime)!important;border:0!important;border-radius:12px!important;font-weight:700}
 html[data-ui-theme] .spin360.expanded #viewerStatus{background:rgba(17,23,22,.78)!important;color:#f1f3ea!important}
+html[data-ui-theme] body[data-mode=garage] .spin360:not(.expanded) #viewerStatus{top:auto!important;bottom:104px!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;max-width:calc(100% - 32px)!important;text-align:center!important}
+@media(min-width:900px){html[data-ui-theme] body .spin360:not(.expanded) #viewerStatus{top:auto!important;bottom:104px!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;max-width:calc(100% - 32px)!important;text-align:center!important}}
+/* The expanded viewer has camera controls across the top. Keep its live
+   status below them rather than allowing it to sit underneath Exterior. */
+html[data-ui-theme] body .spin360.expanded #viewerStatus,html[data-ui-theme] body.rally-workshop[data-mode=garage] .spin360.expanded #viewerStatus{top:72px!important;bottom:auto!important;left:50%!important;transform:translateX(-50%)!important;max-width:calc(100% - 32px)!important;text-align:center!important;z-index:5}
 
 /* The category rail belongs to the Garage only. */
 html[data-ui-theme] body:not([data-mode=garage]) .workbench>.garage-categories{display:none!important}

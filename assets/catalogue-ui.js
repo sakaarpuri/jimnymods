@@ -26,7 +26,8 @@
   return {m,category,where:country?(country===window.jimnyRegion?'local':'overseas'):null,try:canTry(m),listed:body==='listed',incompatible:body==='incompatible',stock:m.stockAtCheck==='available',types,
    text:[m.id,m.name,m.desc,category,m.region,m.seller,m.usd,m.hot?'popular':'',m.realIndia?'direct india product':'',...(m.in||[]).flat(),...(m.intl||[]).flat()].join(' ').toLowerCase()};
  }
- const activeEntries=()=>MODS.filter(m=>!m.designOnly&&!archived[m.id]);
+ // Interior customisation returns in a later launch phase; preserve its data.
+ const activeEntries=()=>MODS.filter(m=>!m.designOnly&&!archived[m.id]&&work.partCategory(m)!=='Interior');
 
  function state_(terms,cat){
   return {
@@ -141,7 +142,7 @@
 
   // Header and status line.
   $('partsContextValue').textContent=`${bodyLabel()} · ${regionName()} first`;
-  $('catalogStatus').innerHTML=`<b>${sorted.length} result${sorted.length===1?'':'s'}</b>${F.sort==='best'?` · ${esc(regionName())} sellers first`:''}`;
+  $('catalogStatus').innerHTML=`<b>${sorted.length} result${sorted.length===1?'':'s'}</b>`;
   $('partSearch').placeholder=matchMedia('(max-width:700px)').matches?'Snorkel, roof rack, ARB…':`Search ${base.length} parts and products: snorkel, roof rack, ARB, PRAD…`;
   const more=$('loadMoreParts');more.hidden=shown.length>=sorted.length;more.textContent=`Show ${Math.min(PAGE,sorted.length-shown.length)} more of ${sorted.length-shown.length}`;
   const compare=$('comparePanel');if(compare&&typeof renderCompare==='function')renderCompare();
