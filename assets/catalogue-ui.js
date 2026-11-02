@@ -14,7 +14,7 @@
  const bodyLabels=list=>list.map(b=>b==='3door'?'3-door':'5-door').join(' and ');
 
  function canTry(m){return catalogueBodyStatus(m,bodyStyle)!=='incompatible'&&(m.market?cataloguePreviewKind(m,bodyStyle)!=='research-only':garageCanPreview(m.id));}
- function previewImage(m){const grilles={autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script',autostylenn_s_grille:'smesh'};if(grilles[m.visual||m.id])return studioPreviewPath('design-grille-'+grilles[m.visual||m.id]);const v=m.visual||m.id,specific=window.getJimnyStudioPreviews?.().some(p=>p.id===m.id);return m.lightProfile?garagePartImage(m.id):specific||!m.market?garagePartImage(m.id):garagePartImage(v);}
+ function previewImage(m){const grilles={autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script-loop',autostylenn_s_grille:'smesh'};if(grilles[m.visual||m.id])return studioPreviewPath('design-grille-'+grilles[m.visual||m.id]);const v=m.visual||m.id,specific=window.getJimnyStudioPreviews?.().some(p=>p.id===m.id);return m.lightProfile?garagePartImage(m.id):specific||!m.market?garagePartImage(m.id):garagePartImage(v);}
 
  // The Parts pills follow the old "popular" shortcuts that other screens still set.
  function categoryKey(){const v=activePartFilter;if(!v||['all','popular','products','exterior','international','verified'].includes(v))return 'all';if(v==='interior')return 'Interior';if(v==='lighting')return 'Lighting';return v;}
@@ -26,7 +26,8 @@
   return {m,category,where:country?(country===window.jimnyRegion?'local':'overseas'):null,try:canTry(m),listed:body==='listed',incompatible:body==='incompatible',stock:m.stockAtCheck==='available',types,
    text:[m.id,m.name,m.desc,category,m.region,m.seller,m.usd,m.hot?'popular':'',m.realIndia?'direct india product':'',...(m.in||[]).flat(),...(m.intl||[]).flat()].join(' ').toLowerCase()};
  }
- const activeEntries=()=>MODS.filter(m=>!m.designOnly&&!archived[m.id]);
+ // Interior customisation returns in a later launch phase; preserve its data.
+ const activeEntries=()=>MODS.filter(m=>!m.designOnly&&!archived[m.id]&&work.partCategory(m)!=='Interior');
 
  function state_(terms,cat){
   return {
@@ -141,7 +142,7 @@
 
   // Header and status line.
   $('partsContextValue').textContent=`${bodyLabel()} · ${regionName()} first`;
-  $('catalogStatus').innerHTML=`<b>${sorted.length} result${sorted.length===1?'':'s'}</b>${F.sort==='best'?` · ${esc(regionName())} sellers first`:''}`;
+  $('catalogStatus').innerHTML=`<b>${sorted.length} result${sorted.length===1?'':'s'}</b>`;
   $('partSearch').placeholder=matchMedia('(max-width:700px)').matches?'Snorkel, roof rack, ARB…':`Search ${base.length} parts and products: snorkel, roof rack, ARB, PRAD…`;
   const more=$('loadMoreParts');more.hidden=shown.length>=sorted.length;more.textContent=`Show ${Math.min(PAGE,sorted.length-shown.length)} more of ${sorted.length-shown.length}`;
   const compare=$('comparePanel');if(compare&&typeof renderCompare==='function')renderCompare();

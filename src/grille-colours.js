@@ -28,7 +28,7 @@ export function applyGrilleColours(root,design={},bodyColour='#d9b744',body='5do
   const choice=validGrilleColour(design[state.badge?'badgeColour':'grilleColour']);
   // “Original finish” is an edit too. Blackout must not silently undo it.
   material.userData.explicitSurfaceColour=Object.hasOwn(design,state.badge?'badgeColour':'grilleColour');
-  if(choice!=='original'){material.color.set(choice==='body'?bodyColour:choice);material.vertexColors=false;material.metalness=state.badge?0:.12;material.roughness=state.badge?.72:.34;}
+  if(choice!=='original'){const metallicBadge=state.badge&&['#d4aa53','#c7cdd1'].includes(choice.toLowerCase());material.color.set(choice==='body'?bodyColour:choice);material.vertexColors=false;material.metalness=metallicBadge?.85:state.badge?0:.12;material.roughness=metallicBadge?.28:state.badge?.72:.34;}
   else if(design.finish==='blackout'&&['BrightChrome','GrilleLettering'].includes(state.original.name)){material.color.set('#151b1e');material.vertexColors=false;material.metalness=.05;material.roughness=.78;}
   material.needsUpdate=true;
  });

@@ -7,10 +7,8 @@
   const NAV=[
     {label:'Garage',primaryMode:'garage',hash:'garage'},
     {label:'Parts',mode:'parts',hash:'parts-title'},
-    {label:'Fitters & sellers',mode:'fitters',hash:'shops-title'},
     {label:'Clubs',mode:'clubs',hash:'clubs-title'},
     {label:'Trip planner',href:'trip-planner.html',page:'trip',tripPlanner:true},
-    {label:'Play 4×4 game',href:'game.html',page:'drive'},
     {label:'Owner tools',mode:'tools',hash:'owner-tools'}
   ];
   // Written by index.html whenever the build, region or body changes.
@@ -54,7 +52,6 @@
 <details class="site-setup"><summary aria-label="Your setup: region, Jimny and style"><span class="site-setup-context">${esc(contextLabel(context))}</span>${icons.chevron}</summary>
 <div class="site-setup-panel"><div class="site-setup-heading"><strong>Your setup</strong><button type="button" data-close-setup>Close</button></div><div class="site-setup-fields">${fields}</div><div class="site-setup-theme"></div><p class="site-setup-note">Body and region shape the previews and sources. Style changes the look of every page.</p><a class="site-setup-welcome" href="${page==='garage'?'':'index.html'}#welcome">What is jimnygami?</a></div></details>
 </div>
-${page==='drive'?'':`<a class="site-game-mobile" href="game.html" aria-label="Play the Jimny 4×4 game">${gameMark}<span>Play 4×4</span></a>`}
 ${build}
 <button type="button" class="site-menu-toggle" aria-expanded="false" aria-controls="siteMenu" aria-label="Menu">${icons.menu}</button>
 </div>`;

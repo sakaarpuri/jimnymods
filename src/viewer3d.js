@@ -7,6 +7,8 @@ import {separateCabinControls,createCabinControls} from './trail/cabin.js';
 import {applyWheelFinish,applyWheelColour} from './wheel-finishes.js';
 import {createSurfaceStyler,markSurfaceMaterials,protectMirrorSurfaces} from './surface-finishes.js';
 import {applyGrilleColours} from './grille-colours.js';
+import {configureScriptGrille} from './grille-scripts.js';
+import {separateSpareEmblem,updateSpareEmblem} from './spare-badge.js';
 import {fitSteeringBadge} from './steering-badge.js';
 import {INTERIOR_VIEWS,CUTAWAY_VIEWS,insidePose} from './garage-cameras.js';
 import {createNameDecals} from './trail/player.js';
@@ -44,8 +46,8 @@ import { slimlineRack, fittedVisors, mouldedSpareCover, extractFactoryBadge } fr
 // Original, dimensionally approximate Jimny planning geometry. No third-party vehicle asset.
 const mount=document.getElementById('viewer3d');
 const status=document.getElementById('viewerStatus');
-// Orbit stays well inside the smallest projected scenery floor (the garage).
-const CAMERA_RADIUS=8.1;
+// Allow a wider exterior view without changing the normal starting camera.
+const CAMERA_RADIUS=9.72;
 const canvasLabel='Interactive Jimny modification preview. Click a part to edit; drag to orbit, scroll or pinch to zoom.';
 let renderer;
 try {renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true,powerPreference:'low-power'});}
@@ -77,6 +79,28 @@ if(renderer){
   const workshopLights=WORKSHOP_LIGHT_SOURCES.map(({role,width,height,position,target,intensity,colour})=>{
     const light=new THREE.RectAreaLight(colour,intensity,width,height);light.name='Workshop '+role;light.position.set(...position);light.lookAt(...target);scene.add(light);return light;
   });
+  // Neutral studio with its own softboxes and matching environment reflections.
+  const kimiLights=[];
+  let kimiEnvironment=null;
+  const kimiFloor=new THREE.MeshStandardMaterial({color:'#8a9093',roughness:.82,metalness:0});
+  {
+    const reflectionScene=new THREE.Scene();reflectionScene.background=new THREE.Color('#70777c');
+    for(const [position,width,height,intensity] of [[[3.5,5,4.5],5,5,4.0],[[-4,3,1],4,4,2.5],[[-1,4,-3],3,3,2.4]]){
+      const light=new THREE.RectAreaLight('#ffffff',intensity,width,height);light.position.set(...position);light.lookAt(0,1,0);light.visible=false;scene.add(light);kimiLights.push(light);
+      const softbox=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({color:new THREE.Color().setRGB(intensity,intensity,intensity)}));
+      softbox.position.copy(light.position);softbox.lookAt(0,1,0);reflectionScene.add(softbox);
+    }
+    const generator=new THREE.PMREMGenerator(renderer);kimiEnvironment=generator.fromScene(reflectionScene,.10,.1,60);generator.dispose();
+    reflectionScene.traverse(obj=>{if(obj.isMesh){obj.geometry.dispose();obj.material.dispose();}});
+  }
+  // A continuous curved floor and wall avoids a visible horizon seam while
+  // remaining seamless as the camera orbits the vehicle.
+  const sweep=[new THREE.Vector2(0,-.003),new THREE.Vector2(10,-.003)];
+  for(let i=1;i<=32;i++){const a=i*Math.PI/64;sweep.push(new THREE.Vector2(10+7*Math.sin(a),-.003+7*(1-Math.cos(a))));}
+  sweep.push(new THREE.Vector2(17,32));
+  kimiFloor.side=THREE.DoubleSide;
+  const grayCyclorama=new THREE.Mesh(new THREE.LatheGeometry(sweep,128),kimiFloor);
+  grayCyclorama.receiveShadow=true;grayCyclorama.visible=false;scene.add(grayCyclorama);
   // Post-processing: multisampled half-float render, ambient occlusion so panel gaps,
   // arches and the underside read as depth, then tone mapping and sRGB output.
   const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,samples:4}));
@@ -154,12 +178,14 @@ if(renderer){
   let workshopEnvironment=null;
   const workshop=createWorkshopStage({onLoad:()=>{refreshWorkshopEnvironment();dirty=true;}});scene.add(workshop.root);
   function refreshWorkshopEnvironment(){
-    const hidden=[car,contactShadow.plane,...[...sceneryCache.values()].map(entry=>entry.ground).filter(Boolean)].filter(obj=>obj.visible);
+    const hidden=[car,contactShadow.plane,grayCyclorama,...kimiLights,...[...sceneryCache.values()].map(entry=>entry.ground).filter(Boolean)].filter(obj=>obj.visible);
     const state={visible:workshop.root.visible,lights:workshopLights.map(l=>l.visible),floor:floor.material,background:scene.background,environment:scene.environment};
     hidden.forEach(obj=>{obj.visible=false;});workshop.root.visible=true;workshopLights.forEach(l=>{l.visible=true;});floor.material=workshop.floorMaterial;
     scene.background=new THREE.Color('#20272b');scene.environment=fallbackEnvironment.texture;
     const generator=new THREE.PMREMGenerator(renderer);
-    const next=generator.fromScene(scene,0,.1,60,{position:new THREE.Vector3(0,1.2,0)});generator.dispose();
+    // A small environment blur softens workshop reflections without replacing
+    // the visible workshop with an unrelated studio photograph.
+    const next=generator.fromScene(scene,.08,.1,60,{position:new THREE.Vector3(0,1.2,0)});generator.dispose();
     workshopEnvironment?.dispose();workshopEnvironment=next;
     hidden.forEach(obj=>{obj.visible=true;});workshop.root.visible=state.visible;workshopLights.forEach((l,i)=>{l.visible=state.lights[i];});floor.material=state.floor;
     scene.background=state.background;scene.environment=state.environment;
@@ -190,7 +216,7 @@ if(renderer){
   finishMaterial.bumpMap=grain;finishMaterial.bumpScale=.00035;
   mats.rubber.name='TyreRubber';mats.rubber.bumpMap=grain;mats.rubber.bumpScale=.0002;mats.rubber.color.set('#171919');mats.rubber.roughness=.9;
   // Smooth tinted glass: a full-strength reflection over a partly see-through cabin.
-  mats.glass=new THREE.MeshPhysicalMaterial({color:'#101b1d',roughness:.02,metalness:0,ior:1.52,specularIntensity:1,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});
+  mats.glass=new THREE.MeshPhysicalMaterial({color:'#101b1d',roughness:.06,metalness:0,ior:1.52,specularIntensity:1,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});
   mats.lens=new THREE.MeshPhysicalMaterial({color:'#e0e7e7',metalness:.05,roughness:.08,clearcoat:1,transparent:true,opacity:.40,depthWrite:false});
   mats.chrome=new THREE.MeshStandardMaterial({color:'#e8eeed',metalness:1,roughness:.17});
   mats.reflector=new THREE.MeshStandardMaterial({color:'#d4d9d7',metalness:1,roughness:.24});
@@ -205,7 +231,7 @@ if(renderer){
   let visiblePartIds=[],effectiveDesign={finish:'oem',decal:'none',grille:'oem'};
   let selectedLightProfiles=[];
   let previewRestore=null;
-  let scenery='studio',sceneryLoading=false,sceneryFailed=false,sceneryRequest=0;
+  let scenery='gray',sceneryLoading=false,sceneryFailed=false,sceneryRequest=0;
   const sceneryCache=new Map();
   function updateSceneryUI(){
     document.querySelectorAll('[data-scenery-select]').forEach(select=>{select.value=scenery;});
@@ -217,34 +243,36 @@ if(renderer){
     const config=SCENERIES[scenery],loaded=sceneryCache.get(scenery);
     // Outdoor: photographed backdrop and light with a real ground. Garage (also the
     // fallback while a scene loads or after it fails): the modelled workshop.
-    const outdoor=!night&&!!config.file&&!!loaded?.ground&&!sceneryLoading&&!sceneryFailed,garage=!night&&!outdoor;
+    const outdoor=!night&&!!config.file&&!!loaded?.ground&&!sceneryLoading&&!sceneryFailed,kimi=!night&&!outdoor&&scenery==='gray',garage=!night&&!outdoor&&!kimi;
     for(const [id,entry] of sceneryCache)if(entry.ground)entry.ground.visible=outdoor&&id===scenery;
     workshop.root.visible=garage;workshopLights.forEach(light=>{light.visible=garage;});
+    kimiLights.forEach(light=>{light.visible=kimi;});
+    grayCyclorama.visible=kimi;scene.fog=null;
     if(outdoor){
       // Drawn at infinity: sky, mountains and buildings keep their place as the car turns.
       scene.background=loaded.texture;scene.backgroundRotation.set(0,config.rotation,0);
       scene.environment=loaded.environment.texture;scene.environmentRotation.set(0,config.rotation,0);
     }else{
-      scene.background=backdropColour.set(night?'#10191f':'#20272b');
-      scene.environment=garage&&workshopEnvironment?workshopEnvironment.texture:fallbackEnvironment.texture;scene.environmentRotation.set(0,0,0);
+      scene.background=backdropColour.set(night?'#10191f':kimi?'#70777c':'#20272b');
+      scene.environment=kimi&&kimiEnvironment?kimiEnvironment.texture:garage&&workshopEnvironment?workshopEnvironment.texture:fallbackEnvironment.texture;scene.environmentRotation.set(0,0,0);
     }
     // Exposure is the photograph's own outdoors: backdrop and car share one scale.
     renderer.toneMappingExposure=outdoor?config.exposure:garage?1.10:.95;
-    floor.visible=!outdoor;floor.material=night?nightFloor:workshop.floorMaterial;road.visible=false;
+    floor.visible=!outdoor&&!kimi;floor.material=night?nightFloor:workshop.floorMaterial;road.visible=false;
     hemi.groundColor.set(garage?'#969694':'#747572');
     // Let the daylight opening shape the vehicle; the softer hemisphere is
     // only fill, so opposite panels no longer receive equally flat light.
-    hemi.intensity=night?.12:outdoor?0:workshopEnvironment?.84:1.35;
+    hemi.intensity=night?.12:outdoor?0:kimi?.65:workshopEnvironment?.84:1.35;
     // Outdoors: the sun's measured direction, turned with the panorama. Garage: the bay opening.
     if(outdoor&&config.sun)sunDirection.fromArray(config.sun.direction);else if(outdoor)sunDirection.fromArray(config.key);else sunDirection.fromArray(WORKSHOP_LIGHT_SOURCES[0].position).normalize();
     sunDirection.applyAxisAngle(THREE.Object3D.DEFAULT_UP,outdoor?config.rotation:0);
     sun.position.copy(sunDirection).multiplyScalar(9);
     if(outdoor&&config.sun){const [r,g,b]=config.sun.irradiance,peak=Math.max(r,g,b);sun.color.setRGB(r/peak,g/peak,b/peak,THREE.LinearSRGBColorSpace);sun.intensity=peak*config.sunScale;}
     // Sunless outdoor scenes: a faint overhead light only places the soft shadow.
-    else {sun.color.set('#fffdf8');sun.intensity=night?.06:outdoor?.35:1.35;}
+    else {sun.color.set('#fffdf8');sun.intensity=night?.06:outdoor?.35:kimi?.85:1.35;}
     // A real sun casts a firmer edge; the garage opening and shade only a soft one.
     sun.shadow.radius=outdoor&&config.sun?5:16;sun.shadow.normalBias=garage?.018:.004;sun.shadow.bias=garage?-.0003:-.00015;
-    scene.environmentIntensity=night?.12:outdoor?1:workshopEnvironment?.8:.7;
+    scene.environmentIntensity=night?.12:outdoor?1:kimi?1:workshopEnvironment?.8:.7;
     updateSceneryUI();dirty=true;
   }
   new MutationObserver(applyEnvironment).observe(document.documentElement,{attributes:true,attributeFilter:['data-ui-theme']});
@@ -310,11 +338,11 @@ if(renderer){
       const inner=[[-.40,.38],[-.39,.53],[-.35,.66],[-.28,.75],[-.18,.795],[0,.815],[.18,.795],[.28,.75],[.35,.66],[.39,.53],[.40,.38]];
       const positions=[],indices=[],segments=64;
       const curves=[outer,inner].map(points=>new THREE.CatmullRomCurve3(points.map(([depth,height])=>new THREE.Vector3(0,height,depth))));
-      for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890]])for(let i=0;i<=segments;i++){
+      for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890],[1,.752]])for(let i=0;i<=segments;i++){
         const point=curves[0].getPoint(i/segments).lerp(curves[1].getPoint(i/segments),t);
         positions.push(side*width,point.y,z+point.z);
       }
-      for(let row=0;row<5;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
+      for(let row=0;row<6;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
       if(side<0)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
       const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
       mesh(geometry,mats.trim,parent);return;
@@ -437,7 +465,7 @@ if(renderer){
     for(const points of polygons){const shape=new THREE.Shape(points.map(([a,b])=>new THREE.Vector2(a*size,b*size)));mesh(new THREE.ExtrudeGeometry(shape,{depth:.008,bevelEnabled:true,bevelSegments:1,steps:1,bevelSize:.001,bevelThickness:.001}),mats.chrome,parent,x,y,z);}
   }
   function buildGrille(parent,id){
-    if(detailed){Object.entries(detailed.grilles).forEach(([key,group])=>group.visible=key===(id==='smesh'?'mesh':id));if(id==='smesh'&&detailed.sBadgeGeometry){const badge=mesh(detailed.sBadgeGeometry.clone(),mats.chrome,parent);badge.userData.grilleBadge=true;applyGrilleColours(badge,effectiveDesign,colour,modelBody);}return;}
+    if(detailed){const key=id==='smesh'?'mesh':['script-loop','script-modern'].includes(id)?'script':id;Object.entries(detailed.grilles).forEach(([name,group])=>group.visible=name===key);if(key==='script'){configureScriptGrille(detailed.grilles.script,id);applyGrilleColours(detailed.grilles.script,effectiveDesign,colour,modelBody);}if(id==='smesh'&&detailed.sBadgeGeometry){const badge=mesh(detailed.sBadgeGeometry.clone(),mats.chrome,parent);badge.userData.grilleBadge=true;applyGrilleColours(badge,effectiveDesign,colour,modelBody);}return;}
     box(parent,1.49,.286,.038,0,.977,1.855,mats.trim);
     if(id==='mesh'||id==='delete'||id==='rhino'){
       for(let y=.866;y<1.09;y+=.028)box(parent,.88,.009,.012,0,y,1.882,mats.darkmetal);
@@ -484,21 +512,21 @@ if(renderer){
     const resolved=resolvePreviewParts(stock?[]:current.parts||[],window.JIMNY_MARKET_PRODUCTS||[]);
     // SWB launch scope: body finishes, original vinyl, authored grilles and
     // tyres. Do not display a long-wheelbase rack/interior as a JB74 product.
-    const shortBodyVisuals=new Set(['tires','snorkel','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim']);
+    const shortBodyVisuals=new Set(['tires','flares','snorkel','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim']);
     for(const product of window.JIMNY_MARKET_PRODUCTS||[])if(product.visual&&product.bodyStyles?.includes('3door'))shortBodyVisuals.add(product.visual);
     const parts=new Set(normalizeExteriorParts(modelBody==='3door'?resolved.filter(id=>shortBodyVisuals.has(id)||EXTERIOR_PARTS[id]?.bodyStyles.includes('3door')):resolved,modelBody));const design=stock?{finish:'oem',decal:'none',grille:'oem'}:{...current.design};
     design.tyreType=stock?'highway':resolveTyreType(design,parts);
     if(design.tyreType==='highway')parts.delete('tires');else parts.add('tires');
     if(detailed){detailed.headlamps.visible=!parts.has('headlamps');detailed.bumper.visible=!['bull','autostylenn_bumper_v1'].some(id=>parts.has(id));Object.values(detailed.grilles).forEach(group=>applyGrilleColours(group,design,colour,modelBody));}
     // SKU grille products and the design selection control the same physical grille.
-    if(!stock){if(parts.has('autostylenn_big_suzuki_grille'))design.grille='block';else if(parts.has('autostylenn_cursive_grille'))design.grille='script';else if(parts.has('autostylenn_s_grille'))design.grille='smesh';}
+    if(!stock){if(parts.has('autostylenn_big_suzuki_grille'))design.grille='block';else if(parts.has('autostylenn_cursive_grille'))design.grille='script-loop';else if(parts.has('autostylenn_s_grille'))design.grille='smesh';}
     effectiveDesign={...design};
     mats.upholstery.color.set(({tan:'#a38b69',saddle:'#854d31',olive:'#59624d',stone:'#b3b1a5',black:'#303332'})[design.cabin]||'#a38b69');
     const lacquer=paintFinish(design.finish);finishMaterial.color.set(colour);finishMaterial.roughness=lacquer.roughness;
     // Solid colours have a dielectric lacquer; silver retains a metallic base coat.
     finishMaterial.metalness=['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0;
     finishMaterial.clearcoat=lacquer.clearcoat;finishMaterial.clearcoatRoughness=lacquer.clearcoatRoughness;finishMaterial.bumpScale=design.finish==='matte'?.00055:.00008;
-    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');}
+    roofMaterial.copy(finishMaterial);if(design.finish==='twotone'){roofMaterial.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');roofMaterial.roughness=Math.max(roofMaterial.roughness,.52);roofMaterial.clearcoat=Math.min(roofMaterial.clearcoat,.35);roofMaterial.clearcoatRoughness=Math.max(roofMaterial.clearcoatRoughness,.35);}
     [finishMaterial,roofMaterial].forEach(mat=>{const cutaway=cutawayViews.has(cameraView);if(mat.transparent!==cutaway)mat.needsUpdate=true;mat.transparent=cutaway;mat.opacity=cutaway?.12:1;mat.depthWrite=!cutaway;});mats.glass.opacity=cutawayViews.has(cameraView)||isInside()?.12:.6;mats.glass.envMapIntensity=isInside()?.12:1;
     // Keep the overhead net/rails below 1.63 m, cut the authored headliner
     // (bottom 1.6325 m) as well as the exterior roof, not just the roof shell.
@@ -511,8 +539,10 @@ if(renderer){
     garageCabinControls?.setVisible(isInside()||cutawayViews.has(cameraView));
     cabinFill.intensity=isInside()?.85:['cargo','doors-cutaway','touring'].includes(cameraView)?.95:cutawayViews.has(cameraView)?.35:0;
     clear(baseRig);buildBase();const r=buildWheels(parts);bodyRig.position.y=(parts.has('lift')?.055:0)+(r-(detailed?.3465:.335));
+    const spare=detailRig.getObjectByName('SpareWheel');if(detailed)separateSpareEmblem(spare,modelBody);
     if(detailed){for(const group of [detailed.stockWheels,detailed.atWheels,detailRig.getObjectByName('SpareWheel')]){if(design.partColours?.wheels)applyWheelColour(group,design.partColours.wheels);else applyWheelFinish(group,design.wheelFinish);// The steel wheel part and a spoke design both replace the rim face: hand over in order.
       const selectedWheel=WHEEL_PARTS.find(p=>parts.has(p.visual))?.visual||(modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel'));if(selectedWheel){applyWheelDesign(group,{wheelDesign:'factory'});applyCatalogueWheel(group,selectedWheel,design.wheelFinish,design.partColours?.wheels);}else{applyCatalogueWheel(group,false);applyWheelDesign(group,design);}applyTyreType(group,design.tyreType);}}
+    if(detailed)updateSpareEmblem(spare,modelBody,design);
     applyCabinUpgrades(detailRig.getObjectByName('Cabin'),{body:modelBody,seats:parts.has('seats'),fabric:design.seatFabric,colour:'#'+mats.upholstery.color.getHexString(),touring:parts.has('touring'),camp:design.touringMode==='camp'});
     buildAccessories(parts,design);consolidateAccessories();
     if(cutawayViews.has(cameraView)){
@@ -614,7 +644,7 @@ if(renderer){
     if(night)status.textContent='Night appearance · lens glow only, no light-throw simulation';
     document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('active',b.dataset.camera===name));dirty=true;
   }
-  function fitViewport(aspect){camera.aspect=aspect;const lens=isInside()?68:scenery==='studio'?28:42;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(lens/2))*Math.max(1,1.25/aspect)));if(isInside())camera.fov=Math.min(92,camera.fov);camera.updateProjectionMatrix();}
+  function fitViewport(aspect){camera.aspect=aspect;const lens=isInside()?68:(scenery==='studio'||scenery==='gray')?28:42;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(lens/2))*Math.max(1,1.25/aspect)));if(isInside())camera.fov=Math.min(92,camera.fov);camera.updateProjectionMatrix();}
   const observer=new ResizeObserver(()=>{const {width,height}=mount.getBoundingClientRect();if(!width||!height)return;setRenderSize(width,height);fitViewport(width/height);controls.target.copy(fitCameraToVehicle());updateCameraControls();dirty=true;});observer.observe(mount);
   new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)dirty=true;},{rootMargin:'100px'}).observe(mount);
   controls.addEventListener('change',()=>{dirty=true;});
@@ -732,11 +762,19 @@ if(renderer){
   window.jimny3D={ready:true,snapshot,getState:()=>({modelVersion:detailed?'blender-lwb-3':'procedural-fallback',detailedReady:!!detailed,assetError,studioEnvironmentReady:!!workshopEnvironment&&workshop.ready,assemblies:detailed?{grilles:Object.entries(detailed.grilles).filter(([,group])=>group.visible).map(([id])=>id),wheels:detailed.atWheels.visible?'all-terrain':'stock',stockBumper:detailed.bumper.visible}:null,parts:[...visiblePartIds],colour,stock,night,lighting:{...lightingPrefs,profiles:[...selectedLightProfiles],activeBeams:[...beams,...auxiliaryBeams].filter(l=>l.intensity>0).length},view:cameraView,design:{...effectiveDesign},touchMode:mount.dataset.touchMode,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshCount:car.children.reduce((sum,g)=>{let count=0;g.traverse(o=>{if(o.isMesh)count++;});return sum+count;},0)}),view};
   const previousGetState=window.jimny3D.getState;
   Object.assign(window.jimny3D,{beginPreview,endPreview,renderPreset});
-  window.jimny3D.getState=()=>({...previousGetState(),quality:quality.id,body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-5':'blender-lwb-r38'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:scenery==='studio'?workshop.root.visible:!!sceneryCache.get(scenery)?.ground?.visible,workshopReady:workshop.ready,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
+  window.jimny3D.getState=()=>({...previousGetState(),quality:quality.id,body:modelBody,modelLoading,surfaceStyles:surfaceStyler.snapshot(),modelVersion:detailed?(modelBody==='3door'?'blender-swb-r43':'blender-lwb-r43'):'procedural-fallback',previewing:!!previewRestore,scenery,sceneryLoading,sceneryFailed,sceneryVisible:scenery==='gray'?grayCyclorama.visible:scenery==='studio'?workshop.root.visible:!!sceneryCache.get(scenery)?.ground?.visible,kimiStudioPreview:scenery==='gray',workshopReady:workshop.ready,camera:{position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov,maxDistance:controls.maxDistance,mode:isInside()?'enclosed-look-around':cutawayViews.has(cameraView)?'cutaway':'exterior-orbit',rotate:true,pan:isInside(),zoom:true}});
   sync(window.getJimnyBuildState?.()||current);
-  let savedScenery='studio';try{savedScenery=localStorage.getItem('thatsuvmod-scenery');}catch{/* Private mode fallback. */}
+  let savedScenery='gray';try{
+    savedScenery=localStorage.getItem('thatsuvmod-scenery')||'gray';
+    // The former default was saved as "studio" for everyone. Migrate it once;
+    // subsequently an owner's explicit Workshop choice remains remembered.
+    if(!localStorage.getItem('jimnygami-gray-default-v1')){
+      if(savedScenery==='studio')savedScenery='gray';
+      localStorage.setItem('jimnygami-gray-default-v1','1');
+    }
+  }catch{/* Private mode fallback. */}
   refreshWorkshopEnvironment();
-  setScenery(savedScenery);
+  setScenery(new URLSearchParams(location.search).get('kimiStudio')==='1'?'gray':savedScenery);
   mount.classList.add('ready');
   async function loadModel(body='5door'){
     const request=++modelRequest;modelLoading=true;assetError=false;
@@ -782,8 +820,8 @@ if(renderer){
     Object.values(detailed.grilles).forEach(group=>group.traverse(obj=>{if(obj.isMesh&&['BrightChrome','GrilleLettering'].includes(obj.material.name))obj.userData.brightGrilleMaterial=obj.material;}));
     mount.dataset.model='blender';mount.dataset.body=body;car.visible=true;modelLoading=false;mount.setAttribute('aria-busy','false');
     const lampMount=frontLampMount(body);
-    beams.forEach(light=>{light.position.z=(body==='3door'?1.79:1.89)-lampMount.setback;light.position.y=lampMount.y;});
-    headlightGlow.children.forEach(light=>{light.position.z=(body==='3door'?1.77:1.89)-lampMount.setback;light.position.y=lampMount.y;});
+    beams.forEach(light=>{light.position.z=1.89-lampMount.setback;light.position.y=lampMount.y;});
+    headlightGlow.children.forEach(light=>{light.position.z=1.89-lampMount.setback;light.position.y=lampMount.y;});
     sync();if(isInside())resetInsideCamera();else {controls.target.copy(fitCameraToVehicle());updateCameraControls();}
     window.dispatchEvent(new CustomEvent('jimny-model-ready',{detail:{body}}));
     }catch(error){if(request!==modelRequest)return;modelLoading=false;assetError=true;mount.setAttribute('aria-busy','false');car.visible=false;dirty=true;status.textContent='This model could not load. Switch model or reload to retry; your build is saved.';}

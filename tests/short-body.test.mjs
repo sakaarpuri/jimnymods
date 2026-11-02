@@ -8,8 +8,9 @@ import {Box3,Vector3} from 'three';
 const bytes=readFileSync(new URL('../assets/models/jimny-swb-blender.glb',import.meta.url));
 const model=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
 test('JB74 is a separate, mobile-budget asset with a 2.250 m wheelbase',async()=>{
- // Match the documented 3.30 MB rebuilt cabin/optics budget shared by both bodies.
- const {scene}=await model;scene.updateMatrixWorld(true);assert.ok(bytes.length<3_300_000);
+ // R43 retains high-precision front geometry; limit both disk and transfer size.
+ const {scene}=await model;scene.updateMatrixWorld(true);assert.ok(bytes.length<4_700_000);
+ assert.ok(readFileSync(new URL('../assets/models/jimny-swb-blender.glb.gz',import.meta.url)).length<2_400_000);
  assert.equal(scene.getObjectByName('BodyShell').userData.wheelbase_m,2.25);
  assert.equal(scene.getObjectByName('BodyShell').userData.body_style,'3-door JB74 wide-body');
  const front=new Box3(),rear=new Box3(),v=new Vector3();scene.getObjectByName('StockWheels').traverse(o=>{if(!o.isMesh)return;const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);(v.z>0?front:rear).expandByPoint(v);}});
@@ -19,16 +20,15 @@ test('JB74 is a separate, mobile-budget asset with a 2.250 m wheelbase',async()=
 test('SWB retains factory assembly dimensions and correct front/rear translation',async()=>{
  const {scene}=await model;scene.updateMatrixWorld(true);
  const lamps=new Box3().setFromObject(scene.getObjectByName('StockHeadlamps'),true);
- assert.ok(Math.abs(lamps.getSize(new Vector3()).y-.221)<.008);
+ assert.ok(Math.abs(lamps.getSize(new Vector3()).y-.199)<.008);
  const lwbBytes=readFileSync(new URL('../assets/models/jimny-lwb-blender.glb',import.meta.url));
  const lwb=(await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(lwbBytes.buffer.slice(lwbBytes.byteOffset,lwbBytes.byteOffset+lwbBytes.byteLength),'')).scene;
  lwb.updateMatrixWorld(true);const lwbLamps=new Box3().setFromObject(lwb.getObjectByName('StockHeadlamps'),true);
- // Stability of independent preview models, not cross-body dimensional accuracy.
- // Their current ~102.5 mm difference versus the old 170 mm assumption is unverified.
+ // R43 shares the front assembly while retaining the short-body cowl and wheelbase.
  const shortLampZ=lamps.getCenter(new Vector3()).z,longLampZ=lwbLamps.getCenter(new Vector3()).z;
- assert.ok(Math.abs(shortLampZ-1.6199)<.006,'Three-door lamp datum drifted');
+ assert.ok(Math.abs(shortLampZ-1.6566)<.006,'Three-door lamp datum drifted');
  assert.ok(Math.abs(longLampZ-1.7224)<.006,'Five-door lamp datum drifted');
- assert.ok(longLampZ-shortLampZ>.095&&longLampZ-shortLampZ<.110,'Cross-body preview datum drifted beyond its documented bounds');
+ assert.ok(Math.abs(longLampZ-shortLampZ-.06577)<.006,'Cross-body preview datum drifted beyond its documented bounds');
  const roof=new Box3().setFromObject(scene.getObjectByName('RoofShell'),true);
  assert.ok(Math.abs(roof.getSize(new Vector3()).z-1.781)<.006,'Roof retains the upper rear taper without the protruding front gutter tip');
 });

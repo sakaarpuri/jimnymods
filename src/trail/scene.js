@@ -28,6 +28,8 @@ import {applyWheelFinish,applyWheelColour} from '../wheel-finishes.js';
 import {applyWheelDesign,disposeWheelDesigns} from '../wheel-designs.js';
 import {createSurfaceStyler,protectMirrorSurfaces} from '../surface-finishes.js';
 import {applyGrilleColours} from '../grille-colours.js';
+import {configureScriptGrille} from '../grille-scripts.js';
+import {separateSpareEmblem,updateSpareEmblem} from '../spare-badge.js';
 import {fitSteeringBadge} from '../steering-badge.js';
 import {applyCatalogueWheel,disposeCatalogueWheels} from '../catalogue-parts.js';
 import {resolveTyreType,applyTyreType,disposeTyreTypes} from '../tyre-types.js';
@@ -110,14 +112,14 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     const paint=new T.MeshPhysicalMaterial({color:colour,...paintFinish(design.finish),metalness:['#727973','#8a9099'].includes(colour.toLowerCase())?.35:['#364b72','#5a6fd6','#8d1c25'].includes(colour.toLowerCase())?.10:0});
     paint.envMap=paintEnvironment;paint.envMapIntensity=.40;paint.userData.vehiclePaint=true;
     const roof=paint.clone();if(design.finish==='twotone'){roof.color.set(/^#[0-9a-f]{6}$/i.test(design.roofColour||'')?design.roofColour:'#141b22');roof.envMapIntensity=.18;}
-    const parts=new Set(normalizeExteriorParts(resolvePreviewParts(build.parts||[],window.JIMNY_MARKET_PRODUCTS||[]).filter(id=>body!=='3door'||['tires','snorkel','mod_reardoor_molle','skinnyjim_backbone','skinnyjim_jerry_tray','seats','doortrim'].includes(id)||globalThis.JimnyPracticalParts?.[id]?.bodyStyles.includes(body)||EXTERIOR_PARTS[id]?.bodyStyles.includes(body)),body));
+    const parts=new Set(normalizeExteriorParts(resolvePreviewParts(build.parts||[],window.JIMNY_MARKET_PRODUCTS||[]).filter(id=>body!=='3door'||['tires','flares','snorkel','mod_reardoor_molle','skinnyjim_backbone','skinnyjim_jerry_tray','seats','doortrim'].includes(id)||globalThis.JimnyPracticalParts?.[id]?.bodyStyles.includes(body)||EXTERIOR_PARTS[id]?.bodyStyles.includes(body)),body));
     tyreType=resolveTyreType(design,parts);if(tyreType==='highway')parts.delete('tires');else parts.add('tires');
     // Geometry follows the saved Garage stance. The solver deliberately retains
     // representative stock mechanics; this is not a measured aftermarket tune.
     visualWheelRadius=parts.has('tires')?.368:.3465;
     visualBodyLift=(parts.has('lift')?.055:0)+(visualWheelRadius-.3465);
-    const grille=parts.has('autostylenn_big_suzuki_grille')?'block':parts.has('autostylenn_cursive_grille')?'script':parts.has('autostylenn_s_grille')?'smesh':design.grille;
-    const selectedGrille={oem:'OEMGrille',block:'BlockGrille',rhino:'RhinoGrille',script:'ScriptGrille',chrome:'GlossGrille',delete:'DeleteGrille',classic:'ClassicGrille',mesh:'MeshGrille',smesh:'MeshGrille'}[grille]||'OEMGrille';
+    const grille=parts.has('autostylenn_big_suzuki_grille')?'block':parts.has('autostylenn_cursive_grille')?'script-loop':parts.has('autostylenn_s_grille')?'smesh':design.grille;
+    const selectedGrille={oem:'OEMGrille',block:'BlockGrille',rhino:'RhinoGrille',script:'ScriptGrille','script-loop':'ScriptGrille','script-modern':'ScriptGrille',chrome:'GlossGrille',delete:'DeleteGrille',classic:'ClassicGrille',mesh:'MeshGrille',smesh:'MeshGrille'}[grille]||'OEMGrille';
     gltf.scene.traverse(o=>{if(!o.isMesh)return;const material=o.material;applyMaterialProfile(material);if(['BrightChrome','MachinedAlloy','GrilleLettering','OpticalGlass'].includes(material.name))material.vertexColors=false;if(material.name==='BodyPaint')o.material=paint;else if(material.name==='RoofPaint')o.material=roof;else if(material.name==='WindowGlass'){o.material=new T.MeshPhysicalMaterial({color:'#3f585b',roughness:.09,metalness:0,transparent:true,opacity:.63,depthWrite:false});o.material.name='WindowGlass';}o.castShadow=!o.material.transparent&&material.name!=='IntakeShadow';o.receiveShadow=true;});
     const stock=gltf.scene.getObjectByName(parts.has('tires')?'AllTerrainWheels':'StockWheels'),wb=body==='3door'?2.25:2.59;
     // Split the baked four-wheel assembly spatially, retaining authored rims/tyres.
@@ -137,13 +139,14 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     const selectedWheel=WHEEL_PARTS.find(p=>parts.has(p.visual))?.visual||(body==='5door'&&parts.has('suzuki_nomade_steelwheel'));applyCatalogueWheel(wheelRoot,selectedWheel,design.wheelFinish,design.partColours?.wheels);if(!selectedWheel)applyWheelDesign(wheelRoot,design);
     applyTyreType(wheelRoot,tyreType);
     const badge=extractFactoryBadge(gltf.scene.getObjectByName('OEMGrille'));
+    if(selectedGrille==='ScriptGrille')configureScriptGrille(gltf.scene.getObjectByName(selectedGrille),grille);
     applyGrilleColours(gltf.scene.getObjectByName(selectedGrille),design,colour,body);
     fitSteeringBadge(gltf.scene.getObjectByName('Cabin'),badge,body);
     for(const name of ['BodyShell','RoofShell',selectedGrille,...(parts.has('bull')||parts.has('autostylenn_bumper_v1')?[]:['StockBumper']),...(parts.has('headlamps')?[]:['StockHeadlamps']),'Cabin','SpareWheel']){const o=gltf.scene.getObjectByName(name);if(o)bodyRig.attach(o);}
-    const spare=bodyRig.getObjectByName('SpareWheel');if(design.partColours?.wheels)applyWheelColour(spare,design.partColours.wheels);else applyWheelFinish(spare,design.wheelFinish);if(selectedWheel)applyCatalogueWheel(spare,selectedWheel,design.wheelFinish,design.partColours?.wheels);else applyWheelDesign(spare,design);
+    const spare=bodyRig.getObjectByName('SpareWheel');separateSpareEmblem(spare,body);if(design.partColours?.wheels)applyWheelColour(spare,design.partColours.wheels);else applyWheelFinish(spare,design.wheelFinish);if(selectedWheel)applyCatalogueWheel(spare,selectedWheel,design.wheelFinish,design.partColours?.wheels);else applyWheelDesign(spare,design);updateSpareEmblem(spare,body,{...design,grille});
     const accessories=new T.Group();accessories.name='GarageAccessories';bodyRig.add(accessories);const materials=accessoryMaterials();materials.upholstery.color.set(({tan:'#a38b69',saddle:'#854d31',olive:'#59624d',stone:'#b3b1a5',black:'#303332'})[design.cabin]||'#a38b69');
     const emitters=Object.fromEntries(Object.entries(LIGHT_PROFILES).map(([id,p])=>[id,new T.MeshStandardMaterial({color:p.colour,roughness:.12,metalness:.1})]));
-    visibleParts=accessoryBuilder({accessoryRig:accessories,mats:materials,detailed:{sBadgeGeometry:badge},modelBody:body,colour,effectiveDesign:design,lampEmitters:emitters})(parts,design);
+    visibleParts=accessoryBuilder({accessoryRig:accessories,mats:materials,detailed:{sBadgeGeometry:badge},modelBody:body,colour,effectiveDesign:design,lampEmitters:emitters})(parts,{...design,grille});
     if(body==='5door'&&parts.has('suzuki_nomade_steelwheel'))visibleParts.push('suzuki_nomade_steelwheel');
     visibleParts.push(...WHEEL_PARTS.filter(p=>parts.has(p.visual)).map(p=>p.visual));
     if(grille==='smesh'){const emblem=new T.Mesh(badge,materials.chrome);emblem.userData.grilleBadge=true;accessories.add(emblem);applyGrilleColours(emblem,design,colour,body);}else badge.dispose();

@@ -14,13 +14,14 @@
 // colour so, under this scene's sky and sun, it matches the photo's ground near the
 // camera (photo radiance x pi / irradiance, divided by the texture's mean colour).
 export const SCENERIES = Object.freeze({
-  studio: { label: 'Garage', description: 'Modelled jimnygami workshop' },
+  gray: { label: 'Gray studio', description: 'Neutral studio with softbox lighting' },
+  studio: { label: 'Workshop', description: 'Modelled jimnygami workshop' },
   mountains: { label: 'Mountains', description: 'Photographed mountain valley · Poly Haven HDRI', file: 'kiara-5-noon', rotation: 0, exposure: 1.1, sunScale: .3, sun: { direction: [.466, .779, .419], irradiance: [15.54, 15.59, 16.72] }, ground: { texture: 'dry-ground-rocks', size: 4, tint: [.711, .898, .969] } },
   urban: { label: 'Urban', description: 'Photographed city square · Poly Haven HDRI', file: 'rotes-rathaus', rotation: 0, exposure: .95, key: [0, 1, 0], ground: { texture: 'floor-pavement', size: 2, tint: [.920, .964, .989] } },
   desert: { label: 'Desert', description: 'Photographed sand quarry · Poly Haven HDRI', file: 'quarry-02', rotation: 0, exposure: 1.1, sunScale: .3, sun: { direction: [.55, .734, .40], irradiance: [9.55, 7.99, 5.21] }, ground: { texture: 'aerial-sand', size: 8, tint: [1.505, 1.860, 2.030] } },
 });
 export function validScenery(value) {
-  return Object.hasOwn(SCENERIES, value) ? value : 'studio';
+  return Object.hasOwn(SCENERIES, value) ? value : 'gray';
 }
 export function sceneryURL(id, resolution = '4k') {
   return `assets/environments/${SCENERIES[validScenery(id)].file}-${resolution}.jpg`;

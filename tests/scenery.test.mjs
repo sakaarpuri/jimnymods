@@ -7,9 +7,9 @@ import { groundURL, GROUND_FADE } from '../src/outdoor-ground.js';
 const sources = readFileSync(new URL('../modeling/SCENERY_SOURCES.md', import.meta.url), 'utf8');
 const outdoor = Object.entries(SCENERIES).filter(([, scene]) => scene.file);
 
-test('Garage is the modelled workshop; three outdoor scenes use photographed HDRIs', () => {
-  assert.deepEqual(Object.keys(SCENERIES), ['studio', 'mountains', 'urban', 'desert']);
-  assert.equal(SCENERIES.studio.label, 'Garage');
+test('Gray studio and workshop are available alongside three outdoor scenes', () => {
+  assert.deepEqual(Object.keys(SCENERIES), ['gray', 'studio', 'mountains', 'urban', 'desert']);
+  assert.equal(SCENERIES.studio.label, 'Workshop');
   assert.equal(SCENERIES.studio.file, undefined, 'the Garage needs no photo download');
   assert.deepEqual(outdoor.map(([id]) => id), ['mountains', 'urban', 'desert']);
   for (const [id, scene] of outdoor) {
@@ -25,7 +25,7 @@ test('Garage is the modelled workshop; three outdoor scenes use photographed HDR
   }
 });
 test('each outdoor scene stands on a real textured ground, not the projected photo', () => {
-  assert.ok(GROUND_FADE.start > 8.1, 'the ground stays solid out past the camera orbit');
+  assert.ok(GROUND_FADE.start > 9.72, 'the ground stays solid out past the camera orbit');
   for (const [id, { ground }] of outdoor) {
     assert.ok(ground.size > 0 && ground.tint.length === 3 && ground.tint.every(v => v > 0 && v < 3), id);
     assert.ok(sources.includes(ground.texture), `${id} ground texture source recorded`);
@@ -38,8 +38,8 @@ test('each outdoor scene stands on a real textured ground, not the projected pho
   }
   assert.doesNotMatch(readFileSync(new URL('../src/viewer3d.js', import.meta.url), 'utf8'), /GroundedSkybox/);
 });
-test('unknown saved settings safely fall back to the garage', () => {
-  for (const input of [null, undefined, '', 'invalid', '__proto__', 'constructor']) assert.equal(validScenery(input), 'studio');
+test('unknown saved settings safely fall back to the gray studio', () => {
+  for (const input of [null, undefined, '', 'invalid', '__proto__', 'constructor']) assert.equal(validScenery(input), 'gray');
   assert.equal(validScenery('mountains'), 'mountains');
 });
 test('loading, failure and night disclosures are clear', () => {

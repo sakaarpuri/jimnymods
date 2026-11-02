@@ -47,7 +47,7 @@ test('interior sill does not protrude through the painted stock doors',async()=>
     }
   }
 });
-test('front amber lenses retain their body-specific reference proportions',async()=>{
+test('front amber lenses retain the shared reference proportions on both bodies',async()=>{
   for(const body of ['lwb','swb']){
     const root=(await cabin(body)).parent,point=new Vector3(),heights=[];
     root.traverse(object=>{
@@ -60,12 +60,13 @@ test('front amber lenses retain their body-specific reference proportions',async
     });
     assert(heights.length>20,`${body} front amber lenses exist`);
     const diameter=Math.max(...heights)-Math.min(...heights);
-    if(body==='lwb'){
+    {
       // The official NEXA front comparison puts the amber lens (not its black
       // surround) at roughly 30% of the five-door headlamp housing diameter.
       const lampHeight=new Box3().setFromObject(root.getObjectByName('StockHeadlamps')).getSize(new Vector3()).y;
       assert(diameter/lampHeight>.26&&diameter/lampHeight<.34,`${body} amber/headlamp ratio ${diameter/lampHeight}`);
-    }else assert(diameter>.075&&diameter<.085,`${body} front amber lens diameter ${diameter}`);
+      assert(diameter>.057&&diameter<.061,`${body} amber lens diameter ${diameter}`);
+    }
   }
 });
 test('model badges use outlined geometry and instrument cluster has no training billboard',async()=>{

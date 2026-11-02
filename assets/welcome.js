@@ -30,7 +30,7 @@
     return `<fieldset class="welcome-field"><legend>Your Jimny</legend><div class="welcome-doors">
 ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([value,title,detail])=>`<label class="welcome-door"><input type="radio" name="${prefix}-body" value="${value}"${value===body?' checked':''}><span><b>${title}</b><small>${detail}</small></span></label>`).join('')}
 </div></fieldset>
-<label class="welcome-field" for="${prefix}-region"><span class="welcome-label">Where you'll buy and fit parts</span><select id="${prefix}-region">${window.JIMNY_REGIONS.map(r=>`<option value="${r.code}"${r.code===window.jimnyRegion?' selected':''}>${esc(r.name)}</option>`).join('')}</select></label>`;
+<label class="welcome-field" for="${prefix}-region"><span class="welcome-label">Your region</span><select id="${prefix}-region">${window.JIMNY_REGIONS.map(r=>`<option value="${r.code}"${r.code===window.jimnyRegion?' selected':''}>${esc(r.name)}</option>`).join('')}</select></label>`;
   }
 
   // Apply through the existing controls so their handlers (prices, sources, body builds) run once.
@@ -55,18 +55,17 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
  <div class="welcome-copy">
   <p class="welcome-eyebrow">Independent Jimny modification guide</p>
   <h1 id="welcomeTitle" tabindex="-1">Build it<br>here first.</h1>
-  <p class="welcome-lede">Explore modifications in 3D, find parts and fitters, and play the 4×4 driving game.</p>
+  <p class="welcome-lede">Explore modifications in 3D, discover parts and make your Jimny your own.</p>
   <form class="welcome-form" data-welcome-form>${questions('welcomePage')}
    <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">${startFeatured?'Customise this Jimny':'Open the Garage'} ${arrow}</button>
    ${startFeatured?'<button type="button" class="welcome-quiet" data-welcome-go="garage">Start with stock instead</button>':''}
-   <nav class="welcome-routes" aria-label="Other places to start"><a href="game.html">Play & learn Jimny 4×4 controls ${arrow}</a><a href="trip-planner.html" data-welcome-go="trip">Plan a trip</a></nav></div>
+   <nav class="welcome-routes" aria-label="Other places to start"><a href="trip-planner.html" data-welcome-go="trip">Plan a trip</a></nav></div>
   </form>
  </div>
  <figure class="welcome-car"><img src="${carImage(body)}" width="800" height="600" alt="Heritage Club: a customised ${body==='3door'?'three':'five'}-door Jimny with sunset decals, bronze wheels and a SUZUKI grille" fetchpriority="high"><figcaption>Heritage Club · sunset stripes, bronze wheels, all-terrain tyres. Change any part in the Garage.</figcaption></figure>
 </div>
 <ol class="welcome-features">
  <li><b>Make it yours</b><span>Try parts, paint and decals on your Jimny.</span></li>
- <li><b>Play & learn</b><span>Practise Jimny 4×4 controls in the driving game. An approximation, not real-world training.</span></li>
  <li><b>Plan the trip</b><span>${tripCount?`${numberWords[tripCount]||tripCount} India road-trip ideas`:'India road-trip ideas'} with packing and prep checklists.</span></li>
 </ol>`;
     const outside=[document.querySelector('.site-header'),document.querySelector('.wrap'),...document.querySelectorAll('body>footer,.planner-main>footer')].filter(Boolean);
@@ -97,9 +96,9 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
     sheet.innerHTML=`<form method="dialog" class="welcome-form" data-welcome-form><span class="welcome-grip" aria-hidden="true"></span>
 <p class="welcome-eyebrow">First time here?</p>
 <h2 id="welcomeSheetTitle">Build it here first.</h2>
-<p class="welcome-lede">Try modifications in 3D, find parts and fitters, or play the 4×4 game and learn the controls.</p>
+<p class="welcome-lede">Try modifications in 3D and explore parts, colours and ideas for your Jimny.</p>
 ${questions('welcomeSheet')}
-<div class="welcome-actions"><button type="submit" class="welcome-primary" value="start">Start building ${arrow}</button><button type="submit" class="welcome-quiet" value="look" formnovalidate>Just look around</button><a class="welcome-quiet" href="game.html">Play & learn 4×4 controls ${arrow}</a></div></form>`;
+<div class="welcome-actions"><button type="submit" class="welcome-primary" value="start">Start building ${arrow}</button><button type="submit" class="welcome-quiet" value="look" formnovalidate>Just look around</button></div></form>`;
     document.body.append(sheet);
     sheet.addEventListener('close',()=>{if(sheet.returnValue==='start')applyAnswers(sheet,'welcomeSheet');markSeen();sheet.remove();delete root.dataset.welcome;});
     sheet.addEventListener('cancel',()=>{sheet.returnValue='look';});

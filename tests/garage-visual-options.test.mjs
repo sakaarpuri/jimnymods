@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import vm from 'node:vm';
 import {createHash} from 'node:crypto';
+import {DECAL_STYLES} from '../src/decals.js';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 
 test('garage design choices use actual model images, not text-only substitutes',()=>{
@@ -26,7 +27,8 @@ test('all published design/paint thumbnails exist for both bodies',()=>{
  const manifest=JSON.parse(readFileSync(new URL('../assets/previews/manifest.json',import.meta.url)));
  for(const body of ['5door','3door']){
   const files=manifest.studioPreviews?.[body]||[];
-  assert.equal(files.filter(f=>f.startsWith('design-')).length,38);
+  for(const id of DECAL_STYLES)assert(files.includes(`design-decal-${id}`),`Missing ${body} decal preview: ${id}`);
+  for(const id of ['oem','block','rhino','script','script-loop','script-modern','chrome','delete','classic','mesh','smesh'])assert(files.includes(`design-grille-${id}`),`Missing ${body} grille preview: ${id}`);
   assert.equal(files.filter(f=>f.startsWith('paint-')).length,28);
   for(const file of files){const bytes=readFileSync(new URL(`../assets/previews/${body==='3door'?'swb/':''}${file}.webp`,import.meta.url));assert.equal(bytes.toString('ascii',8,12),'WEBP');}
  }

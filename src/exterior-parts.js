@@ -1,6 +1,7 @@
 import * as T from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import '../assets/exterior-parts-data.js';
+import {addFittedFrontCornerGuards} from './jimnyworx-front-guards.js';
 export const EXTERIOR_PARTS=globalThis.JimnyExteriorParts;
 export const WHEEL_PARTS=Object.values(EXTERIOR_PARTS).filter(p=>p.diameter);
 export const exteriorConflict=(a,b)=>globalThis.JimnyExteriorConflict(a,b);
@@ -92,7 +93,8 @@ export function buildExteriorPart(id,body='5door'){
   // chequer-plate skins following the arch edge, not strips above the arch.
   const plate=new T.MeshStandardMaterial({name:'JimnyworX dark chequer plate',color:'#4c5558',metalness:.65,roughness:.38});
   g.userData.ownedMaterials.push(plate);
-  for(const side of [-1,1])for(const end of [-1,1]){
+  addFittedFrontCornerGuards(g,plate);
+  for(const side of [-1,1])for(const end of [-1]){
    const front=end===1,start=front?1.27:1.24,bend=front?1.581:1.485,radius=front?.045:.078,angle=front?Math.PI/3:Math.PI/2;
    const flat=bend-start,width=flat+radius*angle,top=front?1.082:1.115;
    const lower=front?[[0,.974],[.08,.960],[.16,.915],[.225,.835],[flat,.745],[width,.745]]:[[0,.980],[.08,.958],[.16,.882],[.215,.770],[flat,.635],[width,.605]];

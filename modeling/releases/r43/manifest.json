@@ -1,0 +1,27 @@
+{
+  "revision": 43,
+  "status": "verified model candidates; integration review pending",
+  "assets": [
+    {
+      "body": "lwb",
+      "file": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r43/jimny-lwb-blender.glb",
+      "bytes": 5281316,
+      "sha256": "4b7d26ac75c11dbe765eb2ba66d5f7b193ec1e7722b2381630a503fa9bc2e6f8",
+      "gzipBytes": 2693770,
+      "gzipSha256": "fdb03aa13e7f551ea48c7eaed271f7db82fdce0f856c65f08ab7c5cf2bdef039",
+      "native": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r43/jimny-lwb.blend"
+    },
+    {
+      "body": "swb",
+      "file": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r43/jimny-swb-blender.glb",
+      "bytes": 4598852,
+      "sha256": "d1804ee73ef6f78ae7c0e600ccd1573e66755d91f61d75b0a559a5b9f7228770",
+      "gzipBytes": 2304659,
+      "gzipSha256": "2f900eb356a38aea32ae08a01f197d64de5d9459ea6a3a8304d0aca489206192",
+      "native": "/Volumes/ThatSUVMod/jimnymods/work/releases/model-r43/jimny-swb.blend"
+    }
+  ],
+  "verification": "/Volumes/ThatSUVMod/jimnymods/modeling/verification/site-r43",
+  "threeDoorRigidFrontOffsetZ": -0.06577010573773867,
+  "threeDoorCowlAndArchOffsetZ": -0.17
+}

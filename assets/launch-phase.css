@@ -1,0 +1,16 @@
+/* Launch phase 1: retain future features and data, but do not expose them. */
+a[href*="game.html"],
+[data-mode-select="sources"],[data-mode-select="fitters"],
+[data-mode="sources"],[data-mode="fitters"],
+[data-open-fitters],[data-open-source],[data-open-online],[data-package-fitter],[data-package-sources],
+[data-fitters-job],[data-listing-invite="vendor"],
+.location-strip,.rail-help,.source-quick,.pkg-resources,[data-discover="comfort"],
+[data-garage-category="cabin"],[data-editor="cabin"],#cabinControls,
+[data-part-tab="buy"],.garage-source,[data-where-to-buy],
+.pcard-seller,.pcard-fit,#pdBuy,.pd-section:has(#pdFitTitle),.pd-kicker,.pd-meta,.pd-notes,.pd-foot,
+#partsSidebar fieldset:has([data-pp-seller]),#partsSidebar fieldset:has([data-pp-ship]),
+#partsSidebar label:has([data-pp-flag="confirms"]),#partsSidebar label:has([data-pp-flag="stock"]),
+.build-part-actions [data-source-part],.grille-choice-actions [data-source-design],
+.garage-part [data-source-part],.lamp-choice [data-source-part],
+.garage-tyres [data-source-part],[data-find-lamps],
+.on-car-primary[data-source-part],.on-car-primary[data-source-design] {display:none!important}

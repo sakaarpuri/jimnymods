@@ -8,6 +8,7 @@ import {doorInserts,touringInterior,rearSeatInserts} from './touring-interior.js
 import {markSurfaceMaterials} from './surface-finishes.js';
 import {addPracticalAccessories} from './practical-accessories.js';
 import {alignFrontAccessories} from './front-mounts.js';
+import {frontLogoCustomized} from './spare-badge.js';
 export function accessoryMaterials(){
   const standard=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
   const m={trim:standard('#232a2a'),rubber:standard('#222526',.92),metal:standard('#adb4b0',.3,.8),darkmetal:standard('#25292b',.55,.4),white:standard('#fff7de',.2),red:standard('#b72d27'),orange:standard('#d88132'),seat:standard('#343a36',.94),accent:standard('#cb593a'),canvas:standard('#a39a79',1),chrome:standard('#e8eeed',.17,1),reflector:standard('#d4d9d7',.24,1),textured:standard('#30362f',.96),upholstery:standard('#a38b69',.86),ambient:standard('#386588'),glass:standard('#213c45',.12,.55)};
@@ -29,8 +30,10 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
   if(!arch)arch=(parent,x,z)=>{
     const side=x<0?-1:1,outer=[[-.49,.38],[-.49,.58],[-.45,.77],[-.36,.90],[-.22,.95],[0,.96],[.22,.95],[.36,.90],[.45,.77],[.49,.58],[.49,.38]],inner=[[-.40,.38],[-.39,.53],[-.35,.66],[-.28,.75],[-.18,.795],[0,.815],[.18,.795],[.28,.75],[.35,.66],[.39,.53],[.40,.38]];
     const curves=[outer,inner].map(points=>new THREE.CatmullRomCurve3(points.map(([depth,height])=>new THREE.Vector3(0,height,depth)))),positions=[],indices=[],segments=64;
-    for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890]])for(let i=0;i<=segments;i++){const p=curves[0].getPoint(i/segments).lerp(curves[1].getPoint(i/segments),t);positions.push(side*width,p.y,z+p.z);}
-    for(let row=0;row<5;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
+    // Turn the inner lip back to the wing. The sixth strip is a real moulded
+    // return surface rather than an open arch through which body shows.
+    for(const [t,width] of [[0,.750],[.14,.815],[.30,.866],[.55,.896],[.80,.902],[1,.890],[1,.752]])for(let i=0;i<=segments;i++){const p=curves[0].getPoint(i/segments).lerp(curves[1].getPoint(i/segments),t);positions.push(side*width,p.y,z+p.z);}
+    for(let row=0;row<6;row++)for(let i=0;i<segments;i++){const a=row*(segments+1)+i;indices.push(a,a+1,a+segments+2,a,a+segments+2,a+segments+1);}
     if(side<0)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();mesh(geometry,mats.trim,parent);
   };
@@ -105,9 +108,9 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
     });
     show(['winch'],()=>{box(accessoryRig,.45,.12,.19,0,.72,2.13,mats.trim);cylinder(accessoryRig,.055,.055,.27,0,.74,2.21,mats.metal,'x');box(accessoryRig,.07,.09,.03,0,.69,2.25,mats.accent);});
     show(['sliders'],()=>[-1,1].forEach(side=>{tube(accessoryRig,[[side*.91,.45,-.95],[side*.97,.45,-.85],[side*.97,.45,.85],[side*.91,.45,.95]],.035);box(accessoryRig,.18,.035,1.80,side*.86,.46,0,mats.darkmetal);}));
-    show(['flares'],()=>[-1,1].forEach(side=>[-1.295,1.295].forEach(z=>arch(accessoryRig,side===1?.82:-.97,z,true))));
+    show(['flares'],()=>{const axle=modelBody==='3door'?1.125:1.295;[-1,1].forEach(side=>[-axle,axle].forEach(z=>arch(accessoryRig,side===1?.82:-.97,z,true)));});
     show(['ladder'],()=>{const start=accessoryRig.children.length;[-.65,-.35].forEach(x=>{tube(accessoryRig,[[x,.60,-1.99],[x,1.66,-1.99],[x,1.75,-1.80],[x,1.73,-1.66]],.02);box(accessoryRig,.065,.02,.10,x,1.72,-1.68,mats.rubber);box(accessoryRig,.065,.04,.16,x,.64,-1.91,mats.trim);});for(let y=.68;y<1.7;y+=.19)box(accessoryRig,.32,.025,.035,-.5,y,-1.99,mats.darkmetal);for(const piece of accessoryRig.children.slice(start))piece.position.z+=.078;});
-    show(['led','lamp_bar20'],()=>{const y=hasRack?1.91:1.77,w=parts.has('lamp_bar20')?.51:1.02;box(accessoryRig,w,.065,.085,0,y,.68,mats.trim);for(let x=-w/2+.035;x<=w/2-.03;x+=.06){cylinder(accessoryRig,.023,.023,.008,x,y,.726,mats.reflector,'z',16);cylinder(accessoryRig,.009,.009,.01,x,y,.734,lampEmitters.bar,'z',12);}for(const x of [-w*.46,w*.46])box(accessoryRig,.014,.065,.06,x,y-.05,.68,mats.darkmetal);for(let z=.65;z<.70;z+=.012)box(accessoryRig,w-.03,.075,.004,0,y,z,mats.darkmetal);});
+    show(['led','lamp_bar20'],()=>{const y=hasRack?1.91:1.77,w=parts.has('lamp_bar20')?.51:1.02,z=modelBody==='3door'?.21:.38;box(accessoryRig,w,.065,.085,0,y,z,mats.trim);for(let x=-w/2+.035;x<=w/2-.03;x+=.06){cylinder(accessoryRig,.023,.023,.008,x,y,z+.046,mats.reflector,'z',16);cylinder(accessoryRig,.009,.009,.01,x,y,z+.054,lampEmitters.bar,'z',12);}for(const x of [-w*.46,w*.46]){box(accessoryRig,.025,hasRack?.14:.065,.10,x,hasRack?1.845:y-.05,z,mats.darkmetal);box(accessoryRig,.08,.015,.14,x,hasRack?1.78:1.725,z-.02,mats.rubber);}for(let dz=-.03;dz<.02;dz+=.012)box(accessoryRig,w-.03,.075,.004,0,y,z+dz,mats.darkmetal);});
     show(['pods','lamp_cube'],()=>[-1,1].forEach(side=>lampHousing(side*.78,1.22,.92,parts.has('pods')?.062:.043,'combo',parts.has('pods'))));
     show(['lamp_round_spot','lamp_round_flood'],()=>[-1,1].forEach(side=>lampHousing(side*.28,.87,2.08,.089,parts.has('lamp_round_flood')?'flood':'spot',true)));
     show(['lamp_fog','lamp_dual'],()=>[-1,1].forEach(side=>lampHousing(side*.62,.62,2.01,.043,parts.has('lamp_dual')?'dual':'fog')));
@@ -128,7 +131,7 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
       box(accessoryRig,.25,.025,.012,side*.75,.50,axle-.402,mats.darkmetal);
       for(const dx of [-.095,.095])cylinder(accessoryRig,.007,.007,.012,side*.75+dx,.499,axle-.392,mats.metal,'z',8);
     })));
-    show(['sparecover'],()=>{const cover=mouldedSpareCover(mats,detailed?.sBadgeGeometry);if(modelBody==='5door')cover.position.z-=.060;accessoryRig.add(cover);});
+    show(['sparecover'],()=>{const cover=mouldedSpareCover(mats,detailed?.sBadgeGeometry,!frontLogoCustomized(design));if(modelBody==='5door')cover.position.z-=.060;accessoryRig.add(cover);});
     show(['bonnetguard'],()=>{const points=[];for(let i=0;i<=24;i++){const x=-.69+i*1.38/24;points.push(new THREE.Vector3(x,1.17-.03*(Math.abs(x)/.69)**4,1.78-.035*(Math.abs(x)/.69)**4));}const path=new THREE.CatmullRomCurve3(points);const shape=new THREE.Shape();shape.moveTo(-.008,-.027);shape.lineTo(.008,-.027);shape.quadraticCurveTo(.016,.025,.010,.048);shape.lineTo(-.003,.048);shape.quadraticCurveTo(.003,.015,-.008,-.027);mesh(new THREE.ExtrudeGeometry(shape,{steps:48,bevelEnabled:false,extrudePath:path}),mats.trim,accessoryRig,0,0,0);});
     show(['spoiler'],()=>{const start=accessoryRig.children.length;const wing=box(accessoryRig,1.40,.045,.22,0,1.744,-1.76,mats.trim);wing.rotation.x=.08;for(const x of [-.60,.60])box(accessoryRig,.12,.065,.14,x,1.70,-1.72,mats.trim);for(const piece of accessoryRig.children.slice(start))piece.position.z+=.078;});
     show(['visors'],()=>accessoryRig.add(fittedVisors(mats.smoked)));
@@ -143,8 +146,8 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
       mesh(new THREE.TorusGeometry(.099,.005,12,64),mats.white,accessoryRig,x,y,z+.008);
       for(const dy of [-.045,.036]){cylinder(accessoryRig,dy>0?.043:.030,dy>0?.043:.030,.014,x,y+dy,z+.005,mats.reflector,'z',40);const optic=mesh(new THREE.SphereGeometry(dy>0?.035:.023,32,20),mats.lens,accessoryRig,x,y+dy,z+.016);optic.scale.z=.38;}
       for(const side of [-1,1])for(const dy of [-.025,0,.025])box(accessoryRig,.022,.012,.008,x+side*.069,y+dy,z+.012,mats.reflector);
-      const lampGroup=new THREE.Group();lampGroup.position.set(x,y,modelBody==='3door'?-.17:0);accessoryRig.add(lampGroup);
-      for(const obj of accessoryRig.children.slice(start,-1)){obj.position.x-=x;obj.position.y-=y;lampGroup.add(obj);}lampGroup.scale.set(modelBody==='5door'?.85:.9,modelBody==='5door'?.85:.9,1);
+      const lampGroup=new THREE.Group();lampGroup.position.set(x,y,modelBody==='3door'?-.065770106:0);accessoryRig.add(lampGroup);
+      for(const obj of accessoryRig.children.slice(start,-1)){obj.position.x-=x;obj.position.y-=y;lampGroup.add(obj);}lampGroup.scale.set(.85,.85,1);
     }));
     show(['dashcam'],()=>{box(accessoryRig,.10,.055,.055,-.25,1.55,.62,mats.trim);cylinder(accessoryRig,.017,.017,.012,-.25,1.55,.654,mats.lens,'z');box(accessoryRig,.03,.04,.018,-.25,1.594,.62,mats.trim);});
     show(['headunit'],()=>{box(accessoryRig,.26,.165,.028,0,1.225,.334,mats.trim);box(accessoryRig,.232,.137,.004,0,1.225,.318,mats.glass);for(const x of [-.10,.10])cylinder(accessoryRig,.008,.008,.007,x,1.152,.315,mats.chrome,'z');});

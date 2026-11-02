@@ -76,7 +76,7 @@ export function fittedVisors(material){
   return group;
 }
 
-export function mouldedSpareCover(materials,badgeGeometry){
+export function mouldedSpareCover(materials,badgeGeometry,showBadge=true){
   const group=new THREE.Group();group.name='Moulded spare-wheel centre cover';
   group.position.z=.10; // follows revised factory spare/covered-length envelope
   // Retain the visible tyre sidewall, as on the Suzuki hard centre cover.
@@ -85,7 +85,7 @@ export function mouldedSpareCover(materials,badgeGeometry){
   shell.name='Spare cover shell';
   shell.rotation.x=-Math.PI/2;shell.position.set(0,.995,-2.045);shell.castShadow=true;group.add(shell);
   const band=block(group,[.36,.020,.005],[0,.922,-2.083],materials.darkmetal,.002);band.rotation.z=-.04;
-  if(badgeGeometry?.attributes.position.count){
+  if(showBadge&&badgeGeometry?.attributes.position.count){
     const badge=badgeGeometry.clone();badge.computeBoundingBox();
     const centre=badge.boundingBox.getCenter(new THREE.Vector3());
     badge.translate(-centre.x,-centre.y,-centre.z);badge.scale(.63,.63,.63);badge.rotateY(Math.PI);badge.translate(0,1.075,-2.086);

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>jimnygami — Ideas and resources for modifying your Jimny</title>
-<meta name="description" content="Explore three-door and five-door Jimny looks in 3D. Find modification ideas, parts sellers, fitters and owner clubs in India, Australia and other Jimny markets.">
+<meta name="description" content="Explore three-door and five-door Jimny looks in 3D. Find modification ideas, parts and owner clubs in India, Australia and other Jimny markets.">
 <link rel="canonical" href="https://thatsuvmod.com/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="jimnygami — Ideas and resources for modifying your Jimny">
@@ -341,6 +341,7 @@
 <link rel="stylesheet" href="assets/jimnygami-brand.css">
 <link rel="stylesheet" href="assets/direction-a.css">
 <link rel="stylesheet" href="assets/welcome.css">
+<link rel="stylesheet" href="assets/launch-phase.css">
 <script>/* First-visit welcome, decided before first paint so the Garage never flashes.
    Returning = welcomed before, a chosen region, or a saved build with parts. */
 (()=>{const forced=location.hash==='#welcome';let returning=false;try{const ls=localStorage,build=JSON.parse(ls.getItem('thatsuvmod-build')||ls.getItem('thatsuvlab-build')||ls.getItem('jimnylab-build')||'null');returning=!!(ls.getItem('thatsuvmod-welcomed')||ls.getItem('thatsuvmod-region')||build?.parts?.length||JSON.parse(ls.getItem('thatsuvmod-snapshots')||'[]').length);}catch{returning=true;}
@@ -374,14 +375,14 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
     <div class="studio-tools">
       
   <div class="studio-angles" aria-label="3D camera views"><button class="active" type="button" data-camera="orbit">Exterior</button><button type="button" data-camera="interior">Interior</button><details class="camera-inspection"><summary>More views</summary><div><button type="button" data-camera="front">Front</button><button type="button" data-camera="side">Side</button><button type="button" data-camera="rear">Rear</button><button type="button" data-camera="cutaway">Cabin cutaway</button><button type="button" data-camera="cargo">Cargo cutaway</button></div></details></div>
-      <div class="studio-inspect"><label class="studio-scenery">Scenery<select data-scenery-select aria-label="Expanded preview scenery"><option value="studio">Garage</option><option value="mountains">Mountains</option><option value="urban">Urban</option><option value="desert">Desert</option></select></label><button type="button" data-viewer-zoom="out" aria-label="Zoom out">−</button><button type="button" data-viewer-zoom="fit" aria-label="Fit whole Jimny in view">Fit</button><button type="button" data-viewer-zoom="in" aria-label="Zoom in">+</button></div>
+      <div class="studio-inspect"><label class="studio-scenery">Scenery<select data-scenery-select aria-label="Expanded preview scenery"><option value="gray">Gray studio</option><option value="studio">Workshop</option><option value="mountains">Mountains</option><option value="urban">Urban</option><option value="desert">Desert</option></select></label><button type="button" data-viewer-zoom="out" aria-label="Zoom out">−</button><button type="button" data-viewer-zoom="fit" aria-label="Fit whole Jimny in view">Fit</button><button type="button" data-viewer-zoom="in" aria-label="Zoom in">+</button></div>
       <p class="studio-scenery-note" data-scenery-status aria-live="polite">Photographed workshop · Poly Haven HDRI</p>
     </div>
   </div>
   <div class="build-export-bar"><button type="button" id="exportBuildImage">Save build image</button><a href="game.html">Drive & make a video ↗</a><span>Downloads stay on your device.</span></div>
   <details id="bodyScopeNote" class="body-scope-note" hidden><summary>3-door preview: supported modifications</summary><p>JB74 wide-body with paint, vinyl, grilles, tyres and the supported rear-door mount / carrier tray. Other selected parts are research shortlists only; five-door fitment is not transferable. Cabin and accessory geometry are representative and right-hand-drive.</p></details>
   <div class="camera-controls" aria-label="3D camera views"><button class="active" type="button" data-camera="orbit">Exterior</button><button type="button" data-camera="interior">Interior</button><details class="camera-inspection"><summary>More views</summary><div><button type="button" data-camera="front">Front</button><button type="button" data-camera="side">Side</button><button type="button" data-camera="rear">Rear</button><button type="button" data-camera="cutaway">Cabin cutaway</button><button type="button" data-camera="cargo">Cargo cutaway</button></div></details></div>
-  <div class="scenery-picker"><label for="previewScenery">Scenery</label><select id="previewScenery" data-scenery-select aria-describedby="sceneryStatus"><option value="studio">Garage</option><option value="mountains">Mountains</option><option value="urban">Urban</option><option value="desert">Desert</option></select><p id="sceneryStatus" data-scenery-status role="status">Neutral studio background</p></div>
+  <div class="scenery-picker"><label for="previewScenery">Scenery</label><select id="previewScenery" data-scenery-select aria-describedby="sceneryStatus"><option value="gray">Gray studio</option><option value="studio">Workshop</option><option value="mountains">Mountains</option><option value="urban">Urban</option><option value="desert">Desert</option></select><p id="sceneryStatus" data-scenery-status role="status">Neutral studio background</p></div>
 
   <details class="lighting-panel"><summary>Choose your lamps</summary><p id="lightSelectionStatus" aria-live="polite">Factory headlamps only. Choose a lamp below.</p><p>Choose actual listed products below. The 3D shapes are representative, not exact product replicas. No beam-distance or light-throw simulation.</p><div id="lampChoices" class="lamp-choices"></div><button type="button" data-find-lamps>All lighting, mounts & wiring</button><p class="lamp-fitting-note">Use the maker’s measured beam charts for performance. Universal lamps need suitable mounts, fused wiring and local approval.</p></details>
   <p class="paint-label">Body colour <span>Preview only</span></p>
@@ -484,7 +485,7 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
 
   <!-- ============ MODS ============ -->
   <div class="pp-top" data-mode="parts">
-    <div class="pp-title"><h2 id="parts-title">Parts</h2><p>Real products from sellers in India and overseas. Try the ones with a 3D shape on your car.</p></div>
+    <div class="pp-title"><h2 id="parts-title">Parts</h2><p>Explore modification ideas and products. Try the ones with a 3D shape on your car.</p></div>
     <button type="button" class="pp-context" id="partsContext" aria-label="Change region and Jimny body for these parts"><span>Showing parts for</span> <b id="partsContextValue">5-door · India first</b><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     <label class="pp-search"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="partSearch" type="search" placeholder="Search parts and products: snorkel, roof rack, ARB, PRAD…" aria-label="Search parts"></label>
     <button type="button" class="pp-filters-btn" id="partsFiltersOpen" aria-controls="partsSidebar" aria-expanded="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Filters<span class="pp-filters-count" id="partsFiltersCount" hidden></span></button>
@@ -1050,7 +1051,9 @@ const DESIGN_GROUPS = [
     {id:"oem", name:"OEM grille · Suzuki S emblem", label:"OEM S emblem", img:"assets/360/stock/f01.jpg", price:[0,0], badge:"Suzuki badge", wordmark:"S", wordClass:"emblem", meta:["Factory look","with badge"]},
     {id:"block", name:"Heritage grille · SUZUKI badge", label:"Heritage SUZUKI", img:"assets/parts/grille-suzuki-block-product.webp", price:[6000,9000], badge:"Suzuki wordmark", meta:["Popular","seller photo"], sources:[["Jimny4x4Products SUZUKI grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]]},
     {id:"rhino", name:"Black hex grille · SUZUKI badge", label:"Black hex SUZUKI", img:"assets/parts/grille-suzuki-block-product.webp", price:[6500,9000], badge:"Suzuki wordmark", meta:["Popular","seller photo"], sources:[["Jimny4x4Products SUZUKI grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]]},
-    {id:"script", name:"Retro grille · Suzuki script badge", label:"Suzuki script", img:"assets/parts/grille-suzuki-script-product.webp", price:[6000,9500], badge:"Suzuki script", meta:["Retro","seller photo"], sources:[["Jimny4x4Products cursive grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-cursive-logo-matt-black-gloss-black-grey/"]]},
+    {id:"script", name:"Mesh grille · bold connected Suzuki script", label:"Suzuki brush script", img:"assets/parts/grille-suzuki-script-product.webp", price:[6000,9500], badge:"Suzuki script", meta:["Original preview","approximate lettering"], sources:[["Cursive Suzuki grille options","https://autostylenn.com/product-detail/484/Maruti-Suzuki-Jimny-ABS-Grill-With-Suzuki-Cursive-Logo-Matt-Black-Gloss-Black-Grey"]]},
+    {id:"script-loop", name:"Mesh grille · looped vintage Suzuki script", label:"Suzuki vintage loop", img:"assets/parts/grille-suzuki-script-product.webp", price:[6000,9500], badge:"Suzuki script", meta:["Vintage","approximate lettering"], sources:[["STYL cursive badge","https://megajimny.com/products/styl-cursive-suzuki-grille-badge"],["India cursive grille","https://autostylenn.com/product-detail/484/Maruti-Suzuki-Jimny-ABS-Grill-With-Suzuki-Cursive-Logo-Matt-Black-Gloss-Black-Grey"]]},
+    {id:"script-modern", name:"Mesh grille · italic Suzuki lettering", label:"Suzuki italic lettering", img:"assets/parts/grille-suzuki-script-product.webp", price:[6000,9500], badge:"Suzuki italic", meta:["Stylised preview"], sources:[["Cursive Suzuki grille options","https://autostylenn.com/product-detail/484/Maruti-Suzuki-Jimny-ABS-Grill-With-Suzuki-Cursive-Logo-Matt-Black-Gloss-Black-Grey"]]},
     {id:"chrome", name:"Gloss black grille · SUZUKI badge", label:"Gloss black SUZUKI", img:"assets/parts/grille-suzuki-block-product.webp", price:[6500,9000], badge:"Suzuki wordmark", meta:["Gloss option","seller photo"], sources:[["Jimny4x4Products SUZUKI grille","https://jimny4x4product.com/product/maruti-suzuki-jimny-abs-grill-with-suzuki-big-logo-matt-black-gloss-black-grey/"]]},
     {id:"delete", name:"OEM-style · logo delete", label:"Logo delete", img:"assets/looks/gmesh.webp", price:[4500,8000], badge:"No logo", meta:["Clean face","logo-free"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"],["Amazon.in Jimny grille","https://www.amazon.in/s?k=jimny+front+grille"]]},
     {id:"classic", name:"Five-slot grille · no logo", label:"Five-slot clean", img:"assets/looks/gclassic.webp", price:[6000,12000], badge:"No logo", meta:["Retro slots","logo-free"], sources:[["Jimny4x4Products grilles","https://jimny4x4product.com/product-category/grills/"],["Amazon.in Jimny grille","https://www.amazon.in/s?k=jimny+front+grille"]]},
@@ -1400,7 +1403,7 @@ const toastEl = document.getElementById("toast");
 let toastTimer, toastAction=null, activePartFilter="popular", favoritesOnly=false, activeGoal="", lastUndoPayload=null, catalogExpanded=false;
 
 function selectedDesignOptions(){
-  const grilleProducts={autostylenn_s_grille:'smesh',autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script'};
+  const grilleProducts={autostylenn_s_grille:'smesh',autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script-loop'};
   const selectedGrille=Object.keys(grilleProducts).find(id=>state[id]);
   return DESIGN_GROUPS.map(g=>{const product=g.id==='grille'&&selectedGrille;const option=g.options.find(o=>o.id===(product?grilleProducts[selectedGrille]:designState[g.id]));return {group:g.id,...option,...(product?{price:[0,0],includedInPart:selectedGrille}: {})};});
 }
@@ -1655,7 +1658,7 @@ document.getElementById("guideList").innerHTML=GUIDES.map(([t,p])=>`<details cla
 const MODE_TARGETS={garage:"garage",explore:"explore",build:"goalWizard",parts:"parts-title",sources:"online-sources-title",fitters:"shops-title",clubs:"clubs-title",tools:"owner-tools"};
 let workbenchScrollResetFrame=0;
 function setWorkbenchMode(mode,{scroll=false,history=true}={}){
-  if(!MODE_TARGETS[mode])mode='explore';
+  if(!MODE_TARGETS[mode]||mode==='sources'||mode==='fitters')mode='explore';
   const next=MODE_TARGETS[mode]||"explore";
   document.body.classList.add("desktop-mode");document.body.dataset.mode=mode;
   document.querySelectorAll("[data-mode]").forEach(el=>el.classList.toggle("mode-active",el.dataset.mode===mode));
@@ -1888,13 +1891,14 @@ for(const [group,panel] of [['finish','paintControls'],['grille','grilleControls
 const stageActions=document.createElement('div');stageActions.className='garage-stage-actions';stageActions.innerHTML='<button type="button" data-garage-stock aria-pressed="false">Compare stock</button><button type="button" data-garage-image>Save image</button><a href="game.html">Play with this build <span aria-hidden="true">↗</span></a>';
 const grilleColours=document.createElement('div');grilleColours.className='grille-colour-controls';
 const GRILLE_PALETTE=[['original','Original finish'],['body','Body colour'],['#202629','Black'],['#e6e5de','Ivory'],['#9ba3a7','Silver grey'],['#987345','Bronze'],['#a8322e','Red']];
-grilleColours.innerHTML=['grilleColour','badgeColour'].map(field=>`<fieldset data-grille-colour-field="${field}"><legend>${field==='grilleColour'?'Grille colour':'Logo / lettering colour'}</legend><div class="grille-swatches">${GRILLE_PALETTE.map(([value,label])=>`<button type="button" data-grille-colour="${field}" data-colour-value="${value}" aria-pressed="false"><span aria-hidden="true" style="background:${value.startsWith('#')?value:'var(--muted)'}"></span>${label}</button>`).join('')}</div><label class="grille-custom">Custom colour<input type="color" data-custom-grille-colour="${field}" aria-label="Custom ${field==='grilleColour'?'grille':'logo'} colour" value="${field==='grilleColour'?'#202629':'#c7cbcc'}"></label></fieldset>`).join('')+'<p id="grilleColourNote" class="editor-note">Cosmetic colour preview. Original finish restores this grille’s materials. Painting costs are not included.</p>';
+const LOGO_PALETTE=[['original','Original finish'],['body','Body colour'],['#d4aa53','Gold'],['#c7cdd1','Silver'],...GRILLE_PALETTE.slice(2)];
+grilleColours.innerHTML=['grilleColour','badgeColour'].map(field=>`<fieldset data-grille-colour-field="${field}"><legend>${field==='grilleColour'?'Grille colour':'Logo / lettering colour'}</legend><div class="grille-swatches">${(field==='badgeColour'?LOGO_PALETTE:GRILLE_PALETTE).map(([value,label])=>`<button type="button" data-grille-colour="${field}" data-colour-value="${value}" aria-pressed="false"><span aria-hidden="true" style="background:${value.startsWith('#')?value:'var(--muted)'}"></span>${label}</button>`).join('')}</div><label class="grille-custom">Custom colour<input type="color" data-custom-grille-colour="${field}" aria-label="Custom ${field==='grilleColour'?'grille':'logo'} colour" value="${field==='grilleColour'?'#202629':'#c7cbcc'}"></label></fieldset>`).join('')+'<p id="grilleColourNote" class="editor-note">Cosmetic colour preview. Original finish restores this grille’s materials. Painting costs are not included.</p>';
 document.getElementById('grilleControls').prepend(grilleColours);
 function refreshGrilleColours(){
   const noBadge=['delete','classic','mesh'].includes(designState.grille);grilleColours.querySelector('[data-grille-colour-field="badgeColour"]').disabled=noBadge;
   grilleColours.querySelectorAll('[data-grille-colour]').forEach(b=>b.setAttribute('aria-pressed',String((designState[b.dataset.grilleColour]||'original')===b.dataset.colourValue)));
   grilleColours.querySelectorAll('[data-custom-grille-colour]').forEach(input=>{const value=designState[input.dataset.customGrilleColour];input.value=value==='body'?selectedPaint:/^#[0-9a-f]{6}$/i.test(value||'')?value:input.dataset.customGrilleColour==='grilleColour'?'#202629':'#c7cbcc';});
-  document.getElementById('grilleColourNote').textContent=noBadge?'This grille has no logo. Choose an emblem or lettering grille to colour its badge. Painting costs are not included.':'Cosmetic colour preview. Original finish restores this grille’s materials. Painting costs are not included.';
+  document.getElementById('grilleColourNote').textContent=noBadge?'This grille has no logo. Choose an emblem or lettering grille to colour its badge. The spare-wheel S is hidden with a custom front logo.':'Gold and silver are metallic previews. Customising the front logo hides the S on the spare wheel; restore the factory grille and original logo finish to show it again.';
 }
 function setGrilleColour(field,value){if(!['grilleColour','badgeColour'].includes(field))return;rememberUndo();designState[field]=value;update();refreshGarage();window.jimny3D?.view('front');}
 grilleColours.addEventListener('click',e=>{const b=e.target.closest('[data-grille-colour]');if(b)setGrilleColour(b.dataset.grilleColour,b.dataset.colourValue);});
@@ -1953,7 +1957,7 @@ window.getJimnyStudioPreviews=()=>[
   ...[...new Set(Object.values(GARAGE_FAMILIES).flat())].filter(id=>modById[id]?.market&&garageCanPreview(id)).map(id=>({file:`part-${id}`,id,parts:partPreviewSelection(id,bodyStyle),colour:'#b5a080',design:{finish:'oem',decal:'none',grille:'oem'},angle:PART_PREVIEW_ANGLES[modById[id]?.visual]||'orbit'}))
 ];
 renderVisualEditors();
-function garageCanPreview(id){const part=modById[id];if(catalogueBodyStatus(part||{},bodyStyle)==='incompatible')return false;return bodyStyle!=='3door'||id==='snorkel'||['tires','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim'].includes(part?.visual||id)||!!practicalSpec(id)?.bodyStyles.includes(bodyStyle);}
+function garageCanPreview(id){const part=modById[id];if(catalogueBodyStatus(part||{},bodyStyle)==='incompatible')return false;return bodyStyle!=='3door'||id==='snorkel'||['tires','flares','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim'].includes(part?.visual||id)||!!practicalSpec(id)?.bodyStyles.includes(bodyStyle);}
 function renderGarageParts(){
   const ids=(GARAGE_FAMILIES[garageCategory]||[]).filter(id=>modById[id]&&(!globalThis.JimnyExteriorParts?.[partVisual(id)]||catalogueBodyStatus(modById[id],bodyStyle)!=='incompatible'));
   garageParts.innerHTML=`${bodyStyle==='3door'&&ids.length?'<p class="garage-scope">This body previews tyres, wheel finishes, paint, decals, grilles and the supported rear-door carrier system. Other parts remain research-only.</p>':''}${garagePartCards(ids)}`;
