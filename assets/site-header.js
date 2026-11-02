@@ -22,15 +22,16 @@
   }
   // Before a first Garage visit nothing is saved yet; the Garage itself defaults to India.
   const DEFAULT_REGION='India';
+  const gameMark='<span class="site-game-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 8.2h9.6c2.1 0 3.3 1.4 3.9 3.5l.9 3.7c.6 2.4-1.6 4-3.4 2.5l-2.1-1.7H7.9l-2.1 1.7c-1.8 1.5-4-.1-3.4-2.5l.9-3.7c.6-2.1 1.8-3.5 3.9-3.5Z"/><path d="M7 11v3m-1.5-1.5h3M16.4 11.6h.01m1.7 2h.01"/></svg></span>';
   function contextLabel(context){return `${context.region||DEFAULT_REGION} · ${context.body==='3door'?'3-door':'5-door'}`;}
   function navItem(item,page){
     if(page==='garage'){
       if(item.primaryMode)return `<button type="button" data-primary-mode="${item.primaryMode}" class="active">${esc(item.label)}</button>`;
       if(item.mode)return `<button type="button" data-mode-select="${item.mode}">${esc(item.label)}</button>`;
-      return `<a href="${item.href}"${item.page==='drive'?' class="site-game-link"':''}${item.tripPlanner?' data-open-trip-planner':''}>${esc(item.label)}</a>`;
+      return `<a href="${item.href}"${item.page==='drive'?' class="site-game-link"':''}${item.tripPlanner?' data-open-trip-planner':''}>${item.page==='drive'?gameMark:''}${esc(item.label)}</a>`;
     }
     const href=item.href||`index.html#${item.hash}`,current=item.page===page;
-    return `<a href="${href}"${item.page==='drive'?' class="site-game-link"':''}${current?' aria-current="page"':''}>${esc(item.label)}</a>`;
+    return `<a href="${href}"${item.page==='drive'?' class="site-game-link"':''}${current?' aria-current="page"':''}>${item.page==='drive'?gameMark:''}${esc(item.label)}</a>`;
   }
   const icons={
     chevron:'<svg class="site-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
@@ -53,7 +54,7 @@
 <details class="site-setup"><summary aria-label="Your setup: region, Jimny and style"><span class="site-setup-context">${esc(contextLabel(context))}</span>${icons.chevron}</summary>
 <div class="site-setup-panel"><div class="site-setup-heading"><strong>Your setup</strong><button type="button" data-close-setup>Close</button></div><div class="site-setup-fields">${fields}</div><div class="site-setup-theme"></div><p class="site-setup-note">Body and region shape the previews and sources. Style changes the look of every page.</p><a class="site-setup-welcome" href="${page==='garage'?'':'index.html'}#welcome">What is jimnygami?</a></div></details>
 </div>
-${page==='drive'?'':'<a class="site-game-mobile" href="game.html" aria-label="Play the Jimny 4×4 game">Play 4×4</a>'}
+${page==='drive'?'':`<a class="site-game-mobile" href="game.html" aria-label="Play the Jimny 4×4 game">${gameMark}<span>Play 4×4</span></a>`}
 ${build}
 <button type="button" class="site-menu-toggle" aria-expanded="false" aria-controls="siteMenu" aria-label="Menu">${icons.menu}</button>
 </div>`;

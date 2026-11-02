@@ -20,7 +20,7 @@ test('both bodies have three distinct tyre-tread renders from their actual live 
  }
 });
 test('preview material and accessory renderer fingerprints are current',()=>{
-  assert.equal(Object.keys(manifest.renderSources).length,31);
+  for(const file of ['src/exterior-parts.js','src/detailed-wheels.js','src/front-mounts.js','assets/exterior-parts-data.js'])assert.ok(manifest.renderSources[file],`${file} changes the rendered accessories`);
   for(const file of ['src/garage-cameras.js','src/trail/player.js','src/trail/replay.js'])assert.ok(manifest.renderSources[file]);
   assert.ok(manifest.renderSources['src/scenery.js'],'scenery lights every preview');
   assert.ok(manifest.renderSources['src/workshop-stage.js'],'previews are rendered in the modelled Garage');

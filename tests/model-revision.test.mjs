@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
-import {Raycaster,Vector3} from 'three';
+import {Box3,Raycaster,Vector3} from 'three';
 import {createDriver,updateDriver} from '../src/trail/player.js';
 import {applyCabinMaterials} from '../src/trail/cabin-materials.js';
 
@@ -47,7 +47,7 @@ test('interior sill does not protrude through the painted stock doors',async()=>
     }
   }
 });
-test('front amber lenses retain reference-guided 80 mm diameter in both bodies',async()=>{
+test('front amber lenses retain their body-specific reference proportions',async()=>{
   for(const body of ['lwb','swb']){
     const root=(await cabin(body)).parent,point=new Vector3(),heights=[];
     root.traverse(object=>{
@@ -55,12 +55,17 @@ test('front amber lenses retain reference-guided 80 mm diameter in both bodies',
       const position=object.geometry.attributes.position;
       for(let i=0;i<position.count;i++){
         point.fromBufferAttribute(position,i).applyMatrix4(object.matrixWorld);
-        if(point.z>(body==='swb'?1.58:1.75))heights.push(point.y);
+        if(point.z>(body==='swb'?1.58:1.68))heights.push(point.y);
       }
     });
     assert(heights.length>20,`${body} front amber lenses exist`);
     const diameter=Math.max(...heights)-Math.min(...heights);
-    assert(diameter>.075&&diameter<.085,`${body} front amber lens diameter ${diameter}`);
+    if(body==='lwb'){
+      // The official NEXA front comparison puts the amber lens (not its black
+      // surround) at roughly 30% of the five-door headlamp housing diameter.
+      const lampHeight=new Box3().setFromObject(root.getObjectByName('StockHeadlamps')).getSize(new Vector3()).y;
+      assert(diameter/lampHeight>.26&&diameter/lampHeight<.34,`${body} amber/headlamp ratio ${diameter/lampHeight}`);
+    }else assert(diameter>.075&&diameter<.085,`${body} front amber lens diameter ${diameter}`);
   }
 });
 test('model badges use outlined geometry and instrument cluster has no training billboard',async()=>{

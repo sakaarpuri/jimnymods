@@ -301,3 +301,5 @@ html[data-ui-theme=rally]{color-scheme:dark}
 }
 /* Optional mixed-control expedition: preparation is part of the briefing. */
 .expedition-prep{margin:14px 0;padding:16px;border:1px solid #c79a4c;border-radius:12px;background:#292b26;color:#f4eee0;font-size:14px;line-height:1.5}.expedition-prep[hidden]{display:none}.expedition-prep strong{font-size:17px}.expedition-prep ol{padding-left:22px;margin:10px 0}.expedition-prep p{margin:10px 0}.expedition-prep [data-kit-status]{font-weight:750;color:#ffd58b}.expedition-prep[data-ready=true] [data-kit-status]{color:#b7e3b6}.expedition-prep a{display:inline-block;padding:9px 0;color:#fff0b3;text-decoration:underline;text-underline-offset:3px}
+#lineScore { display:block; margin-top:.25rem; color:#e8f18a; font-weight:700; font-size:.75rem; }
+#lineScore[hidden] { display:none; }

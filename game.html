@@ -8,7 +8,7 @@
 <main id="game" aria-label="Jimny driving practice">
   <div id="stage" aria-busy="true"><p id="loadStatus" role="status">Preparing the trail and your Jimny…</p></div>
   <section id="hud" hidden aria-label="Driving instruments">
-    <div class="mission"><span id="courseLabel"></span><strong id="checkpointLabel">Gate 1</strong><progress id="progress" value="0" max="1" aria-label="Course progress"></progress></div>
+    <div class="mission"><span id="courseLabel"></span><strong id="checkpointLabel">Gate 1</strong><progress id="progress" value="0" max="1" aria-label="Course progress"></progress><small id="lineScore" hidden></small></div>
     <div class="telemetry"><div><strong id="speed">0</strong><span>km/h</span></div><p><b id="driveState">2H · N</b><span id="rpm">850 rpm</span></p></div>
     <canvas id="map" width="180" height="180" aria-label="Trail overview and current position" role="img"></canvas>
     <div class="coach"><span id="coachKicker">Your next move</span><p id="coachText" role="status" aria-live="polite"></p><span id="condition">Stock tyres · dry loose ground</span><button id="cabinPreview" type="button" aria-label="Live cabin controls. Switch to interior view." aria-pressed="false"><canvas id="cabinThumbnail" width="384" height="240" aria-label="Live steering wheel, automatic selector and transfer lever"></canvas><span>Cabin · tap to switch</span><small id="cabinState">N · 2H · Park brake on</small></button><div class="coach-actions"><button id="coachVoice" type="button" aria-pressed="false">Voice off</button><button id="hearAgain" type="button">Hear again</button><button id="showMe" type="button">Show me</button></div><small id="spokenStatus"></small></div>
@@ -28,6 +28,7 @@
 <dialog id="results" aria-labelledby="resultTitle"><p class="eyebrow">Back at base</p><h2 id="resultTitle">Trail complete.</h2><p id="resultText"></p><div id="resultStats" class="result-stats"></div><p id="resultAdvice"></p><button id="nextCourse" type="button" class="primary">Choose the next trail</button><button id="replay" type="button">Try for a cleaner line</button><a href="index.html">Return to your build</a></dialog>
 <noscript><p>The driving game needs JavaScript. <a href="index.html">Return to the modification guide.</a></p></noscript>
 <script src="assets/market-catalog.js"></script>
+<script src="assets/exterior-parts-data.js"></script>
 <script src="assets/practical-accessories-data.js"></script>
 <script src="assets/interior-products.js"></script>
 <script type="module" src="assets/trail-game.js"></script>

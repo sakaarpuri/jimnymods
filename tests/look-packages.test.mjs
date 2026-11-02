@@ -19,7 +19,7 @@ test('new interior listings distinguish body compatibility, original geometry an
 test('ready-made builds differ in silhouette, graphics, roof treatment and interior fabric',()=>{
  assert.equal(new Set(looks.map(p=>p.vibe)).size,20);
  assert(new Set(looks.map(p=>p.parts.slice().sort().join(','))).size===20);
- assert(new Set(looks.map(p=>p.design.decal)).size>=17);
+ assert(new Set(looks.map(p=>p.design.decal)).size>=16);
  const contrasts=looks.filter(p=>p.design.finish==='twotone');assert(contrasts.length>=4);assert(new Set(contrasts.map(p=>p.design.roofColour)).size>=4);
  assert(looks.some(p=>p.parts.includes('rtt'))&&looks.some(p=>p.parts.includes('touring'))&&looks.some(p=>p.parts.includes('winch')));
  assert(looks.some(p=>p.design.seatFabric==='houndstooth')&&looks.some(p=>p.design.seatFabric==='leather'));

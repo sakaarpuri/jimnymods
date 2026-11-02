@@ -426,6 +426,7 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
   <section class="look-inspo" id="explore" data-mode="explore" aria-labelledby="look-inspo-title">
     <div class="section-heading"><div><p class="eyebrow">The inspiration edit</p><h2 id="look-inspo-title">One Jimny. Many personalities.</h2></div><button type="button" class="garage-looks-return" data-quickfits-return>Explore Quick fits</button></div>
     <p class="section-lead"><span class="desktop-explore-copy">A starting point for your own build. Choose a direction, then find the parts and people to make it happen.</span><span class="mobile-explore-copy">Find your style. Make it your own.</span></p>
+    <p class="model-accuracy-note"><strong>3D preview only.</strong> The Jimny and parts are not 100% accurate. Colours, proportions and fit may differ from the real vehicle. Check product details and fitment with the seller or a qualified installer before buying or modifying your car.</p>
     <div class="look-inspo-grid" id="lookInspoGrid"></div>
     <p class="image-caption">Every preview is rendered from this same 3D Jimny. Open a setup to rotate it, then apply it or keep your current build. Part shapes remain representative; check seller photos for exact detail.</p>
   </section>
@@ -504,7 +505,7 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
   <div class="fs-head" data-mode="sources"><div><h2 id="online-sources-title">Find your buying options.</h2><p class="source-context" id="sourceContext">Compare Indian stores and marketplaces before leaving jimnygami.</p></div><div class="fs-toggle" role="group" aria-label="Fitters or sellers"><button type="button" data-fs-view="fitters" aria-pressed="false">Fitters</button><button type="button" data-fs-view="sellers" aria-pressed="true">Sellers</button></div></div>
   <div class="directory-tools" data-mode="sources"><label>What are you looking for?<input id="sourceSearch" type="search" placeholder="Roof rack, lighting, supplier name…"></label><label>Seller location<select id="sourceCountry"><option value="all">All countries · your region first</option></select></label><label>Seller type<select id="sourceType"><option value="all">All sellers</option><option value="official">Genuine accessories</option><option value="specialist">Specialist / manufacturer</option><option value="marketplace">Marketplace</option></select></label></div>
   <p class="directory-summary" id="sourceStatus" data-mode="sources" aria-live="polite"></p>
-  <div class="directory-invite" data-mode="sources"><p>Sell Jimny parts or install them?</p><button type="button" class="action" data-listing-invite="vendor">Request a directory listing</button></div>
+  <div class="directory-invite" data-mode="sources"><p>Want to add your business? Email us at <strong>garage@jimnygami.com</strong> once our mailbox opens. The mailbox is coming soon, so please don't send messages yet.</p><button type="button" class="action" data-listing-invite="vendor">Request a directory listing</button></div>
   <div id="onlineSources" data-mode="sources"></div>
   <div class="no-results" id="sourceNoResults" data-mode="sources" hidden>No online option matches that search. <button class="text-button" type="button" data-reset-sources>Reset filters</button></div>
 
@@ -591,6 +592,7 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="assets/market-catalog.js"></script>
+<script src="assets/exterior-parts-data.js"></script>
 <script src="assets/product-photos.js"></script>
 <script src="assets/practical-accessories-data.js"></script>
 <script src="assets/interior-products.js"></script>
@@ -960,6 +962,7 @@ const fmt = n => window.jimnyRegion==='IN'?fmtInr(n):window.JimnyMoney.approx(n)
 const escHtml = value => String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const POPULAR_MOD_IDS=["autostylenn_big_suzuki_grille","market_8087496753377","bimbra_snorkel","market_stedi_spot","market_dd_dual","tires","mats","dashcam"];
 const PART_PREVIEW_ANGLES={suzuki_nomade_flatrack:'roof',suzuki_nomade_steelwheel:'wheel-detail',skinnyjim_backbone:'rear',skinnyjim_jerry_tray:'rear',fr_slimline2:'roof',fr_slimline2_tall:'roof',ladder:'rear',sparecover:'rear',mudflaps:'rear',spoiler:'rear',drawer:'storage',molle:'seatbacks',shelf:'storage',seats:'seats',mats:'footwell',headunit:'interior',steering:'interior',armrest:'console',dashcam:'interior',ambient:'footwell',sliders:'side',cladding:'side',visors:'side',hingecovers:'side',skid:'underside'};
+Object.assign(PART_PREVIEW_ANGLES,Object.fromEntries(Object.values(globalThis.JimnyExteriorParts||{}).map(p=>[p.visual,p.camera])));
 Object.assign(PART_PREVIEW_ANGLES,{mod_reardoor_molle:'cargo',mod_halfmolly_5door:'cargo',exploresetups_drawer_5door:'cargo',doortrim:'doors',touring:'touring'});
 Object.assign(PART_PREVIEW_ANGLES,Object.fromEntries(Object.values(globalThis.JimnyPracticalParts||{}).map(p=>[p.visual,p.camera])));
 // Hidden luggage, seat-back and door equipment starts in an unobstructed view.
@@ -982,7 +985,7 @@ function catalogueScopeMatches(part,body,bodyScope,marketScope,country){
     (marketScope!=='local'||(part.countryCode||(part.realIndia?'IN':null))===country);
 }
 function cataloguePreviewKind(part,body){
-  if(!part.visual||catalogueBodyStatus(part,body)==='incompatible'||(body==='3door'&&!['tires','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim'].includes(part.visual)&&!globalThis.JimnyPracticalParts?.[part.visual]?.bodyStyles.includes(body)))return 'research-only';
+  if(!part.visual||catalogueBodyStatus(part,body)==='incompatible'||(body==='3door'&&!['tires','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim'].includes(part.visual)&&!globalThis.JimnyPracticalParts?.[part.visual]?.bodyStyles.includes(body)&&!globalThis.JimnyExteriorParts?.[part.visual]?.bodyStyles.includes(body)))return 'research-only';
   return part.previewKind==='reference-guided'?'reference-guided':'representative';
 }
 function catalogueFitmentLabel(part,body){
@@ -1525,12 +1528,12 @@ function update(){
   window.dispatchEvent(new CustomEvent('jimny-build-change',{detail:{body:bodyStyle,parts:on.map(m=>m.id),design:{...designState},colour:selectedPaint}}));
 }
 const EXCLUSIVE_PARTS=[['autostylenn_s_grille','autostylenn_big_suzuki_grille','autostylenn_cursive_grille'],['rack','msga_roofbasket','prad_roofrack','fr_slimline2','fr_slimline2_tall','suzuki_nomade_flatrack'],['snorkel','bimbra_snorkel'],['bull','autostylenn_bumper_v1']];
-function partFamily(id){const v=modById[id]?.visual||id;const groups=[['rack','msga_roofbasket','prad_roofrack','fr_slimline2','fr_slimline2_tall','suzuki_nomade_flatrack'],['bull','autostylenn_bumper_v1'],['snorkel','bimbra_snorkel'],['lamp_round_spot','lamp_round_flood'],['lamp_fog','lamp_dual'],['pods','lamp_cube'],['led','lamp_bar20'],['autostylenn_s_grille','autostylenn_big_suzuki_grille','autostylenn_cursive_grille']];return groups.find(g=>g.includes(v))?.[0]||v;}
+function partFamily(id){const v=modById[id]?.visual||id;if(globalThis.JimnyExteriorParts?.[v])return globalThis.JimnyExteriorParts[v].family;const groups=[['rack','msga_roofbasket','prad_roofrack','fr_slimline2','fr_slimline2_tall','suzuki_nomade_flatrack'],['bull','autostylenn_bumper_v1'],['snorkel','bimbra_snorkel'],['lamp_round_spot','lamp_round_flood'],['lamp_fog','lamp_dual'],['pods','lamp_cube'],['led','lamp_bar20'],['autostylenn_s_grille','autostylenn_big_suzuki_grille','autostylenn_cursive_grille']];return groups.find(g=>g.includes(v))?.[0]||v;}
 function partVisual(id){return modById[id]?.visual||id;}
-function practicalSpec(id){return globalThis.JimnyPracticalParts?.[partVisual(id)]||null;}
+function practicalSpec(id){return globalThis.JimnyPracticalParts?.[partVisual(id)]||globalThis.JimnyExteriorParts?.[partVisual(id)]||null;}
 function practicalDependencies(id){return [...new Set([...(modById[id]?.requiresVisual||[]),...(practicalSpec(id)?.requires||[])])];}
 function partIdForVisual(visual,body){return MODS.find(m=>(m.visual||m.id)===visual&&catalogueBodyStatus(m,body)!=='incompatible')?.id;}
-function practicalConflict(a,b){const av=partVisual(a),bv=partVisual(b);return !!(practicalSpec(a)?.incompatible?.includes(bv)||practicalSpec(b)?.incompatible?.includes(av));}
+function practicalConflict(a,b){const av=partVisual(a),bv=partVisual(b);return !!globalThis.JimnyExteriorConflict?.(av,bv)||!!(practicalSpec(a)?.incompatible?.includes(bv)||practicalSpec(b)?.incompatible?.includes(av));}
 function prunePracticalParts(ids,body){
   let selected=[];
   for(const id of ids){const spec=practicalSpec(id);if(spec&&!spec.bodyStyles.includes(body))continue;selected=selected.filter(other=>!practicalConflict(id,other));selected.push(id);}
@@ -1562,6 +1565,7 @@ function setPartSelection(id,on){
   }
   if(!on&&part?.visual)MODS.filter(m=>m.requiresVisual?.includes(part.visual)&&state[m.id]).forEach(m=>{state[m.id]=false;showToast('The dependent carrier tray was removed with its mount.');});
   if(partFamily(id)==='tires')designState.tyreType=on?'allterrain':'highway';
+  if(on&&(partFamily(id)==='wheel-design'||partVisual(id)==='suzuki_nomade_steelwheel'))designState.wheelDesign='factory';
   if(on){const family=partFamily(id);MODS.forEach(m=>{if(m.id!==id&&partFamily(m.id)===family)state[m.id]=false;});}
   if(on){const group=EXCLUSIVE_PARTS.find(ids=>ids.includes(id));group?.forEach(other=>{if(other!==id)state[other]=false;});if(group===EXCLUSIVE_PARTS[0])designState.grille='oem';}
   const replaced=[];if(on)for(const m of MODS)if(state[m.id]&&m.id!==id&&practicalConflict(id,m.id)){state[m.id]=false;replaced.push(m.name);}
@@ -1816,7 +1820,8 @@ window.addEventListener('jimny-model-change',refreshHeaderContext);
 // My build on the Trip planner and Drive pages lands here with the drawer open.
 try{if(sessionStorage.getItem('thatsuvmod-open-build')){sessionStorage.removeItem('thatsuvmod-open-build');addEventListener('load',()=>openDrawer(),{once:true});}}catch{}
 const garage=document.createElement('section');garage.id='garage';garage.dataset.mode='garage';
-garage.innerHTML=`<div class="garage-heading"><div><p class="eyebrow">A little box. A world of ideas.</p><h1>Make your own way.</h1></div><button type="button" class="garage-undo" data-garage-undo disabled>Undo</button></div><p class="garage-intro">Pick a part below or use the labels on your car. Tap a fitted part again to remove it.</p><div class="garage-categories" role="tablist" aria-label="Modification categories">${[['popular','Quick fits'],['paint','Paint'],['graphics','Decals'],['wheels','Wheels'],['grille','Grilles'],['bumpers','Bumpers'],['lighting','Lights'],['roof','Roof'],['rear','Rear & gear'],['cabin','Cabin']].map(([id,name])=>`<button type="button" role="tab" id="garage-tab-${id}" data-garage-category="${id}" aria-controls="garageChoices" aria-selected="${id==='popular'}" tabindex="${id==='popular'?0:-1}">${name}</button>`).join('')}</div><div id="garageChoices" role="tabpanel" aria-labelledby="garage-tab-popular"><div id="garagePartChoices"></div></div><div class="garage-next"><button type="button" data-mode-select="explore">Ready-made looks</button><button type="button" data-mode-select="build">Purpose builds</button><button type="button" data-mode-select="parts">All parts & products</button></div><p class="garage-honesty">3D previews show representative shapes, not exact manufacturer CAD. Check the real product, fitment and local rules before buying.</p>`;
+garage.innerHTML=`<div class="garage-heading"><div><p class="eyebrow">A little box. A world of ideas.</p><h1>Make your own way.</h1></div><button type="button" class="garage-undo" data-garage-undo disabled>Undo</button></div><p class="garage-intro">Pick a part below or use the labels on your car. Tap a fitted part again to remove it.</p><div class="garage-categories" role="tablist" aria-label="Modification categories">${[['popular','Quick fits'],['paint','Paint'],['graphics','Decals'],['wheels','Wheels'],['body','Body'],['grille','Grilles'],['bumpers','Bumpers'],['lighting','Lights'],['roof','Roof'],['rear','Rear & gear'],['cabin','Cabin']].map(([id,name])=>`<button type="button" role="tab" id="garage-tab-${id}" data-garage-category="${id}" aria-controls="garageChoices" aria-selected="${id==='popular'}" tabindex="${id==='popular'?0:-1}">${name}</button>`).join('')}</div><div id="garageChoices" role="tabpanel" aria-labelledby="garage-tab-popular"><div id="garagePartChoices"></div></div><div class="garage-next"><button type="button" data-mode-select="explore">Ready-made looks</button><button type="button" data-mode-select="build">Purpose builds</button><button type="button" data-mode-select="parts">All parts & products</button></div><p class="garage-honesty">3D previews show representative shapes, not exact manufacturer CAD. Check the real product, fitment and local rules before buying.</p>`;
+garage.querySelector('.garage-intro').insertAdjacentHTML('afterend','<p class="model-accuracy-note"><strong>3D preview only.</strong> The Jimny and parts are not 100% accurate. Colours, proportions and fit may differ from the real vehicle. Check product details and fitment with the seller or a qualified installer before buying or modifying your car.</p>');
 document.querySelector('.planner-main').prepend(garage);
 const finishSelection=new Set(['body']);
 const surfaceControls=document.createElement('section');surfaceControls.className='surface-controls';surfaceControls.setAttribute('aria-label','Blackout and part finishes');
@@ -1853,7 +1858,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-restore-surface-colours]')){surfaceControls.querySelector('[data-restore-hardware]').click();return;}
  const edit=e.target.closest('[data-edit-surface]');if(edit){if(!['paint','grille'].includes(garageCategory))openGarageCategory('paint');const more=document.getElementById('paintMore');if(more&&garageCategory==='paint')more.open=true;setWorkbenchMode('garage');finishSelection.clear();finishSelection.add(edit.dataset.editSurface);surfaceControls.querySelector('details').open=true;surfaceControlsMarkup='';refreshSurfaceControls();surfaceControls.scrollIntoView({block:'nearest'});surfaceControls.querySelector(`[data-finish-target="${edit.dataset.editSurface}"]`)?.focus({preventScroll:true});}
 });
-const categoryIcons={popular:'M13 2 4 14h7l-1 8 10-12h-7z',paint:'M8 8h8v13H8z M10 3h4v5 M14 4h5 M19 3v3',graphics:'m3 18 8-12h4L7 18z M12 18l8-12',wheels:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 8v-5 M8 12H3 M12 16v5 M16 12h5 M9 9 6 6 M15 15l3 3 M15 9l3-3 M9 15l-3 3 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6',grille:'M3 7h18v11H3z M7 8v9 M12 8v9 M17 8v9',bumpers:'M3 11v7h18v-7 M6 18v-5h12v5 M6 7v4 M18 7v4',lighting:'M12 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12 M8 20h8 M12 2V1 M3 5 1 3 M21 5l2-2 M2 11H0 M22 11h2',roof:'M3 13h18v4H3z M5 13l2-5h10l2 5 M7 8v5 M12 8v5 M17 8v5 M5 17v3 M19 17v3',rear:'M5 4h14v17H5z M7 6h10v6H7z M12 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8',cabin:'M6 4h5v10h8v5H6z M8 19v3 M17 19v3'};
+const categoryIcons={popular:'M13 2 4 14h7l-1 8 10-12h-7z',paint:'M8 8h8v13H8z M10 3h4v5 M14 4h5 M19 3v3',graphics:'m3 18 8-12h4L7 18z M12 18l8-12',wheels:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 8v-5 M8 12H3 M12 16v5 M16 12h5 M9 9 6 6 M15 15l3 3 M15 9l3-3 M9 15l-3 3 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6',body:'M3 14l2-5 4-2h8l3 5 1 2v4h-3a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H3z M6 12h13',grille:'M3 7h18v11H3z M7 8v9 M12 8v9 M17 8v9',bumpers:'M3 11v7h18v-7 M6 18v-5h12v5 M6 7v4 M18 7v4',lighting:'M12 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12 M8 20h8 M12 2V1 M3 5 1 3 M21 5l2-2 M2 11H0 M22 11h2',roof:'M3 13h18v4H3z M5 13l2-5h10l2 5 M7 8v5 M12 8v5 M17 8v5 M5 17v3 M19 17v3',rear:'M5 4h14v17H5z M7 6h10v6H7z M12 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8',cabin:'M6 4h5v10h8v5H6z M8 19v3 M17 19v3'};
 garageCategoryStrip.querySelectorAll('button').forEach(button=>{button.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${categoryIcons[button.dataset.garageCategory]}"></path></svg>`);});
 const garageDesktop=matchMedia('(min-width:1100px)');
 function placeGarageNavigation(){
@@ -1900,6 +1905,10 @@ const selectionTray=document.createElement('section');selectionTray.className='g
 const chips=document.createElement('div');chips.className='garage-chips';chips.id='garageChips';chips.setAttribute('aria-label','Selected modifications');chips.tabIndex=0;selectionTray.append(chips);stageActions.after(selectionTray);
 let renderedGarageChips='';
 const GARAGE_FAMILIES={popular:['tires','market_suzuki_nomade_flatrack','bull','snorkel','market_suzuki_nomade_steelwheel','market_skinny_backbone'],wheels:['market_suzuki_nomade_steelwheel','lift','flares','mudflaps'],bumpers:['bull','autostylenn_bumper_v1','sliders','winch','skid'],roof:['market_suzuki_nomade_flatrack','rack','msga_roofbasket','prad_roofrack','rtt','awning','ladder'],rear:['market_skinny_backbone','market_skinny_jerry','sparecover','ladder','mudflaps','spoiler'],cabin:['seats','mats','headunit','steering','armrest','dashcam','ambient','drawer','molle','shelf']};
+const exteriorGarageParts=Object.values(globalThis.JimnyExteriorParts||{});
+GARAGE_FAMILIES.body=exteriorGarageParts.filter(p=>!p.diameter).map(p=>p.id);
+GARAGE_FAMILIES.wheels=[...exteriorGarageParts.filter(p=>p.diameter).map(p=>p.id),...GARAGE_FAMILIES.wheels];
+GARAGE_FAMILIES.bumpers=[...exteriorGarageParts.filter(p=>['bumper-accent','front-under-garnish'].includes(p.family)).map(p=>p.id),...GARAGE_FAMILIES.bumpers];
 const practicalGarageParts=Object.values(globalThis.JimnyPracticalParts||{});
 const practicalListingId=part=>part.existingId||part.id;
 GARAGE_FAMILIES.cabin=[...practicalGarageParts.filter(p=>!['fr_fuelcan20','fr_jerry_holder'].includes(p.id)).map(practicalListingId),...GARAGE_FAMILIES.cabin];
@@ -1946,7 +1955,7 @@ window.getJimnyStudioPreviews=()=>[
 renderVisualEditors();
 function garageCanPreview(id){const part=modById[id];if(catalogueBodyStatus(part||{},bodyStyle)==='incompatible')return false;return bodyStyle!=='3door'||id==='snorkel'||['tires','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim'].includes(part?.visual||id)||!!practicalSpec(id)?.bodyStyles.includes(bodyStyle);}
 function renderGarageParts(){
-  const ids=(GARAGE_FAMILIES[garageCategory]||[]).filter(id=>modById[id]);
+  const ids=(GARAGE_FAMILIES[garageCategory]||[]).filter(id=>modById[id]&&(!globalThis.JimnyExteriorParts?.[partVisual(id)]||catalogueBodyStatus(modById[id],bodyStyle)!=='incompatible'));
   garageParts.innerHTML=`${bodyStyle==='3door'&&ids.length?'<p class="garage-scope">This body previews tyres, wheel finishes, paint, decals, grilles and the supported rear-door carrier system. Other parts remain research-only.</p>':''}${garagePartCards(ids)}`;
   refreshGarage();
   if(garageCategory==='rear')garageParts.insertAdjacentHTML('afterbegin','<p class="garage-scope">Expedition carrying & rear equipment. The water can sits low in cargo; the fuel can is external on its compatible roof rack and holder. Required mounting parts are shown before fitting. “Jerry+” is a tray, not a fuel can.</p>');
@@ -1985,7 +1994,7 @@ const nameChip=designState.nameDecal?`<span class="garage-selected-item"><span>N
 }
 function openGarageCategory(id,{focus=false,history=true}={}){
   garageCategory=id;setWorkbenchMode('garage',{history});
-  const categoryNames={popular:'Quick fits',paint:'Paint',graphics:'Decals',wheels:'Wheels',grille:'Grilles',bumpers:'Bumpers',lighting:'Lights',roof:'Roof',rear:'Expedition gear',cabin:'Cabin'};
+  const categoryNames={popular:'Quick fits',paint:'Paint',graphics:'Decals',wheels:'Wheels',body:'Body & cladding',grille:'Grilles',bumpers:'Bumpers',lighting:'Lights',roof:'Roof',rear:'Expedition gear',cabin:'Cabin'};
   garage.querySelector('h1').textContent=categoryNames[id]||'Your garage';
   garage.querySelector('.garage-intro').textContent=({paint:'Tap a swatch to repaint your Jimny instantly. Choose a finish below.',graphics:'See the whole design before you fit it. Tap again to remove.',grille:'Choose the face of your Jimny. Tap again to restore the factory grille.',cabin:'Choose seat colours or interior parts. Tap a fitted option to remove it.'})[id]||'Tap a picture to fit. Tap again to remove. Buying options stay separate.';
   const editor=['paint','graphics','grille','cabin','lighting'].includes(id);
@@ -2002,7 +2011,7 @@ document.addEventListener('click',e=>{
   const tyre=e.target.closest('[data-tyre-choice]');if(tyre){rememberUndo();const type=tyre.dataset.tyreChoice;if(type==='highway')MODS.filter(m=>partFamily(m.id)==='tires').forEach(m=>state[m.id]=false);setPartSelection('tires',type!=='highway');designState.tyreType=type;update();refreshGarage();window.jimny3D?.view('wheel-detail');return;}
   const paint=e.target.closest('[data-paint-choice]');if(paint){rememberUndo();selectedPaint=paint.dataset.paintChoice;update();refreshGarage();return;}
   if(e.target.closest('[data-remove-wheel-finish]')){rememberUndo();designState.wheelFinish='oem';update();refreshGarage();return;}
-  const wheelDesign=e.target.closest('[data-wheel-design]');if(wheelDesign){rememberUndo();designState.wheelDesign=JimnyWheelDesigns.clean({wheelDesign:wheelDesign.dataset.wheelDesign}).wheelDesign;update();refreshGarage();window.jimny3D?.view('wheel-detail');return;}
+  const wheelDesign=e.target.closest('[data-wheel-design]');if(wheelDesign){rememberUndo();for(const m of MODS)if(partFamily(m.id)==='wheel-design'||partVisual(m.id)==='suzuki_nomade_steelwheel')state[m.id]=false;designState.wheelDesign=JimnyWheelDesigns.clean({wheelDesign:wheelDesign.dataset.wheelDesign}).wheelDesign;update();refreshGarage();window.jimny3D?.view('wheel-detail');return;}
   if(e.target.closest('[data-remove-wheel-design]')){rememberUndo();designState.wheelDesign='factory';update();refreshGarage();return;}
   const wheel=e.target.closest('[data-wheel-choice]');if(wheel){const w=GARAGE_WHEELS.find(w=>w.id===wheel.dataset.wheelChoice);if(!w)return;rememberUndo();const on=(designState.wheelFinish||'oem')===w.finish;designState.wheelFinish=on?'oem':w.finish;const colours={...designState.partColours};delete colours.wheels;designState.partColours=colours;update();refreshGarage();window.jimny3D?.view('wheel-detail');return;}
   const primary=e.target.closest('[data-primary-mode]');if(primary){setWorkbenchMode(primary.dataset.primaryMode==='garage'?'garage':'sources');return;}
