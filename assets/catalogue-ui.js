@@ -26,8 +26,7 @@
   return {m,category,where:country?(country===window.jimnyRegion?'local':'overseas'):null,try:canTry(m),listed:body==='listed',incompatible:body==='incompatible',stock:m.stockAtCheck==='available',types,
    text:[m.id,m.name,m.desc,category,m.region,m.seller,m.usd,m.hot?'popular':'',m.realIndia?'direct india product':'',...(m.in||[]).flat(),...(m.intl||[]).flat()].join(' ').toLowerCase()};
  }
- // Interior customisation returns in a later launch phase; preserve its data.
- const activeEntries=()=>MODS.filter(m=>!m.designOnly&&!archived[m.id]&&work.partCategory(m)!=='Interior');
+ const activeEntries=()=>MODS.filter(m=>!m.designOnly&&!archived[m.id]);
 
  function state_(terms,cat){
   return {

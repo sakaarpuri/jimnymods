@@ -1400,7 +1400,7 @@ const safetyWarnings = document.getElementById("safetyWarnings");
 const buildDrawer = document.getElementById("buildDrawer");
 const drawerBackdrop = document.getElementById("drawerBackdrop");
 const toastEl = document.getElementById("toast");
-let toastTimer, toastAction=null, activePartFilter="popular", favoritesOnly=false, activeGoal="", lastUndoPayload=null, catalogExpanded=false;
+let toastTimer, toastAction=null, activePartFilter="popular", favoritesOnly=false, activeGoal="", undoHistory=[], catalogExpanded=false;
 
 function selectedDesignOptions(){
   const grilleProducts={autostylenn_s_grille:'smesh',autostylenn_big_suzuki_grille:'block',autostylenn_cursive_grille:'script-loop'};
@@ -1411,8 +1411,8 @@ function currentPayload(){
   return {v:2,vehicle:"jimny",body:bodyStyle,name:buildNameEl.value.trim()||"My Jimny",colour:selectedPaint,parts:MODS.filter(m=>!m.designOnly&&state[m.id]).map(m=>m.id),design:{...designState},tyre:{width:+tyreWidth.value,ratio:+tyreRatio.value,rim:+tyreRim.value,lift:+liftHeight.value}};
 }
 function persist(){let ok=true;try{localStorage.setItem("thatsuvmod-build",JSON.stringify(currentPayload()))}catch{ok=false}const status=document.getElementById('buildStorageStatus');if(status)status.textContent=ok?'Working draft saved on this device.':'Autosave unavailable. Use Download parts list to keep a copy.';return ok;}
-function rememberUndo(){ lastUndoPayload=currentPayload();document.getElementById("undoChange").disabled=false; }
-function undoLastChange(){ if(!lastUndoPayload)return;loadPayload(lastUndoPayload);lastUndoPayload=null;document.getElementById("undoChange").disabled=true;showToast("Last change undone"); }
+function rememberUndo(){const snapshot=JSON.stringify(currentPayload());if(undoHistory.at(-1)!==snapshot)undoHistory.push(snapshot);if(undoHistory.length>50)undoHistory.shift();document.getElementById("undoChange").disabled=false;}
+function undoLastChange(){let current=JSON.stringify(currentPayload());while(undoHistory.length&&undoHistory.at(-1)===current)undoHistory.pop();if(!undoHistory.length){document.getElementById("undoChange").disabled=true;refreshGarage();return;}const previous=JSON.parse(undoHistory.pop());loadPayload(previous);document.getElementById("undoChange").disabled=!undoHistory.length;refreshGarage();showToast("Last change undone");}
 function showToast(message,actionLabel,action){
   toastAction=typeof action==="function"?action:null;
   toastEl.classList.toggle("has-action",!!toastAction);
@@ -1974,7 +1974,7 @@ function refreshGarage(){
   refreshSurfaceControls();
   const engine=window.jimny3D?.getState(),ready=!!engine?.detailedReady&&!engine.modelLoading;
   document.querySelectorAll('[data-garage-fit]').forEach(button=>{const id=button.dataset.garageFit,supported=garageCanPreview(id);button.disabled=!ready||!supported;button.setAttribute('aria-pressed',String(!!state[id]));button.setAttribute('aria-label',`${state[id]?'Remove':'Fit'} ${modById[id].name}`);button.closest('.garage-part')?.querySelector('.garage-edit')?.toggleAttribute('hidden',!state[id]);button.querySelector('.garage-fit-state').textContent=!supported?'Research only for JB74':!ready?'Preparing 3D model…':state[id]?'Fitted · tap to remove':'Tap to fit';});
-  document.querySelector('[data-garage-undo]').disabled=!lastUndoPayload;
+  document.querySelector('[data-garage-undo]').disabled=!undoHistory.length;
   document.querySelectorAll('[data-garage-design]').forEach(b=>{const on=designState[b.dataset.garageDesign]===b.dataset.garageOption;b.setAttribute('aria-pressed',String(on));b.disabled=!ready;const label=b.querySelector('.visual-state');if(label)label.textContent=on?'Selected · tap to reset':'Tap to apply';});
   document.querySelectorAll('[data-graphic]').forEach(b=>{const on=designState.decal===b.dataset.graphic;b.disabled=!ready;b.querySelector('.visual-state')?.replaceChildren(on?'Selected · tap to remove':'Tap to apply');});
   document.querySelectorAll('[data-paint-choice]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.paintChoice===selectedPaint.toLowerCase()));b.disabled=!ready;});

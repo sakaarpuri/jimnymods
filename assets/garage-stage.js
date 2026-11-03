@@ -19,6 +19,7 @@
   const stage=rail.querySelector('.garage-stage-actions'),tray=rail.querySelector('.garage-selection-tray');
   const hotspot=studio.querySelector('.garage-hotspot-toggle'),expand=$('expandViewer'),hint=studio.querySelector('.garage-pick-direction');
   const exterior=camera.querySelector('[data-camera="orbit"]'),cabin=camera.querySelector('[data-camera="interior"]');
+  cabin.addEventListener('click',()=>openGarageCategory('cabin'));
   const drive=stage.querySelector('a[href="game.html"]'),compare=stage.querySelector('[data-garage-stock]'),saveImage=stage.querySelector('[data-garage-image]');
   const heading=garage.querySelector('.garage-heading'),looks=garage.querySelector('.garage-looks-launch'),intro=garage.querySelector('.garage-intro');
   const drawerHead=document.querySelector('#buildDrawer .drawer-head');
