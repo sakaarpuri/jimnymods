@@ -15,6 +15,16 @@
   const rail=document.querySelector('.planner-rail'),studio=$('spin360'),mount=$('viewer3d');
   const garage=$('garage'),strip=document.querySelector('.garage-categories');
   if(!rail||!studio||!mount||!garage||!strip)return;
+  // One explanation per device, with a compact reminder that can reopen it.
+  const guidance=document.createElement('aside');guidance.className='preview-guidance';
+  guidance.innerHTML='<button type="button" class="preview-summary" aria-expanded="false" aria-controls="previewExplanation">Preview, not exact</button><div id="previewExplanation" class="preview-explanation"><p><strong>3D preview only.</strong> Colours, proportions and fit may differ from the real Jimny and parts. Check product details and fitment with the seller or installer before buying or modifying your car.</p><button type="button" data-preview-got-it>Got it</button></div>';
+  const summary=guidance.querySelector('.preview-summary'),explanation=guidance.querySelector('#previewExplanation'),ackKey='jimnygami-preview-ack-v1';
+  let acknowledged=false;try{acknowledged=localStorage.getItem(ackKey)==='1';}catch{}
+  function showExplanation(show){explanation.hidden=!show;summary.hidden=show;summary.setAttribute('aria-expanded',String(show));}
+  showExplanation(!acknowledged);
+  const purpose=document.querySelector('.workbench-purpose');if(purpose)purpose.replaceWith(guidance);else document.querySelector('.site-header').after(guidance);
+  guidance.querySelector('[data-preview-got-it]').addEventListener('click',()=>{try{localStorage.setItem(ackKey,'1');}catch{}showExplanation(false);summary.focus({preventScroll:true});});
+  summary.addEventListener('click',()=>{showExplanation(true);guidance.querySelector('[data-preview-got-it]').focus({preventScroll:true});});
   const camera=rail.querySelector('.camera-controls'),cabinViews=rail.querySelector('.cabin-viewpoints'),scenery=rail.querySelector('.scenery-picker');
   const stage=rail.querySelector('.garage-stage-actions'),tray=rail.querySelector('.garage-selection-tray');
   const hotspot=studio.querySelector('.garage-hotspot-toggle'),expand=$('expandViewer'),hint=studio.querySelector('.garage-pick-direction');
@@ -49,6 +59,17 @@
 
   // Fixed homes: viewer controls on the car, secondary controls in the panel.
   viewSwitch.append(exterior,cabin);studio.append(top,tools);
+  function syncViewSwitch(){
+    const view=window.jimny3D?.getState().view||'orbit';
+    const inside=['interior','passenger','driver-door','passenger-door','cabin','cutaway','doors','doors-cutaway','headliner-cutaway','cargo','touring','seats','seatbacks','console','footwell','headliner','storage'].includes(view);
+    for(const [button,on] of [[exterior,!inside],[cabin,inside]]){
+      if(button.classList.contains('active')!==on)button.classList.toggle('active',on);
+      if(button.getAttribute('aria-pressed')!==String(on))button.setAttribute('aria-pressed',String(on));
+    }
+  }
+  // The renderer marks the exact angle; these two controls describe the broader view.
+  new MutationObserver(records=>{if(records.some(r=>r.target.hasAttribute('data-camera')))syncViewSwitch();}).observe(body,{subtree:true,attributes:true,attributeFilter:['class']});
+  window.addEventListener('jimny-model-ready',syncViewSwitch);syncViewSwitch();
   angles.querySelector('.garage-angles-views').append(camera,cabinViews);
   angles.querySelector('.garage-angles-scene').append(scenery);
   drawerHead.after(tray);

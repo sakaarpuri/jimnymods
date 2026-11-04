@@ -8,9 +8,7 @@
     {label:'Garage',primaryMode:'garage',hash:'garage'},
     {label:'Parts',mode:'parts',hash:'parts-title'},
     {label:'Fitters & sellers',mode:'fitters',hash:'shops-title'},
-    {label:'Clubs',mode:'clubs',hash:'clubs-title'},
     {label:'Trip planner',href:'trip-planner.html',page:'trip',tripPlanner:true},
-    {label:'Owner tools',mode:'tools',hash:'owner-tools'}
   ];
   // Written by index.html whenever the build, region or body changes.
   const CONTEXT_KEY='thatsuvmod-header-context';

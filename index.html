@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>jimnygami — Ideas and resources for modifying your Jimny</title>
-<meta name="description" content="Explore three-door and five-door Jimny looks in 3D. Find modification ideas, parts and owner clubs in India, Australia and other Jimny markets.">
+<meta name="description" content="Explore three-door and five-door Jimny looks in 3D. Find modification ideas, parts, sellers and fitters in India, Australia and other Jimny markets.">
 <link rel="canonical" href="https://thatsuvmod.com/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="jimnygami — Ideas and resources for modifying your Jimny">
@@ -12,6 +12,8 @@
 <meta property="og:image" content="https://thatsuvmod.com/assets/previews/design-finish-oem.webp">
 <script src="assets/visual-release.js"></script>
 <script src="assets/visual-assets.js"></script>
+<link rel="stylesheet" href="assets/image-loading.css">
+<script src="assets/image-loading.js"></script>
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/svg+xml" href="assets/brandmark.svg">
 <meta name="theme-color" content="#f6f5f0">
@@ -427,7 +429,6 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
   <section class="look-inspo" id="explore" data-mode="explore" aria-labelledby="look-inspo-title">
     <div class="section-heading"><div><p class="eyebrow">The inspiration edit</p><h2 id="look-inspo-title">One Jimny. Many personalities.</h2></div><button type="button" class="garage-looks-return" data-quickfits-return>Explore Quick fits</button></div>
     <p class="section-lead"><span class="desktop-explore-copy">A starting point for your own build. Choose a direction, then find the parts and people to make it happen.</span><span class="mobile-explore-copy">Find your style. Make it your own.</span></p>
-    <p class="model-accuracy-note"><strong>3D preview only.</strong> The Jimny and parts are not 100% accurate. Colours, proportions and fit may differ from the real vehicle. Check product details and fitment with the seller or a qualified installer before buying or modifying your car.</p>
     <div class="look-inspo-grid" id="lookInspoGrid"></div>
     <p class="image-caption">Every preview is rendered from this same 3D Jimny. Open a setup to rotate it, then apply it or keep your current build. Part shapes remain representative; check seller photos for exact detail.</p>
   </section>
@@ -506,7 +507,7 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
   <div class="fs-head" data-mode="sources"><div><h2 id="online-sources-title">Find your buying options.</h2><p class="source-context" id="sourceContext">Compare Indian stores and marketplaces before leaving jimnygami.</p></div><div class="fs-toggle" role="group" aria-label="Fitters or sellers"><button type="button" data-fs-view="fitters" aria-pressed="false">Fitters</button><button type="button" data-fs-view="sellers" aria-pressed="true">Sellers</button></div></div>
   <div class="directory-tools" data-mode="sources"><label>What are you looking for?<input id="sourceSearch" type="search" placeholder="Roof rack, lighting, supplier name…"></label><label>Seller location<select id="sourceCountry"><option value="all">All countries · your region first</option></select></label><label>Seller type<select id="sourceType"><option value="all">All sellers</option><option value="official">Genuine accessories</option><option value="specialist">Specialist / manufacturer</option><option value="marketplace">Marketplace</option></select></label></div>
   <p class="directory-summary" id="sourceStatus" data-mode="sources" aria-live="polite"></p>
-  <div class="directory-invite" data-mode="sources"><p>Want to add your business? Email us at <strong>garage@jimnygami.com</strong> once our mailbox opens. The mailbox is coming soon, so please don't send messages yet.</p><button type="button" class="action" data-listing-invite="vendor">Request a directory listing</button></div>
+  <div class="directory-invite" data-mode="sources"><p>Want to add your business? Email <a href="mailto:garage@jimnygami.com">garage@jimnygami.com</a>.</p><button type="button" class="action" data-listing-invite="vendor">Request a directory listing</button></div>
   <div id="onlineSources" data-mode="sources"></div>
   <div class="no-results" id="sourceNoResults" data-mode="sources" hidden>No online option matches that search. <button class="text-button" type="button" data-reset-sources>Reset filters</button></div>
 
@@ -549,10 +550,10 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
 </div>
 
   <footer>
-    <div class="footer-brand"><span class="logo-art"><img loading="lazy" decoding="async" src="assets/jimnygami-logo.webp" width="560" height="280" alt="jimnygami"></span><span>Ideas and resources for modifying your Jimny</span><a href="#workspace">Back to exploring ↑</a><a href="#welcome">What is jimnygami?</a></div>
+    <div class="footer-brand"><span class="footer-logo"><img loading="eager" decoding="async" src="assets/jimnygami-logo-sticker.webp" width="1550" height="341" alt="jimnygami"></span><span>Ideas and resources for modifying your Jimny</span><a href="#workspace">Back to exploring ↑</a><a href="#welcome">What is jimnygami?</a></div>
     <p>jimnygami is an independent platform and is not affiliated with, endorsed by, or sponsored by Suzuki Motor Corporation or Maruti Suzuki India Limited. Suzuki and Jimny are trademarks of their respective owners.</p>
     <p>jimnygami is not a seller, installer or agent for any listed business and is not responsible for their prices, policies or work. Ask sellers for current part prices and fitters for labour quotes; shipping, duties and installation vary.</p>
-    <p>Contact for owners, vendors and clubs: garage@jimnygami.com (mailbox coming soon; please do not send messages yet).</p>
+    <p>Contact: <a href="mailto:garage@jimnygami.com">garage@jimnygami.com</a>.</p>
     <div class="footer-links"><button type="button" data-footer-note="checking">How resources are checked</button><button type="button" data-footer-note="privacy">Privacy & saved builds</button></div>
     <div class="footer-note" id="footerNote" hidden></div>
   </footer>
@@ -1160,7 +1161,7 @@ function packageResourceMarkup(p){
 document.getElementById("lookInspoGrid").innerHTML=PACKAGES.map((p,index)=>{
   const desc=p.tag;
   const num=String(index+1).padStart(2,'0');
-  return `<article class="look-tile" data-look-tile="${p.id}"><button class="look-photo" type="button" data-look-preview="${p.id}" aria-label="Rotate ${escHtml(p.name)} in 3D"><img src="${packageImage(p.id)}" alt="${escHtml(p.name)} rendered with the live Jimny model" width="800" height="600" loading="lazy" decoding="async"><span class="photo-number">${num} · 3D</span><span class="photo-expand" aria-hidden="true">↻</span></button><div class="copy"><b>${escHtml(p.name)}</b><span class="look-vibe">${escHtml(p.vibe||'')}</span><p class="look-description">${escHtml(desc)}</p><div class="lookline">${packageLookMarkup(p)}</div><button type="button" data-use-setup="${p.id}" aria-pressed="false">Use this setup</button></div></article>`;
+  return `<article class="look-tile" data-look-tile="${p.id}"><button class="look-photo" type="button" data-look-preview="${p.id}" aria-label="Rotate ${escHtml(p.name)} in 3D"><img src="${packageImage(p.id)}" alt="${escHtml(p.name)} rendered with the live Jimny model" width="800" height="600" loading="${index<4?'eager':'lazy'}" fetchpriority="${index<4?'high':'auto'}" decoding="async"><span class="photo-number">${num} · 3D</span><span class="photo-expand" aria-hidden="true">↻</span></button><div class="copy"><b>${escHtml(p.name)}</b><span class="look-vibe">${escHtml(p.vibe||'')}</span><p class="look-description">${escHtml(desc)}</p><div class="lookline">${packageLookMarkup(p)}</div><button type="button" data-use-setup="${p.id}" aria-pressed="false">Use this setup</button></div></article>`;
 }).join("");
 PACKAGES.forEach(p=>{
   const names = p.parts.map(id=>modById[id].name.split(" (")[0]).join(" · ");
@@ -1658,7 +1659,9 @@ document.getElementById("guideList").innerHTML=GUIDES.map(([t,p])=>`<details cla
 /* ---------------- workbench navigation and trust notes ---------------- */
 const MODE_TARGETS={garage:"garage",explore:"explore",build:"goalWizard",parts:"parts-title",sources:"online-sources-title",fitters:"shops-title",clubs:"clubs-title",tools:"owner-tools"};
 let workbenchScrollResetFrame=0;
+const HIDDEN_MODES=new Set(['clubs','tools']);
 function setWorkbenchMode(mode,{scroll=false,history=true}={}){
+  if(HIDDEN_MODES.has(mode)){mode='garage';window.history.replaceState(null,'',location.pathname+location.search+'#garage');}
   if(!MODE_TARGETS[mode])mode='explore';
   const next=MODE_TARGETS[mode]||"explore";
   document.body.classList.add("desktop-mode");document.body.dataset.mode=mode;
@@ -1824,8 +1827,7 @@ window.addEventListener('jimny-model-change',refreshHeaderContext);
 // My build on the Trip planner and Drive pages lands here with the drawer open.
 try{if(sessionStorage.getItem('thatsuvmod-open-build')){sessionStorage.removeItem('thatsuvmod-open-build');addEventListener('load',()=>openDrawer(),{once:true});}}catch{}
 const garage=document.createElement('section');garage.id='garage';garage.dataset.mode='garage';
-garage.innerHTML=`<div class="garage-heading"><div><p class="eyebrow">A little box. A world of ideas.</p><h1>Make your own way.</h1></div><button type="button" class="garage-undo" data-garage-undo disabled>Undo</button></div><p class="garage-intro">Pick a part below or use the labels on your car. Tap a fitted part again to remove it.</p><div class="garage-categories" role="tablist" aria-label="Modification categories">${[['popular','Quick fits'],['paint','Paint'],['graphics','Decals'],['wheels','Wheels'],['body','Body'],['grille','Grilles'],['bumpers','Bumpers'],['lighting','Lights'],['roof','Roof'],['rear','Rear & gear'],['cabin','Cabin']].map(([id,name])=>`<button type="button" role="tab" id="garage-tab-${id}" data-garage-category="${id}" aria-controls="garageChoices" aria-selected="${id==='popular'}" tabindex="${id==='popular'?0:-1}">${name}</button>`).join('')}</div><div id="garageChoices" role="tabpanel" aria-labelledby="garage-tab-popular"><div id="garagePartChoices"></div></div><div class="garage-next"><button type="button" data-mode-select="explore">Ready-made looks</button><button type="button" data-mode-select="build">Purpose builds</button><button type="button" data-mode-select="parts">All parts & products</button></div><p class="garage-honesty">3D previews show representative shapes, not exact manufacturer CAD. Check the real product, fitment and local rules before buying.</p>`;
-garage.querySelector('.garage-intro').insertAdjacentHTML('afterend','<p class="model-accuracy-note"><strong>3D preview only.</strong> The Jimny and parts are not 100% accurate. Colours, proportions and fit may differ from the real vehicle. Check product details and fitment with the seller or a qualified installer before buying or modifying your car.</p>');
+garage.innerHTML=`<div class="garage-heading"><div><p class="eyebrow">A little box. A world of ideas.</p><h1>Make your own way.</h1></div><button type="button" class="garage-undo" data-garage-undo disabled>Undo</button></div><p class="garage-intro">Pick a part below or use the labels on your car. Tap a fitted part again to remove it.</p><div class="garage-categories" role="tablist" aria-label="Modification categories">${[['popular','Quick fits'],['paint','Paint'],['graphics','Decals'],['wheels','Wheels'],['body','Body'],['grille','Grilles'],['bumpers','Bumpers'],['lighting','Lights'],['roof','Roof'],['rear','Rear & gear'],['cabin','Cabin']].map(([id,name])=>`<button type="button" role="tab" id="garage-tab-${id}" data-garage-category="${id}" aria-controls="garageChoices" aria-selected="${id==='popular'}" tabindex="${id==='popular'?0:-1}">${name}</button>`).join('')}</div><div id="garageChoices" role="tabpanel" aria-labelledby="garage-tab-popular"><div id="garagePartChoices"></div></div><div class="garage-next"><button type="button" data-mode-select="explore">Ready-made looks</button><button type="button" data-mode-select="build">Purpose builds</button><button type="button" data-mode-select="parts">All parts & products</button></div>`;
 document.querySelector('.planner-main').prepend(garage);
 const finishSelection=new Set(['body']);
 const surfaceControls=document.createElement('section');surfaceControls.className='surface-controls';surfaceControls.setAttribute('aria-label','Blackout and part finishes');
@@ -1879,7 +1881,7 @@ function placeGarageNavigation(){
   if(document.body.dataset.mode==='garage')resetWorkbenchScroll();
 }
 placeGarageNavigation();garageDesktop.addEventListener('change',placeGarageNavigation);
-const resourceNav=document.createElement('nav');resourceNav.className='resource-nav';resourceNav.setAttribute('aria-label','Explore resources');resourceNav.innerHTML='<button type="button" data-mode-select="parts">Parts catalogue</button><button type="button" data-mode-select="sources">Online sellers</button><button type="button" data-mode-select="fitters">Fitters</button><button type="button" data-mode-select="clubs">Clubs</button><button type="button" data-mode-select="tools">Owner tools</button><button type="button" data-mode-select="garage">Back to garage</button>';
+const resourceNav=document.createElement('nav');resourceNav.className='resource-nav';resourceNav.setAttribute('aria-label','Explore resources');resourceNav.innerHTML='<button type="button" data-mode-select="parts">Parts catalogue</button><button type="button" data-mode-select="sources">Online sellers</button><button type="button" data-mode-select="fitters">Fitters</button><button type="button" data-mode-select="garage">Back to garage</button>';
 garage.after(resourceNav);
 document.getElementById('garageChoices').appendChild(document.getElementById('buildControls'));
 document.getElementById('buildControls').open=true;
@@ -1931,7 +1933,7 @@ const garageParts=document.getElementById('garagePartChoices');
 // Every visual choice comes from the same renderer as the large car. Static
 // thumbnails keep category switches instant and avoid extra WebGL contexts.
 const GARAGE_CABIN_COLOURS=[['tan','Sandstone'],['saddle','Saddle'],['olive','Olive'],['stone','Stone'],['black','Charcoal']];
-const studioPreviewPath=file=>`assets/previews/${bodyStyle==='3door'?'swb/':''}${file}.webp`;
+function studioPreviewPath(file){return `assets/previews/${bodyStyle==='3door'?'swb/':''}${file}.webp`; }
 function garagePartImage(id){const m=modById[id];if(bodyStyle==='3door'&&!garageCanPreview(id))return '';return studioPreviewPath(`${m?.lightProfile?'lamp-':'part-'}${id}`);}
 function garagePartCards(ids){return `<div class="garage-part-grid">${ids.filter(garageCanPreview).map(id=>{const m=modById[id],supported=garageCanPreview(id);return `<article class="garage-part"><button type="button" class="garage-fit" data-garage-fit="${id}" aria-pressed="${!!state[id]}"${supported?'':' disabled'} aria-label="${state[id]?'Remove':'Fit'} ${escHtml(m.name)}"><img src="${garagePartImage(id)}" alt="${escHtml(m.name)} · actual representative 3D preview" width="800" height="600" loading="lazy"><span class="garage-part-name">${escHtml(m.name)}</span><span class="garage-fit-state">${supported?(state[id]?'Fitted · tap to remove':'Tap to fit'):'Research only for JB74'}</span></button><button type="button" class="garage-edit" data-edit-fitted="${id}"${state[id]?"":" hidden"} aria-label="Edit ${escHtml(m.name)} on the car">Edit</button><button type="button" class="garage-source" data-source-part="${id}">Details & where to buy</button></article>`;}).join('')}</div>`;}
 function renderVisualEditors(){
@@ -1940,7 +1942,7 @@ function renderVisualEditors(){
     grid.innerHTML=designGroup(group).options.map(o=>`<button type="button" class="visual-option" data-garage-design="${group}" data-garage-option="${o.id}" aria-pressed="${designState[group]===o.id}"><img src="${studioPreviewPath(`design-${group}-${o.id}`)}" width="800" height="600" alt="${escHtml(o.label)} on the ${bodyStyle==='3door'?'three':'five'}-door model" loading="lazy"><span>${escHtml(o.label)}</span><small class="visual-state">${designState[group]===o.id?'Selected':'Tap to apply'}</small></button>`).join('');
   }
   document.querySelector('.graphic-grid').classList.add('visual-option-grid');
-  document.querySelector('.graphic-grid').innerHTML=designGroup('decal').options.map(o=>`<button type="button" class="visual-option" data-graphic="${o.id}" aria-pressed="${designState.decal===o.id}"><img src="${studioPreviewPath(`design-decal-${o.id}`)}" width="800" height="600" alt="${escHtml(o.label)} on the actual model" loading="lazy"><span>${escHtml(o.label)}</span><small class="visual-state">${designState.decal===o.id?'Selected':'Tap to apply'}</small></button>`).join('');
+  document.querySelector('.graphic-grid').innerHTML=designGroup('decal').options.map((o,index)=>`<button type="button" class="visual-option" data-graphic="${o.id}" aria-pressed="${designState.decal===o.id}"><img src="${studioPreviewPath(`design-decal-${o.id}`)}" width="800" height="600" alt="${escHtml(o.label)} on the actual model" loading="${index<4?'eager':'lazy'}" fetchpriority="${index<4?'high':'auto'}"><span>${escHtml(o.label)}</span><small class="visual-state">${designState.decal===o.id?'Selected':'Tap to apply'}</small></button>`).join('');
   document.getElementById('lampChoices').innerHTML=garagePartCards(MODS.filter(m=>m.lightProfile).map(m=>m.id));
   const palette=document.querySelector('.cabin-palette');palette.classList.add('visual-option-grid');
   palette.innerHTML=GARAGE_CABIN_COLOURS.map(([id,name])=>`<button type="button" class="visual-option" data-cabin-colour="${id}" aria-pressed="${!!state.seats&&designState.cabin===id}"><img src="${studioPreviewPath(`cabin-${id}`)}" width="800" height="600" alt="${name} seat-cover preview" loading="lazy"><span>${name}</span><small>Tap to fit · tap again to remove</small></button>`).join('');
@@ -1961,7 +1963,7 @@ renderVisualEditors();
 function garageCanPreview(id){const part=modById[id];if(catalogueBodyStatus(part||{},bodyStyle)==='incompatible')return false;return bodyStyle!=='3door'||id==='snorkel'||['tires','flares','skinnyjim_backbone','skinnyjim_jerry_tray','mod_reardoor_molle','seats','doortrim'].includes(part?.visual||id)||!!practicalSpec(id)?.bodyStyles.includes(bodyStyle)||!!globalThis.JimnyExteriorParts?.[part?.visual||id]?.bodyStyles.includes(bodyStyle);}
 function renderGarageParts(){
   const ids=(GARAGE_FAMILIES[garageCategory]||[]).filter(id=>modById[id]&&garageCanPreview(id));
-  garageParts.innerHTML=`${bodyStyle==='3door'&&ids.length?'<p class="garage-scope">Quick fits and category choices show supported previews for your 3-door. Confirm exact chassis and year with the seller before buying.</p>':''}${garagePartCards(ids)}`;
+  garageParts.innerHTML=`${garagePartCards(ids)}`;
   refreshGarage();
   if(garageCategory==='rear')garageParts.insertAdjacentHTML('afterbegin','<p class="garage-scope">Expedition carrying & rear equipment. The water can sits low in cargo; the fuel can is external on its compatible roof rack and holder. Required mounting parts are shown before fitting. “Jerry+” is a tray, not a fuel can.</p>');
   if(garageCategory==='wheels'){
@@ -1970,7 +1972,20 @@ function renderGarageParts(){
     refreshGarage();
   }
 }
+function refreshPaintSelection(){
+  const gallery=document.getElementById('paintGallery');if(!gallery)return;
+  const colour=selectedPaint.toLowerCase(),named=Object.values(PAINTS).some(hex=>hex.toLowerCase()===colour);
+  let custom=gallery.querySelector('[data-current-paint]');
+  if(named){custom?.remove();}
+  else{
+    if(!custom){custom=document.createElement('button');custom.type='button';custom.className='paint-chip';custom.dataset.currentPaint='';custom.innerHTML='<i aria-hidden="true"></i><span>Current custom colour</span>';gallery.prepend(custom);}
+    custom.dataset.paintChoice=colour;custom.style.setProperty('--chip',colour);custom.title='Current colour · '+colour;custom.setAttribute('aria-label','Current custom colour · '+colour);
+  }
+  gallery.querySelectorAll('[data-paint-choice]').forEach(button=>{const on=button.dataset.paintChoice.toLowerCase()===colour;button.setAttribute('aria-pressed',String(on));});
+}
+window.addEventListener('jimny-build-change',refreshPaintSelection);
 function refreshGarage(){
+  refreshPaintSelection();
   refreshGrilleColours();
   refreshSurfaceControls();
   const engine=window.jimny3D?.getState(),ready=!!engine?.detailedReady&&!engine.modelLoading;

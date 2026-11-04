@@ -1,0 +1,4 @@
+img.image-pending{background:linear-gradient(105deg,transparent 25%,rgba(255,255,255,.13) 50%,transparent 75%),var(--a-panel2,#26322e);background-size:220% 100%;animation:image-shimmer 1.4s linear infinite}
+img.image-failed{background:var(--a-panel2,#26322e);color:var(--a-muted,#aab3ad);font:14px/1.5 var(--font-body,system-ui)}
+@keyframes image-shimmer{from{background-position:200% 0}to{background-position:-20% 0}}
+@media(prefers-reduced-motion:reduce){img.image-pending{animation:none;background-position:50% 0}}
