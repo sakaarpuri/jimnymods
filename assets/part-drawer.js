@@ -47,7 +47,7 @@
   const photo=(window.JIMNY_PRODUCT_PHOTOS||{})[m.id];let src=null,badge,alt;
   if(info.try){src=window.JimnyCatalogue.previewImage(m);badge='3D preview · shape is representative';alt=`${m.name} — representative model, not an exact product`;}
   else if(photo){src=photo.local;badge='Seller photo · check the exact variant';alt=`${m.name} — supplier product photo`;}
-  else if(!m.market){src=window.JimnyCatalogue.previewImage(m);badge='Upgrade idea · not a specific product';alt=`${m.name} — representative upgrade idea`;}
+  else if(!m.market&&bodyStyle!=='3door'){src=window.JimnyCatalogue.previewImage(m);badge='Upgrade idea · not a specific product';alt=`${m.name} — representative upgrade idea`;}
   if(!src)return '';
   return `<div class="pd-hero"><img src="${esc(src)}" alt="${esc(alt)}" width="1000" height="560"><span class="pd-badge">${badge}</span></div>`;
  }
@@ -57,9 +57,13 @@
   const info=m?window.JimnyCatalogue.infoFor(m):null,saved=m&&favorites.has(m.id),fitted=m&&!!state[m.id];
   const title=result.title,category=m?work.partCategory(m):'',jobs=m?work.jobsForPart(m):[work.DESIGN_JOB[group]].filter(Boolean);
   const kicker=m?`${esc(category)} · ${esc(m.seller||'Several sellers')}`:'Design option';
-  const meta=m?window.JimnyCatalogue.fitLine(m):'Pick an exact product and confirm fitment with the seller.';
+  const meta=m?esc(catalogueFitmentLabel(m,bodyStyle)):'Pick an exact product and confirm fitment with the seller.';
   const primary=m&&info.try?(fitted?`<button type="button" class="pd-primary is-fitted" data-unfit="${m.id}">${tick}On your car</button>`:`<button type="button" class="pd-primary" data-part-preview="${m.id}">Try on my car</button>`):'';
   const saveBtn=m?`<button type="button" class="pd-save${primary?'':' pd-save-wide'}" data-favorite="${m.id}" aria-pressed="${saved}" aria-label="Save ${esc(m.name)}">${bookmark}<span class="fav-label">${saved?'Saved':'Save'}</span></button>`:'';
+  const description=m?.desc||m?.fitment||option?.meta?.join(' · ')||'';
+  const verified=m&&JimnyVerifiedPrices.get(m.id,window.jimnyRegion,bodyStyle);
+  const price=verified?`${JimnyVerifiedPrices.money(verified.amount)} · checked ${verified.checked}`:'Quote required · ask seller for current price';
+  const details=`${description?`<p class="pd-description">${esc(description)}</p>`:''}<p class="pd-price"><strong>Price</strong> ${esc(price)}</p>`;
   const actions=primary||saveBtn?`<div class="pd-actions">${primary}${saveBtn}</div>`:'';
 
   // Where to buy.
@@ -79,7 +83,7 @@
   const cmp=m?`<button type="button" class="pd-textlink" data-compare="${m.id}" aria-pressed="${compareIds.has(m.id)}">${compareIds.has(m.id)?'Comparing':'Add to compare'}</button>`:'';
 
   el.innerHTML=`<button type="button" class="pd-close" data-pd-close aria-label="Close part details"><svg class="pd-x" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg><svg class="pd-back" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button><div class="pd-scroll">${hero(m,info,option)}
-   <div class="pd-body"><p class="pd-kicker">${kicker}</p><h2 id="pdTitle" tabindex="-1">${esc(title)}</h2><p class="pd-meta">${meta}</p>${actions}${buy}${fit}${notes.length?`<div class="pd-notes">${notes.map(n=>`<p>${n}</p>`).join('')}${cmp?`<p>${cmp}</p>`:''}</div>`:cmp?`<div class="pd-notes"><p>${cmp}</p></div>`:''}<p class="pd-foot">Listings aren’t live stock or a fitment guarantee. Confirm chassis, mounts and the delivered price with the seller.</p></div></div>`;
+   <div class="pd-body"><p class="pd-kicker">${kicker}</p><h2 id="pdTitle" tabindex="-1">${esc(title)}</h2><p class="pd-meta">${meta}</p>${details}${actions}${buy}${fit}${notes.length?`<div class="pd-notes">${notes.map(n=>`<p>${n}</p>`).join('')}${cmp?`<p>${cmp}</p>`:''}</div>`:cmp?`<div class="pd-notes"><p>${cmp}</p></div>`:''}<p class="pd-foot">Listings aren’t live stock or a fitment guarantee. Confirm chassis, mounts and the delivered price with the seller.</p></div></div>`;
  }
 
  function open(req={}){

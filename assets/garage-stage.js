@@ -79,8 +79,8 @@
   // --- Build bar: the same count and estimate text the build summary uses ----
   function refreshBar(){
     const count=buildSelectionCount();
-    const line=!count?'Nothing fitted yet':'Prices need confirmation';
-    buildbar.querySelector('b').textContent=count?`${count} part${count===1?'':'s'} fitted`:'Stock build';
+    const line=!count?'Nothing selected yet':'Prices need confirmation';
+    buildbar.querySelector('b').textContent=count?`${count} item${count===1?'':'s'} in build`:'Stock build';
     buildbar.querySelector('span').textContent=line;
     buildbar.querySelector('.garage-buildbar-summary').setAttribute('aria-label',`My build: ${buildbar.querySelector('b').textContent}. ${line}. Open build summary`);
   }
@@ -115,7 +115,7 @@
     const part=modById[id],count=buildSelectionCount(),peek=mode==='phone'&&docked;
     fitted.querySelector('img').src=garagePartImage(id);
     fitted.querySelector('b').textContent=`${part?.name||'Part'} fitted`;
-    fitted.querySelector('span').textContent=`Shown on ${peek?'your':'the'} car · ${count} part${count===1?'':'s'} in your build`;
+    fitted.querySelector('span').textContent=`Shown on ${peek?'your':'the'} car · ${count} item${count===1?'':'s'} in your build`;
     body.classList.toggle('garage-peek',peek);
     if(!peek&&mode==='phone')document.body.append(fitted);else if(!peek)studio.append(fitted);
     fitted.classList.add('show');clearTimeout(fittedTimer);fittedTimer=setTimeout(endFitted,peek?3200:4200);

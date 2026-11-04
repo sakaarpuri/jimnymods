@@ -66,8 +66,8 @@ test('Fitters is one page with a Fitters/Sellers toggle, city pills, a build fil
  const shops=section('<!-- ============ SHOPS ============ -->','<h2 id="clubs-title"');
  for(const part of ['data-fs-view="fitters"','data-fs-view="sellers"','id="shopSearch"','Workshop, city or job','id="shopCanWork"','id="shopAreas"','id="fsShortlist"','Before you book','Ask for a written, itemised quote','Ask to see similar Jimny work','Check warranty, alignment and road-legal needs'])assert(shops.includes(part),part);
  assert.match(html,/data-fs-view="sellers"[^]*id="online-sources-title"|id="online-sources-title"[^]*data-fs-view/);
- assert.doesNotMatch(read('assets/site-header.js'),/\{label:'Fitters & sellers',mode:'fitters',hash:'shops-title'\}/);
- assert.match(read('assets/launch-phase.css'),/\[data-mode="fitters"\]/);
+ assert.match(read('assets/site-header.js'),/\{label:'Fitters & sellers',mode:'fitters',hash:'shops-title'\}/);
+ assert.doesNotMatch(read('assets/launch-phase.css'),/\[data-mode="fitters"\]/);
  assert.match(html,/const navMode=mode==='sources'\?'fitters':mode;/);
  assert.match(fitters,/Copy quote request/);assert.match(fitters,/buildQuoteRequest/);assert.match(fitters,/Paste it into a message or email to each workshop/);
  assert.match(fitters,/list work on parts in your build/);

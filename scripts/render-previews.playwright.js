@@ -7,6 +7,7 @@ async (page, bodyFilter=null, mode='all', baseURL='http://localhost:8080/', outp
   await p.addInitScript(()=>{localStorage.setItem('thatsuvmod-ui-theme-v1','rally');localStorage.setItem('thatsuvmod-welcomed','1');localStorage.setItem('jimnygami-gray-default-v1','1');localStorage.setItem('thatsuvmod-scenery','studio');});
   try {
     await p.goto(baseURL);
+    if(mode!=='inventory'&&await p.evaluate(()=>innerWidth!==1600||devicePixelRatio!==1))throw new Error('Preview export requires a 1600px viewport at 100% browser zoom and 1x pixel ratio.');
     await p.waitForFunction(()=>window.jimny3D?.getState().detailedReady&&!window.jimny3D.getState().modelLoading&&window.jimny3D.getState().studioEnvironmentReady,null,{timeout:120000});
     const results=[],studioPreviews={};
     for(const body of ['5door','3door']){
@@ -17,7 +18,7 @@ async (page, bodyFilter=null, mode='all', baseURL='http://localhost:8080/', outp
       }
       const items=await p.evaluate(body=>[
         ...window.getJimnyPresets().map(p=>({...p,file:'preset-'+p.id})),
-        ...window.getJimnyPartPreviews().filter(p=>body==='5door'||['tires','seats','doortrim','snorkel'].includes(p.id)).map(p=>({...p,file:'part-'+p.id,detail:body==='5door',angle:p.id==='tires'?'wheel-detail':p.angle})),
+        ...window.getJimnyPartPreviews().filter(p=>body==='5door'||['tires','seats','doortrim','snorkel','flares'].includes(p.id)).map(p=>({...p,file:'part-'+p.id,detail:body==='5door',angle:p.id==='tires'?'wheel-detail':p.angle})),
         ...(body==='5door'?window.getJimnyWheelPreviews():[]),
         ...['highway','allterrain','mudterrain'].map(type=>({id:type,file:'tyre-'+type,parts:type==='highway'?[]:['tires'],colour:'#d9b744',design:{finish:'oem',decal:'none',grille:'oem',tyreType:type,wheelFinish:'oem'},angle:'wheel-detail'})),
         ...window.getJimnyStudioPreviews().map(p=>({...p,detail:p.file.startsWith('part-')})),

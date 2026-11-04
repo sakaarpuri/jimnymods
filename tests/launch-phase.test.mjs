@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-test('launch hides planned features without deleting their implementations',()=>{
+test('buying and fitters launch while the driving game remains deferred',()=>{
  const css=read('assets/launch-phase.css'),header=read('assets/site-header.js'),build=read('scripts/build.mjs');
- for(const selector of ['[data-mode="fitters"]','[data-mode="sources"]','a[href*="game.html"]'])assert(css.includes(selector),selector);
+ assert(css.includes('a[href*="game.html"]'));
+ for(const selector of ['[data-mode="fitters"]','[data-mode="sources"]','#pdBuy','.pd-meta','.pd-notes','.garage-source'])assert(!css.includes(selector),selector);
  for(const selector of ['[data-garage-category="cabin"]','[data-editor="cabin"]','#cabinControls'])assert(!css.includes(selector),selector);
- assert(!header.includes("label:'Fitters & sellers'"));assert(!header.includes("label:'Play 4×4 game'"));
+ assert(header.includes("label:'Fitters & sellers'"));assert(!header.includes("label:'Play 4×4 game'"));
  assert.match(build,/meta http-equiv="refresh" content="0;url=index\.html#garage"/);
  assert.match(read('game.html'),/<title>Drive — jimnygami/);
- assert.match(read('index.html'),/mode==='sources'\|\|mode==='fitters'/);
+ assert.doesNotMatch(read('index.html'),/mode==='sources'\|\|mode==='fitters'\)mode='explore'/);
  assert.doesNotMatch(read('assets/catalogue-ui.js'),/work\.partCategory\(m\)!=='Interior'/);
 });
