@@ -17,26 +17,45 @@ html[data-ui-theme] .garage-stage-tools .viewer-fullscreen span{position:absolut
 .garage-stage-top :is(button):focus-visible,.garage-stage-tools button:focus-visible,.garage-buildbar :is(a,button):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
 html[data-ui-theme] body[data-mode=garage] .garage-pick-direction{display:none!important}
 
-/* Angles & scenery panel (a sheet on phones, see below). */
+/* Angles & scenery: two compact pages, with every choice in a labelled grid. */
 .garage-angles{color:var(--a-text);font-family:var(--font-body);background:var(--a-panel);border:1px solid var(--a-line)}
-.garage-angles-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 10px}
-.garage-angles-head h2{margin:0;font:700 20px var(--font-display);color:var(--a-text)}
-.garage-angles-close{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--a-line);border-radius:12px;background:transparent;color:var(--a-text);cursor:pointer}
-.garage-angles section{padding:14px 0;border-top:1px solid var(--a-line)}
-.garage-angles h3{margin:0 0 10px;color:var(--a-muted);font:600 13px var(--font-body);letter-spacing:.06em;text-transform:uppercase}
-html[data-ui-theme] .garage-angles :is(.camera-controls,.cabin-viewpoints,.garage-angles-tools){display:flex!important;flex-wrap:wrap;gap:8px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;height:auto!important;justify-content:flex-start!important;text-align:left}
-/* Cabin viewpoints only apply inside the car, as before. */
-html[data-ui-theme] .garage-angles .cabin-viewpoints{display:none!important;margin-top:8px!important}
-html[data-ui-theme] body:has(#viewer3d[data-camera-mode=inside]) .garage-angles .cabin-viewpoints{display:flex!important}
-html[data-ui-theme] .garage-angles :is(.camera-controls,.cabin-viewpoints,.garage-angles-tools) :is(button,summary){position:static!important;display:inline-flex!important;align-items:center;gap:8px;flex:0 0 auto!important;width:auto!important;min-height:44px!important;padding:0 14px!important;border:1px solid var(--a-line-strong)!important;border-radius:12px!important;background:transparent!important;color:var(--a-text)!important;font:500 15px var(--font-body)!important;inset:auto!important;transform:none!important;box-shadow:none!important}
-html[data-ui-theme] .garage-angles :is(.camera-controls,.cabin-viewpoints) button.active{background:var(--a-chip)!important;color:var(--a-on-chip)!important;border-color:var(--a-chip)!important}
-html[data-ui-theme] .garage-angles .camera-inspection{position:static!important;flex-basis:100%}
-html[data-ui-theme] .garage-angles .camera-inspection>div{position:static!important;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
-html[data-ui-theme] .garage-angles .scenery-picker{display:grid!important;grid-template-columns:1fr!important;gap:6px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important}
-html[data-ui-theme] .garage-angles .scenery-picker label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-html[data-ui-theme] .garage-angles .scenery-picker select{width:100%!important;min-height:44px!important;padding:0 14px!important;border:1px solid var(--a-line-strong)!important;border-radius:12px!important;background:var(--a-panel2)!important;color:var(--a-text)!important;font:500 16px var(--font-body)!important}
-html[data-ui-theme] .garage-angles .scenery-picker :is(p,span,small){margin:0;color:var(--a-muted)!important;font-size:14px!important}
-.garage-angles :is(button,summary,select):focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
+.garage-angles [hidden],html[data-ui-theme] body .garage-angles button[hidden]{display:none!important}
+.garage-angles-head{position:sticky;top:-14px;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 12px;background:var(--a-panel)}
+.garage-angles-head h2{margin:0;font:600 19px var(--font-display);color:var(--a-text)}
+.garage-angles-close{display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:10px;background:var(--a-panel2);color:var(--a-muted);cursor:pointer}
+.garage-angles-close:hover{color:var(--a-text)}
+.garage-angles-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:10px;background:var(--a-ground);margin-bottom:4px}
+html[data-ui-theme] .garage-angles-tabs button{min-height:40px;padding:8px;border:0;border-radius:7px;background:transparent;color:var(--a-muted);font:600 14px var(--font-body);cursor:pointer}
+html[data-ui-theme] .garage-angles-tabs button[aria-selected=true]{background:var(--a-panel2);color:var(--a-text)}
+.garage-angles section{padding:12px 0 0;border:0}
+.garage-angles section:last-child{padding-bottom:4px}
+.garage-angles h3{margin:0 0 8px;color:var(--a-muted);font:500 12px var(--font-body);letter-spacing:.02em;text-transform:none}
+html[data-ui-theme] .garage-angles :is(.camera-controls,.cabin-viewpoints,.garage-angles-inspect){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;height:auto!important}
+html[data-ui-theme] .garage-angles [data-camera]{position:static!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%!important;min-width:0;min-height:64px!important;padding:8px 3px!important;border:1px solid var(--a-line)!important;border-radius:10px!important;background:transparent!important;color:var(--a-muted)!important;font:500 13px/1.2 var(--font-body)!important;inset:auto!important;transform:none!important;box-shadow:none!important;text-align:center;cursor:pointer}
+html[data-ui-theme] .garage-angles [data-camera] svg{flex:none;width:22px;height:22px}
+html[data-ui-theme] .garage-angles [data-camera][aria-pressed=true]{background:var(--a-chip)!important;color:var(--a-on-chip)!important;border-color:var(--a-chip)!important}
+html[data-ui-theme] .garage-angles [data-camera]:hover{border-color:var(--a-line-strong)!important;color:var(--a-text)!important}
+html[data-ui-theme] .garage-angles [data-camera][aria-pressed=true]:hover{color:var(--a-on-chip)!important}
+.garage-angles button:disabled{opacity:.45;cursor:wait!important}
+.garage-angles-ready{margin:12px 0 0;color:var(--a-muted);font-size:14px}
+html[data-ui-theme] .garage-angles .scenery-picker{display:block!important;margin:0!important;padding:14px 0 2px!important;border:0!important;background:transparent!important}
+.garage-angles .scenery-picker :is(label,select){display:none!important}
+.garage-scene-choices{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+html[data-ui-theme] .garage-scene-choices button{position:relative;grid-column:span 3;min-width:0;min-height:88px;padding:0;overflow:hidden;border:1px solid var(--a-line);border-radius:10px;background:transparent;color:var(--a-text);font:500 13px var(--font-body);cursor:pointer}
+html[data-ui-theme] .garage-scene-choices button:nth-child(n+3){grid-column:span 2}
+.garage-scene-choices svg{display:block;width:100%;height:58px;object-fit:cover}
+html[data-ui-theme] .garage-angles .garage-scene-choices span{display:block;padding:8px 2px;font:500 13px var(--font-body)!important;color:inherit!important}
+.garage-scene-choices i{display:none;position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:var(--a-lime);color:var(--a-on-lime);font:700 13px/20px var(--font-body);font-style:normal}
+html[data-ui-theme] .garage-scene-choices [aria-pressed=true]{border-color:var(--a-accent-text);box-shadow:inset 0 0 0 1px var(--a-accent-text)}
+.garage-scene-choices [aria-pressed=true] i{display:block}
+.garage-scene-choices [aria-busy=true] svg{opacity:.5}
+.garage-scene-choices button:hover{filter:brightness(1.08)}
+html[data-ui-theme] .garage-angles [data-scenery-status]{margin:12px 0 0!important;color:var(--a-muted)!important;font:400 13px/1.5 var(--font-body)!important}
+html[data-ui-theme] .garage-angles .garage-angles-tools{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0!important;padding:0!important;background:transparent!important;border:0!important}
+html[data-ui-theme] .garage-angles .garage-angles-tools button{position:static!important;display:flex!important;align-items:center;justify-content:center;gap:6px;width:100%!important;min-height:44px!important;padding:8px!important;border:1px solid var(--a-line)!important;border-radius:10px!important;background:transparent!important;color:var(--a-text)!important;font:500 13px/1.3 var(--font-body)!important;inset:auto!important;transform:none!important;box-shadow:none!important}
+html[data-ui-theme] .garage-angles .garage-angles-tools button[aria-pressed=true]{background:var(--a-panel2)!important}
+.garage-angles :is(button,select):focus-visible{outline:2px solid var(--a-accent-text);outline-offset:2px}
+@media(prefers-reduced-motion:no-preference){.garage-angles button{transition:background-color .15s,border-color .15s,color .15s}.garage-scene-choices button:active{transform:scale(.98)}}
 
 /* Build bar (on the car on desktop, floating on phones). */
 .garage-buildbar{display:flex;align-items:center;gap:10px;border:1px solid var(--a-line);border-radius:18px;background:rgba(26,33,32,.94);backdrop-filter:blur(8px);color:var(--a-text)}
@@ -133,7 +152,7 @@ details[open]>summary.summary-chevron::before{transform:rotate(-135deg);margin-t
   html[data-ui-theme] body.rally-workshop[data-mode=garage] #viewerStatus{position:absolute!important;left:50%!important;right:auto!important;top:auto!important;bottom:104px!important;transform:translateX(-50%);z-index:5;max-width:calc(100% - 48px);margin:0!important;padding:8px 16px!important;border-radius:999px!important;background:rgba(17,23,22,.78)!important;color:#f1f3ea!important;font:500 15px var(--font-body)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .garage-buildbar{position:absolute;left:16px;right:16px;bottom:16px;z-index:6;padding:8px}
   .garage-fitted.show{position:absolute;top:16px;left:16px;z-index:8;max-width:min(440px,calc(100% - 32px))}
-  .garage-angles{position:absolute;inset:auto;top:80px;left:16px;z-index:9;width:min(380px,calc(100% - 32px));max-height:calc(100% - 200px);margin:0;padding:14px 18px 8px;overflow:auto;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+  .garage-angles{position:absolute;inset:auto;top:80px;left:16px;z-index:9;width:min(420px,calc(100% - 32px));max-height:calc(100% - 104px);margin:0;padding:14px 18px 8px;overflow:auto;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
   html[data-ui-theme] body.rally-workshop[data-mode=garage] .garage-selection-tray{margin:0 0 12px}
 }
 @media(min-width:900px) and (max-width:1099px){
@@ -212,7 +231,7 @@ details[open]>summary.summary-chevron::before{transform:rotate(-135deg);margin-t
   body.phone-garage .garage-angles::backdrop{background:rgba(5,8,8,.5)}
   body.phone-garage .garage-angles-head{position:sticky;top:-8px;padding:8px 0;background:var(--a-panel);z-index:1}
   body.phone-garage .garage-angles-close{width:48px;height:48px}
-  html[data-ui-theme] body.phone-garage .garage-angles :is(.camera-controls,.cabin-viewpoints,.garage-angles-tools) :is(button,summary){min-height:48px!important;font-size:16px!important}
+  html[data-ui-theme] body.phone-garage .garage-angles [data-camera]{font-size:13px!important}
 }
 /* Tablets in portrait get the same one-page Garage with more room for the car. */
 @media(min-width:600px) and (max-width:899px){
