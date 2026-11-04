@@ -44,9 +44,9 @@
 
  function hero(m,info,option){
   if(!m){return '';}
-  const photo=(window.JIMNY_PRODUCT_PHOTOS||{})[m.id];let src=null,badge,alt;
-  if(info.try){src=window.JimnyCatalogue.previewImage(m);badge='3D preview · shape is representative';alt=`${m.name} — representative model, not an exact product`;}
-  else if(photo){src=photo.local;badge='Seller photo · check the exact variant';alt=`${m.name} — supplier product photo`;}
+  const photo=window.JimnyProductMedia.photoFor(m,bodyStyle);let src=null,badge,alt;
+  if(photo){src=photo.local;badge='Seller photo · check the exact variant';alt=`${m.name} — supplier product photo`;}
+  else if(info.try){src=window.JimnyCatalogue.previewImage(m);badge='3D preview · shape is representative';alt=`${m.name} — representative model, not an exact product`;}
   else if(!m.market&&bodyStyle!=='3door'){src=window.JimnyCatalogue.previewImage(m);badge='Upgrade idea · not a specific product';alt=`${m.name} — representative upgrade idea`;}
   if(!src)return '';
   return `<div class="pd-hero"><img src="${esc(src)}" alt="${esc(alt)}" width="1000" height="560"><span class="pd-badge">${badge}</span></div>`;
@@ -77,7 +77,7 @@
   const fit=`<section class="pd-section" aria-labelledby="pdFitTitle"><h3 id="pdFitTitle">Who can fit it</h3>${jobs.length?(fitters.length?`<ul class="pd-fitters">${fitters.slice(0,MAX_FITTERS).map(s=>`<li><button type="button" class="pd-fitter" data-fitters-job="${jobs[0]}"><b>${esc(s.name)}</b><span>${esc(String(s.city).split(',')[0])}</span></button></li>`).join('')}</ul><p class="pd-fit-note pd-fit-desktop">These workshops list ${esc(nouns)} work. <button type="button" class="pd-textlink" data-fitters-job="${jobs[0]}">See all fitters</button></p><p class="pd-fit-note pd-fit-phone">${esc(names3)} list ${esc(nouns)} work. <button type="button" class="pd-textlink" data-fitters-job="${jobs[0]}">See fitters</button></p>`:`<p class="pd-fit-note">No workshop in ${esc(region)} lists ${esc(nouns)} work yet. <button type="button" class="pd-textlink" data-fitters-job="${jobs[0]}">See all fitters</button></p>`):`<p class="pd-fit-note">No listed workshop names this kind of work. Ask any fitter for an itemised quote. <button type="button" class="pd-textlink" data-fitters-job="">See all fitters</button></p>`}</section>`;
 
   // Notes: stock and fitment as the seller states them, photo credit, archive status.
-  const photo=m&&(window.JIMNY_PRODUCT_PHOTOS||{})[m.id];
+  const photo=m&&window.JimnyProductMedia.photoFor(m,bodyStyle);
   const stock=m?.market?{available:'Seller reported available',unavailable:'Seller reported unavailable',unknown:'Stock not confirmed'}[m.stockAtCheck]||'Stock not confirmed':'';
   const notes=[m?.market?`${stock} at ${esc(m.checked||'last catalogue check')}.`:'',m?.fitment?esc(m.fitment):'',m?.market?'':'',archivedNotes[m?.id]?esc(archivedNotes[m.id]):'',photo?`Photo: <a href="${esc(photo.page)}" target="_blank" rel="noopener noreferrer">${esc(photo.credit)}</a>. May show an optional configuration.`:''].filter(Boolean);
   const cmp=m?`<button type="button" class="pd-textlink" data-compare="${m.id}" aria-pressed="${compareIds.has(m.id)}">${compareIds.has(m.id)?'Comparing':'Add to compare'}</button>`:'';

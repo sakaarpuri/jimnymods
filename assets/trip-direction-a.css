@@ -82,3 +82,22 @@ html[data-ui-theme] .trip-skip{background:var(--a-chip);color:var(--a-on-chip)}
 html[data-ui-theme] .trip-page [id]{scroll-margin-top:calc(var(--site-header-h) + 72px)}
 :root[data-ui-theme=daylight] .trip-route-gallery button[aria-pressed=true] img{border-color:var(--a-accent-text)}
 :root[data-ui-theme=daylight] .trip-page .trip-planner .trip-waypoints button[aria-pressed=true]{border-color:var(--a-accent-text)}
+
+.trip-page .trip-map-section{grid-template-columns:minmax(230px,.65fr) minmax(0,1.35fr);align-items:start}
+.trip-page .trip-waypoints{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+html[data-ui-theme] .trip-page .trip-waypoints button{display:flex;align-items:center;min-height:44px;width:100%;text-align:left;padding:8px 10px;font-size:15px}
+.trip-waypoints b{flex:none}
+.trip-map-frame{min-width:0}
+.trip-route-map{height:420px;width:100%;min-width:0;border:1px solid var(--a-line);border-radius:12px;isolation:isolate;z-index:0;background:var(--a-panel2)}
+.trip-map-marker{display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:#1b3026;color:#fff;font:700 15px var(--font-body);box-shadow:0 1px 5px #0006}
+.trip-map-marker.is-selected{background:#e2f05a;color:#151a0b;outline:2px solid #1b3026}
+.trip-route-map .leaflet-control-zoom a{width:44px;height:44px;line-height:44px;color:#18201d;background:#fff;font-size:23px}
+.trip-route-map .leaflet-control-attribution{background:#fffffff0;color:#18201d;font:12px/1.5 var(--font-body)}
+.trip-route-map .leaflet-control-attribution a{color:#194a62}
+.trip-map-status{min-height:24px}
+html[data-ui-theme] .trip-page [data-trip-fit-map],html[data-ui-theme] .trip-page [data-trip-map-retry]{min-height:44px;padding:10px 14px;border:1px solid var(--a-line-strong);background:var(--a-panel2);color:var(--a-text);font:600 15px var(--font-body)}
+@media(max-width:700px){.trip-page .trip-map-section{grid-template-columns:minmax(0,1fr)}.trip-route-map{height:360px}}
+
+html[data-ui-theme] .trip-page .trip-route-map .leaflet-control-zoom a{background:#fff!important;color:#18201d!important}
+html[data-ui-theme] .trip-page .trip-route-map .leaflet-control-attribution{color:#18201d!important}
+html[data-ui-theme] .trip-page .trip-route-map .leaflet-control-attribution a{color:#194a62!important}

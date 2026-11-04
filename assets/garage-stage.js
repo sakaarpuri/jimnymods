@@ -49,7 +49,8 @@
 <section aria-labelledby="garageAnglesTools"><h3 id="garageAnglesTools">On the car</h3><div class="garage-angles-tools"></div></section>`;
   const buildbar=document.createElement('div');buildbar.className='garage-buildbar';
   buildbar.innerHTML='<button type="button" class="garage-buildbar-summary" data-build-open><b></b><span></span></button>';
-  const thumb=document.createElement('button');thumb.type='button';thumb.className='garage-thumb';thumb.setAttribute('aria-label','Show the car');thumb.innerHTML=icon(ICON.expand);
+  const dockBackdrop=document.createElement('div');dockBackdrop.className='garage-dock-backdrop';document.body.append(dockBackdrop);
+  const thumb=document.createElement('button');thumb.type='button';thumb.className='garage-thumb';thumb.setAttribute('aria-label','Show the car');thumb.innerHTML=icon(ICON.expand)+'<span class="garage-thumb-label">View your Jimny</span>';
   const fitted=document.createElement('div');fitted.className='garage-fitted';fitted.setAttribute('role','status');fitted.setAttribute('aria-live','polite');
   fitted.innerHTML='<img alt="" width="800" height="600"><div class="garage-fitted-copy"><b></b><span></span></div><button type="button" class="garage-fitted-undo">Undo</button><button type="button" class="garage-fitted-view">View car</button>';
   if(hint)hint.textContent='Drag to turn · tap a part to edit';
@@ -112,10 +113,10 @@
   function setDocked(on){if(on===docked)return;docked=on;body.classList.toggle('garage-car-docked',on);}
   function checkDock(){
     frame=0;
-    if(mode!=='phone'||body.dataset.mode!=='garage'||body.classList.contains('viewer-expanded')){setDocked(false);return;}
-    const stripTop=parseFloat(getComputedStyle(strip).top)||0;
+    if(mode!=='phone'||!['garage','explore'].includes(body.dataset.mode)||body.classList.contains('viewer-expanded')){setDocked(false);return;}
+    const stripTop=body.dataset.mode==='explore'?parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--site-header-h'))||64:parseFloat(getComputedStyle(strip).top)||0;
     // The stage keeps its height while docked, so this threshold never moves.
-    setDocked(studio.getBoundingClientRect().bottom<=stripTop+strip.offsetHeight);
+    setDocked(studio.getBoundingClientRect().bottom<=stripTop+(body.dataset.mode==='garage'?strip.offsetHeight:0));
   }
   addEventListener('scroll',()=>{if(!frame)frame=requestAnimationFrame(checkDock);},{passive:true});
   addEventListener('resize',()=>{if(!frame)frame=requestAnimationFrame(checkDock);});
@@ -171,7 +172,7 @@
   scenery?.addEventListener('change',()=>{if(mode==='phone')closeAngles();});
 
   // Leaving the Garage returns to the shared app layout from the top.
-  new MutationObserver(()=>{if(body.dataset.mode!=='garage'){setDocked(false);closeAngles();if(mode==='phone')scrollTo(0,0);}else checkDock();}).observe(body,{attributes:true,attributeFilter:['data-mode']});
+  new MutationObserver(()=>{if(!['garage','explore'].includes(body.dataset.mode)){setDocked(false);closeAngles();if(mode==='phone')scrollTo(0,0);}else checkDock();}).observe(body,{attributes:true,attributeFilter:['data-mode']});
   // index.html re-places the strip at 1100px first; place() runs after it.
   phone.addEventListener('change',place);wide.addEventListener('change',place);
   place();

@@ -4,7 +4,8 @@
    drawer (assets/part-drawer.js). Counts are computed from the catalogue. */
 (() => {
  const esc=escHtml,$=id=>document.getElementById(id),work=window.JIMNY_FITTER_WORK;
- const photos=()=>window.JIMNY_PRODUCT_PHOTOS||{},container=$('mods');
+ const container=$('mods');
+ const photoFor=m=>window.JimnyProductMedia.photoFor(m,bodyStyle);
  const archived={market_onlyjeep_snorkel:'The former product URL now redirects to a general collection. Exact product and image could not be verified.',market_baja_sport:'Manufacturer marks this older Squadron Sport discontinued (28 April 2026). Existing saved references are retained; no replacement listing was added.'};
  const SELLER_TYPES=[['official','Genuine accessories'],['specialist','Jimny specialists'],['marketplace','Marketplaces']];
  const PAGE=24,VISIBLE_PILLS=7;
@@ -45,10 +46,10 @@
  /* ---------- card text ---------- */
  function priceText(m){const p=JimnyVerifiedPrices.get(m.id,window.jimnyRegion,bodyStyle);return p?`${JimnyVerifiedPrices.money(p.amount)} · checked ${p.checked}`:'ask seller for current price';}
  function fitLine(m){
-  const status=catalogueBodyStatus(m,bodyStyle),price=priceText(m),tick='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
-  if(status==='listed')return `<span class="pcard-ok">${tick}</span>Seller lists ${bodyLabels(m.bodyStyles)} · ${esc(price)}`;
-  if(status==='incompatible')return `Different body: seller lists ${bodyLabels(m.bodyStyles)} · ${esc(price)}`;
-  return `${esc(price)} · fitment: ask seller`;
+  const status=catalogueBodyStatus(m,bodyStyle),tick='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  if(status==='listed')return `<span class="pcard-ok">${tick}</span>Seller lists ${bodyLabels(m.bodyStyles)}`;
+  if(status==='incompatible')return `Different body: seller lists ${bodyLabels(m.bodyStyles)}`;
+  return 'Body fitment unconfirmed · ask seller';
  }
  function sellerLine(m){
   if(m.market){const local=(m.countryCode||(m.realIndia?'IN':null))===window.jimnyRegion;return `${esc(m.seller)} · ${local?'':'ships from '}${esc(m.region)}`;}
@@ -57,12 +58,12 @@
   return `${esc(first||'Several sellers')}${m.in?.length||m.realIndia?' · India':''}`;
  }
  function media(m,i){
-  const photo=photos()[m.id];let src=null,badge,alt;
-  if(i.try){src=previewImage(m);badge='3D preview';alt=`${m.name} — representative model, not an exact product`;}
-  else if(photo){src=photo.local;badge=m.market?'Photo only':'Photo';alt=m.name+(photo.kind==='manufacturer-range-photo'?' — maker range photo, check the exact variant':' — supplier product photo');}
+  const photo=photoFor(m);let src=null,badge,alt;
+  if(photo){src=photo.local;badge=photo.kind==='manufacturer-range-photo'?'Maker range photo':i.try?'Product photo':m.market?'Photo only':'Photo';alt=m.name+(photo.kind==='manufacturer-range-photo'?' — maker range photo, check the exact variant':' — supplier product photo');}
+  else if(i.try){src=previewImage(m);badge='3D preview';alt=`${m.name} — representative model, not an exact product`;}
   else if(!m.market&&bodyStyle!=='3door'){src=previewImage(m);badge='Upgrade idea';alt=`${m.name} — representative upgrade idea`;}
-  else badge='No photo yet';
-  const image=src?`<img src="${esc(src)}" alt="${esc(alt)}" width="760" height="570" loading="lazy" decoding="async">`:`<span class="pcard-nophoto"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="m4 17 5-4.5 3.5 3L15 13l5 4.5"/></svg>No photo yet</span>`;
+  else badge=bodyStyle==='3door'?'3-door photo unverified':'No photo yet';
+  const image=src?`<img src="${esc(src)}" alt="${esc(alt)}" width="760" height="570" loading="lazy" decoding="async">`:`<span class="pcard-nophoto"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="m4 17 5-4.5 3.5 3L15 13l5 4.5"/></svg>${bodyStyle==='3door'?'No verified 3-door photo':'No verified product photo'}</span>`;
   return {image,badge};
  }
  function card(i){
@@ -70,11 +71,11 @@
   const tryBtn=i.try?(fitted?`<button type="button" class="pcard-btn pcard-fitted" data-unfit="${m.id}" aria-label="On your car. Remove ${esc(m.name)} from your build"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>On your car</button>`:`<button type="button" class="pcard-btn pcard-try" data-part-preview="${m.id}">Try on car</button>`):'';
   return `<article class="pcard${fitted?' is-fitted':''}${tryBtn?'':' no-try'}" data-mod-id="${m.id}" data-preview-kind="${i.try?'approximate-3d':'source-only'}" data-fitment-status="${i.listed?'listed':i.incompatible?'incompatible':'unknown'}">
    <div class="pcard-media"><button type="button" class="pcard-image" data-open-part="${m.id}" aria-label="Details and buying options for ${esc(m.name)}" tabindex="-1">${image}</button><span class="pcard-badge${fitted?' is-fitted':''}">${fitted?'On your car':badge}</span><button type="button" class="pcard-save" data-favorite="${m.id}" aria-pressed="${saved}" aria-label="Save ${esc(m.name)}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12a.5.5 0 0 1 .5.5v16.5L12 16.8 5.5 20.5V4a.5.5 0 0 1 .5-.5z"/></svg><span class="fav-label">${saved?'Saved':'Save'}</span></button></div>
-   <div class="pcard-body"><p class="pcard-seller">${sellerLine(m)}</p><h3><button type="button" class="pcard-title" data-open-part="${m.id}">${esc(m.name)}</button></h3><p class="pcard-fit">${fitLine(m)}</p>
+   <div class="pcard-body"><p class="pcard-seller">${sellerLine(m)}</p><h3><button type="button" class="pcard-title" data-open-part="${m.id}">${esc(m.name)}</button></h3><p class="pcard-fit">${fitLine(m)}</p><p class="pcard-price">${JimnyVerifiedPrices.get(m.id,window.jimnyRegion,bodyStyle)?esc(priceText(m)):'Quote required'}</p>
    <div class="pcard-actions">${tryBtn}<button type="button" class="pcard-btn pcard-buy" data-where-to-buy="${m.id}">Where to buy</button></div></div>
   </article>`;
  }
- function decorate(root){for(const node of root.querySelectorAll('[data-product-photo]')){const p=photos()[node.dataset.productPhoto];node.innerHTML=p?`<img src="${esc(p.local)}" width="160" height="120" alt="Supplier product photo" loading="lazy">`:'<span>Source listing</span>';}}
+ function decorate(root){for(const node of root.querySelectorAll('[data-product-photo]')){const m=modById[node.dataset.productPhoto],p=m&&photoFor(m);node.innerHTML=p?`<img src="${esc(p.local)}" width="160" height="120" alt="Supplier product photo" loading="lazy">`:'<span>Source listing</span>';}}
  function render(items){container.innerHTML=items.map(i=>card(i)).join('');}
 
  /* ---------- filter column ---------- */
@@ -195,6 +196,6 @@ explainer.innerHTML='<div class="estimates-head"><h2 id="estimatesTitle">How lis
  document.body.append(explainer);
  document.addEventListener('click',e=>{if(e.target.closest('[data-open-estimates]')){e.preventDefault();e.stopPropagation();sheet(false);explainer.showModal();}else if(e.target.closest('[data-close-estimates]')||e.target===explainer)explainer.close();},true);
 
- window.JimnyCatalogue={render,decorate,apply,reset,get results(){return lastResults;},isActive:m=>!archived[m.id],canTry,previewImage,fitLine,sellerLine,priceText,infoFor};
+ window.JimnyCatalogue={render,decorate,apply,reset,get results(){return lastResults;},isActive:m=>!archived[m.id],canTry,previewImage,photoFor,fitLine,sellerLine,priceText,infoFor};
  window.JimnyProductPhotos={decorate};apply();window.JimnyWorkbenchFlow?.renderOverview();
 })();

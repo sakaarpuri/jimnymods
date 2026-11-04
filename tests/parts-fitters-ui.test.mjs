@@ -40,9 +40,9 @@ test('price and fit lines use real data and never invent a price',()=>{
  for(const m of [{market:true,price:[0,0]},{market:true,price:[8000,25000]},{price:[0,0]},{price:[8000,25000]},{price:[21700,21700]}])
   assert.equal(price(m),'ask seller for current price','unverified legacy prices are withheld');
  const fit=m=>vm.runInContext('fitLine',context)(m);
- assert.match(fit({status:'listed',bodyStyles:['3door','5door'],market:true}),/Seller lists 3-door and 5-door · ask seller for current price/);
- assert.match(fit({status:'unknown',price:[8000,25000]}),/ask seller for current price · fitment: ask seller/);
- assert.match(fit({status:'unknown',market:true}),/ask seller for current price · fitment: ask seller/);
+ assert.match(fit({status:'listed',bodyStyles:['3door','5door'],market:true}),/Seller lists 3-door and 5-door/);
+ assert.match(fit({status:'unknown',price:[8000,25000]}),/Body fitment unconfirmed · ask seller/);
+ assert.match(fit({status:'unknown',market:true}),/Body fitment unconfirmed · ask seller/);
 });
 
 test('category pills are counted from the catalogue, never typed in',()=>{
