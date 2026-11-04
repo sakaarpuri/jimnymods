@@ -1,7 +1,7 @@
 {
   "generated": "2026-11-04",
   "source": "Live Three.js renderer using the authored Blender model, not AI photographs",
-  "modelSha256": "4b7d26ac75c11dbe765eb2ba66d5f7b193ec1e7722b2381630a503fa9bc2e6f8",
+  "modelSha256": "17e03b240dc68d8ba9faf75467ec9be7216b14d4829d6bd317a3a6665bc29a7d",
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
