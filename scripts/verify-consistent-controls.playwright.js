@@ -1,0 +1,74 @@
+async(page,baseURL='http://localhost:8088/dist/')=>{
+ const browser=page.context().browser(),checks=[],errors=[],ok=(v,s)=>{if(!v)throw Error(s);checks.push(s);};
+ for(const width of [1440,390]){
+  const c=await browser.newContext({viewport:{width,height:width<500?812:950},deviceScaleFactor:1}),p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));
+  try{
+   await p.addInitScript(()=>{localStorage.setItem('thatsuvmod-welcomed','1');localStorage.setItem('jimnygami-preview-ack-v1','1');});
+   await p.goto(baseURL+'#garage',{waitUntil:'load',timeout:120000});
+   await p.waitForFunction(()=>window.JimnyGarageRefresh&&window.jimny3D?.getState().detailedReady&&!jimny3D.getState().modelLoading,null,{timeout:120000});
+   await p.evaluate(()=>{openGarageCategory('paint');window.controlsCanvas=document.querySelector('#viewer3d canvas');window.dispatchEvent(new CustomEvent('jimny-part-pick',{detail:{target:'body',colour:true,finish:true}}));});
+   const editor=p.locator('#onCarEditor');
+   ok(await editor.isVisible()&&(await editor.locator('#onCarTitle').innerText())==='Body paint',`${width}: real part-pick event opens the colour editor without an error`);
+   ok(await editor.locator('[data-part-undo]').isDisabled(),`${width}: Undo starts disabled for an unchanged build`);
+   await editor.locator('[data-part-colour-control] [data-colour-value="#364b72"]').click();
+   ok(await p.evaluate(()=>selectedPaint==='#364b72'&&jimny3D.getState().colour==='#364b72'),`${width}: named colour updates build and renderer`);
+   await editor.locator('[data-part-undo]').click();
+   ok(await p.evaluate(()=>selectedPaint==='#d9b744'),`${width}: one Undo restores the previous colour`);
+   const picker=editor.locator('[data-part-colour-control]');
+   await picker.locator('[data-colour-mode="custom"]').click();await picker.locator('[data-colour-hex]').fill('wrong');await picker.locator('[data-colour-hex]').press('Enter');
+   ok(await picker.locator('.gc-colour-error').isVisible()&&await p.evaluate(()=>selectedPaint==='#d9b744'),`${width}: invalid custom colour is rejected without changing the build`);
+   await picker.locator('[data-colour-hex]').fill('#4b7d6a');await picker.locator('[data-colour-hex]').press('Enter');
+   ok(await p.evaluate(()=>selectedPaint==='#4b7d6a')&&await picker.locator('[data-colour-mode="custom"]').getAttribute('aria-selected')==='true',`${width}: custom colour applies and keeps its editing context`);
+   const field=picker.locator('.gc-colour-field');await field.focus();await p.keyboard.press('ArrowRight');const draft=await picker.locator('[data-colour-hex]').inputValue();ok(draft!=='#4b7d6a'&&await p.evaluate(()=>selectedPaint==='#4b7d6a'),`${width}: visual colour editing previews a draft before applying`);await picker.locator('form button[type=submit]').click();ok(await p.evaluate(value=>selectedPaint===value,draft),`${width}: visual colour draft applies to the car`);await editor.locator('[data-part-undo]').click();
+   await editor.locator('[data-part-targets]').click();await editor.locator('[data-target-search]').fill('roof');
+   ok(await editor.locator('[data-pick-target]:visible').count()===1,`${width}: visual part chooser filters to the requested part`);
+   await editor.locator('[data-pick-target="roof"]').click();await editor.locator('[data-part-colour-control] [data-colour-mode="palette"]').click();await editor.locator('[data-part-colour-control] [data-colour-value="#e8e8e2"]').click();
+   ok(await p.evaluate(()=>designState.roofColour==='#e8e8e2'&&designState.finish==='twotone'&&selectedPaint==='#4b7d6a'),`${width}: roof colour changes only the intended surface`);
+   await editor.locator('[data-part-targets]').click();await editor.locator('[data-pick-target="grille"]').click();await editor.locator('[data-part-tab="finish"]').click();await editor.locator('[data-part-finish="matte"]').click();
+   ok(await p.evaluate(()=>designState.partFinishes.grille==='matte'&&designState.roofColour==='#e8e8e2'),`${width}: per-part finish leaves other surfaces intact`);
+   await editor.locator('[data-part-tab="variants"]').click();await editor.locator('[data-part-choice="grille"][data-part-value="classic"]').click();await editor.locator('[data-part-tab="colour"]').click();
+   ok(await editor.locator('[data-part-badge-control]').count()===0,`${width}: a logo-free grille does not offer a colour for a nonexistent badge`);
+   await editor.locator('[data-part-tab="variants"]').click();await editor.locator('[data-part-choice="grille"][data-part-value="oem"]').click();
+   await editor.locator('[data-part-close]').click();await p.evaluate(()=>openGarageCategory('paint'));
+   ok(await p.locator('#bodyColourControl [data-colour-name]').innerText()==='Custom colour',`${width}: main paint controls stay in sync with the part editor`);
+   ok(await p.locator('#paintControls select:visible,#paintControls input[type=color]:visible').count()===0,`${width}: paint choices have no native colour popup or modification dropdown`);
+   await p.locator('#paint-finish-tab').click();await p.evaluate(()=>window.beforeBlack=JSON.stringify(currentPayload()));await p.locator('[data-blackout-proxy]').click();
+   ok(await p.evaluate(()=>designState.allBlack&&selectedPaint===JimnySurfaceStyles.BLACK),`${width}: the All black look uses the original shared action`);
+   await p.evaluate(()=>undoLastChange());ok(await p.evaluate(()=>JSON.stringify(currentPayload())===window.beforeBlack),`${width}: All black undoes as a single build change`);
+   await p.locator('#paint-parts-tab').click();await p.locator('#paintMore [data-finish-pick="none"]').click();await p.locator('#paintMore [data-finish-target="roof"]').check();await p.locator('#paintMore [data-apply-surface="matte"]').click();
+   ok(await p.evaluate(()=>designState.partFinishes.roof==='matte'),`${width}: Apply to parts coats the selected part`);
+   await p.locator('#paintMore [data-apply-surface="original"]').click();ok(await p.evaluate(()=>!designState.partFinishes.roof),`${width}: restoring a part finish removes its custom coating`);
+   await p.evaluate(()=>openGarageCategory('cabin'));
+   await p.locator('[data-cabin-colour="olive"]').click();await p.locator('[data-seat-fabric="tweed"]').click();
+   ok(await p.evaluate(()=>state.seats&&designState.cabin==='olive'&&designState.seatFabric==='tweed'),`${width}: upholstery colours and fabric remain functional`);
+   await p.locator('[data-cabin-colour="olive"]').click();await p.locator('[data-seat-fabric="tweed"]').click();ok(await p.evaluate(()=>state.seats),`${width}: reselecting upholstery keeps the selected covers fitted`);
+   await p.locator('[data-match-interior]').click();ok(await p.evaluate(()=>state.seats&&state.doortrim),`${width}: matching the interior fits seats and door inserts together`);
+   await p.locator('#cabin-touring-tab').click();await p.locator('[data-fit-tourer]').click();await p.locator('[data-touring-mode="camp"]').click();await p.locator('[data-touring-drawers]').check();
+   ok(await p.evaluate(()=>state.touring&&designState.touringMode==='camp'&&designState.touringDrawers),`${width}: visual touring layouts and the drawer switch update the build`);
+   await p.evaluate(()=>openDrawer());
+   await p.waitForFunction(()=>{const e=document.getElementById('buildDrawer');return e.classList.contains('open')&&Math.abs(e.getBoundingClientRect().right-innerWidth)<1;});
+   ok(await p.locator('#buildDrawer .garage-selection-tray').isHidden(),`${width}: My build shows one parts list without duplicate chips`);
+   ok(await p.locator('#savedBuilds').isHidden()&&await p.locator('#buildDrawer .drawer-item').count()===await p.evaluate(()=>buildSelectionCount()),`${width}: build totals match the single editable list`);
+   await p.locator('#buildName').fill('Forest weekend');await p.locator('#saveSnapshot').click();
+   ok(await p.locator('.gc-saved-card').count()===1&&(await p.locator('.gc-saved-card h3').innerText())==='Forest weekend',`${width}: saved build appears as a named card`);
+   await p.locator('[data-saved-rename]').click();await p.locator('.gc-rename input').fill(' ');await p.locator('.gc-rename input').press('Enter');ok(await p.locator('.gc-rename [role=alert]').isVisible()&&(await p.locator('.gc-saved-card h3').innerText())==='Forest weekend',`${width}: an empty rename keeps the saved build intact`);await p.locator('[data-rename-cancel]').click();
+   await p.locator('[data-saved-rename]').click();await p.locator('.gc-rename input').fill('Dune & Pine <weekend>');await p.locator('.gc-rename input').press('Enter');
+   ok((await p.locator('.gc-saved-card h3').innerText())==='Dune & Pine weekend'&&await p.locator('.gc-saved-card h3 img').count()===0,`${width}: renamed builds are saved as safe text`);
+   await p.evaluate(()=>window.savedControlsBuild=JSON.stringify(buildSnapshots[0].data));await p.locator('#closeDrawer').click();
+   await p.evaluate(()=>{rememberUndo();selectedPaint='#be4937';update();openDrawer();JimnyGarageRefresh.buildTab('saved');});
+   await p.locator('[data-saved-load]').click();
+   ok(await p.evaluate(()=>currentPayload().colour===JSON.parse(window.savedControlsBuild).colour&&designState.seatFabric==='tweed'&&designState.touringMode==='camp'),`${width}: loading a saved card restores colour, materials and layout`);
+   await p.reload({waitUntil:'load',timeout:120000});await p.waitForFunction(()=>window.JimnyGarageRefresh&&window.jimny3D?.getState().detailedReady,null,{timeout:120000});
+   await p.evaluate(()=>{openDrawer();JimnyGarageRefresh.buildTab('saved');});ok((await p.locator('.gc-saved-card h3').innerText())==='Dune & Pine weekend',`${width}: saved build name survives a reload`);await p.locator('#closeDrawer').click();
+   await p.evaluate(()=>{const s=document.getElementById('bodySelect');s.value='3door';s.dispatchEvent(new Event('change',{bubbles:true}));});
+   await p.waitForFunction(()=>jimny3D.getState().body==='3door'&&!jimny3D.getState().modelLoading,null,{timeout:120000});await p.evaluate(()=>openGarageCategory('cabin'));
+   ok(await p.locator('#cabin-touring-tab').isHidden(),`${width}: five-door-only touring controls are absent for the three-door`);
+   ok(await p.locator('.cabin-palette img').count()===0,`${width}: body switching keeps the compact upholstery swatches`);
+   await p.locator('#cabin-upholstery-tab').focus();await p.keyboard.press('ArrowRight');ok(await p.locator('#cabin-accessories-tab').getAttribute('aria-selected')==='true',`${width}: keyboard navigation skips unavailable touring controls`);
+   await p.evaluate(()=>{document.documentElement.dataset.uiTheme='daylight';openGarageCategory('paint');});
+   const geometry=await p.locator('#bodyColourControl').evaluate(e=>({width:e.scrollWidth,client:e.clientWidth,colour:getComputedStyle(e.querySelector('[data-colour-name]')).color}));
+   ok(geometry.width<=geometry.client&&geometry.colour!=='rgb(241, 243, 234)',`${width}: controls fit and take the Daylight theme`);
+  }finally{await c.close();}
+ }
+ ok(!errors.length,'no browser errors: '+errors.join(', '));return{checks,errors};
+}

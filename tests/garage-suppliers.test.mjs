@@ -34,10 +34,10 @@ test('tyre tread selection is distinct from wheel finish and saved safely',()=>{
  assert(!wheel.includes('setPartSelection'));assert(wheel.includes('designState.wheelFinish'));
  assert.match(html,/tyreType:'highway'/);
 });
-test('tyre choices use matching-body rendered images with labels below and honest size notes',()=>{
+test('tyre choices use matching-body rendered images with labels below and clear fitment guidance',()=>{
  assert.match(html,/studioPreviewPath\('tyre-'\+id\)/);
  assert.match(html,/data-tyre-choice="\$\{id\}"[^]*?<img[^]*?<strong>\$\{name\}<\/strong>/);
  assert(!html.includes('Preview diameter stays the same'));
- assert.match(html,/736 mm versus 693 mm/);assert.match(html,/Game grip and handling remain stock/);
+ assert.match(html,/Representative tread patterns\. Confirm tyre size and clearance with your fitter/);assert(!html.includes('Game grip and handling remain stock'));
  assert.match(css,/\.tyre-type-options img\{display:block;width:100%;height:auto/);
 });
