@@ -7,8 +7,8 @@ test('welcome uses current customised previews for both bodies and protects exis
  assert.match(welcome,/const featuredLook='retro'/);
  assert.match(welcome,/preset-\$\{featuredLook\}\.webp\?v=/);
  assert.match(welcome,/JIMNY_VISUAL_RELEASE\?\.previewVersion/);
- assert.match(welcome,/Start from Heritage Club/);assert.match(welcome,/Start with stock instead/);
- assert.match(welcome,/if\(featured&&startFeatured\)\{applyPkg\(featuredLook,'replace'\)/);
+ assert.match(welcome,/Customise this Jimny/);assert.match(welcome,/Start from stock/);
+ assert.match(welcome,/if\(featured&&startFeatured\)\{applyPkg\(featuredLook,'replace',\{notify:false\}\);showFeaturedNotice\(\)/);
  const fn=welcome.match(/function canStartFeatured\(\)\{[\s\S]*?\n  \}/)[0];
  const check=({seen=false,region=false,parts=[],hash='',search='',blocked=false}={})=>vm.runInNewContext(fn+';canStartFeatured()',{
   SEEN_KEY:'seen',URLSearchParams,location:{hash,search},window:{getJimnyBuildState:()=>({parts})},

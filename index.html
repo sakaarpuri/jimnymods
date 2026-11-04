@@ -1213,7 +1213,7 @@ function applyPackageDesign(pkg){
 function addPartsToBuild(ids){
   ids.forEach(id=>{ if(id==="grille"){ selectDesign("grille","block"); return; } if(modById[id] && !modById[id].designOnly)setPartSelection(id,true); });
 }
-function applyPkg(id,mode="add"){
+function applyPkg(id,mode="add",{notify=true}={}){
   const p = PACKAGES.find(x=>x.id===id);
   if(!p) return;
   rememberUndo();
@@ -1225,7 +1225,7 @@ function applyPkg(id,mode="add"){
   addPartsToBuild(p.parts);
   applyPackageDesign(p);
   update();
-  showToast(`${p.name} ${mode==="replace"?"replaced":"added to"} your build`,"Undo",undoLastChange);
+  if(notify)showToast(`${p.name} ${mode==="replace"?"replaced":"added to"} your build`,"Undo",undoLastChange);
 }
 function applyPkgLook(id){
   const p = PACKAGES.find(x=>x.id===id);

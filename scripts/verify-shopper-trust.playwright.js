@@ -7,13 +7,19 @@ async (page, baseURL='http://localhost:8086/') => {
   try{
    await p.goto(baseURL,{waitUntil:'domcontentloaded',timeout:120000});
    ok(await p.evaluate(w=>innerWidth===w,width),`${width}: verification uses the actual viewport width`);
-   ok(await p.getByRole('button',{name:'Start from Heritage Club',exact:true}).isVisible(),`${width}: welcome names the preset`);
+   ok(await p.getByRole('button',{name:'Customise this Jimny',exact:true}).isVisible(),`${width}: welcome keeps the Customise this Jimny invitation`);
    const image=p.locator('.welcome-car img');
    await p.locator('[name="welcomePage-body"][value="3door"]').check();
    ok((await image.getAttribute('src')).includes('/swb/'),`${width}: welcome changes to a three-door render`);
    await p.locator('[name="welcomePage-body"][value="5door"]').check();
    ok(!(await image.getAttribute('src')).includes('/swb/'),`${width}: welcome changes back to five-door`);
-   await p.getByRole('button',{name:'Start from Heritage Club',exact:true}).click();
+   await p.getByRole('button',{name:'Customise this Jimny',exact:true}).click();
+   const loaded=p.locator('.welcome-loaded-notice');
+   ok((await loaded.innerText()).includes(`Loaded Heritage Club (${await p.evaluate(()=>buildSelectionCount())} parts)`),`${width}: the one-time message explains the actual loaded count`);
+   await p.waitForTimeout(3500);
+   ok(await loaded.isVisible(),`${width}: the starter explanation stays until dismissed`);
+   await loaded.getByRole('button',{name:'Got it',exact:true}).click();
+   ok(await loaded.count()===0&&await p.evaluate(()=>buildSelectionCount()===10),`${width}: Got it dismisses the explanation and keeps the chosen look`);
    await p.waitForFunction(()=>window.jimny3D?.getState().detailedReady&&!jimny3D.getState().modelLoading);
    async function countAgrees(label){
     const result=await p.evaluate(()=>({count:buildSelectionCount(),rows:document.querySelectorAll('.drawer-item').length,header:+document.getElementById('headerBuildCount').textContent,bar:document.querySelector('.garage-buildbar-summary b').textContent,status:document.getElementById('viewerStatus').textContent}));
@@ -59,11 +65,19 @@ async (page, baseURL='http://localhost:8086/') => {
    ok(await p.evaluate(()=>document.body.dataset.mode==='fitters'),`${width}: fitters links reach the live directory`);
   }finally{await context.close();}
  }
- const stockContext=await browser.newContext(),stock=await stockContext.newPage();
+ for(const body of ['3door','5door']){
+ const stockContext=await browser.newContext({viewport:{width:390,height:812},deviceScaleFactor:1}),stock=await stockContext.newPage();
  try{
-  await stock.goto(baseURL,{waitUntil:'domcontentloaded',timeout:120000});await stock.getByRole('button',{name:'Start with stock instead',exact:true}).click();
-  ok(await stock.evaluate(()=>buildSelectionCount()===0),'stock start adds no hidden selections');
+  await stock.goto(baseURL,{waitUntil:'domcontentloaded',timeout:120000});
+  await stock.locator(`[name="welcomePage-body"][value="${body}"]`).check();
+  await stock.getByRole('button',{name:'Customise this Jimny',exact:true}).click();
+  ok(await stock.locator('[data-welcome-stock]').evaluate(button=>{const r=button.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)?.closest('[data-welcome-stock]')===button;}),`${body}: the stock action is immediately reachable above the phone build bar`);
+  await stock.getByRole('button',{name:'Start from stock',exact:true}).click();
+  ok(await stock.evaluate(body=>buildSelectionCount()===0&&bodyStyle===body&&designState.decal==='none'&&designState.grille==='oem',body),`${body}: Start from stock removes the look and keeps the chosen body`);
+  await stock.reload({waitUntil:'domcontentloaded',timeout:120000});
+  ok(await stock.locator('#welcome,.welcome-loaded-notice').count()===0&&await stock.evaluate(()=>buildSelectionCount()===0),`${body}: the explanation does not repeat on a return visit`);
  }finally{await stockContext.close();}
+ }
  ok(!errors.length,`no page errors: ${errors.join(', ')}`);
  return {checks,errors};
 }
