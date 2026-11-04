@@ -12,7 +12,7 @@ test('unchanged body details, roof, lights, cabin and wheels retain decoded worl
  // size, location and visibility are covered by the indicator/aperture probes.
  const changed=new Set(['NEXA_front_indicator_amber_lens_1','NEXA_front_indicator_amber_lens_-1','NEXA_front_indicator_bezel_1','NEXA_front_indicator_bezel_-1','Revision_37_—_continuous_upper_nose_and_wing_landing','Revision_43_—_continuous_upper_wing_and_nose','Revision_37_—_tapered_smooth_clamshell_bonnet','Revision_37_—_recessed_bonnet_seam_returns','Revision_31_—_continuous_front_body_pressing001','Revision_31_—_continuous_front_body_pressing001_1']);
  let compared=0;
- for(const n of ['BodyShell','RoofShell','StockBumper','StockHeadlamps','StockWheels','AllTerrainWheels','Cabin','SpareWheel']){
+ for(const n of ['BodyShell','RoofShell','StockHeadlamps','StockWheels','AllTerrainWheels','Cabin','SpareWheel']){
   const collect=root=>{const map=new Map();root.traverse(o=>{if(o.isMesh&&!changed.has(o.name)){assert(!map.has(o.name),'Ambiguous preservation mesh '+o.name);map.set(o.name,o);}});return map;};
   const actual=collect(s.getObjectByName(n)),expected=collect(old.getObjectByName(n));assert.deepEqual([...actual.keys()].sort(),[...expected.keys()].sort(),n+' retained mesh inventory changed');
   for(const [name,b]of expected){const a=actual.get(name),seamBatch=name==='BodyShell__IntakeShadow';
@@ -24,3 +24,23 @@ test('unchanged body details, roof, lights, cabin and wheels retain decoded worl
  assert(compared>100000,'Preservation check unexpectedly lost assembly coverage');
 });
 test('wrapped fascia keeps clear headlamp apertures and the amber lenses visible',()=>{for(const n of names){const grille=s.getObjectByName(n),panels=[];for(const g of[s.getObjectByName('BodyShell'),grille,s.getObjectByName('StockHeadlamps')])g.traverse(o=>{if(o.isMesh&&['BodyPaint','GrilleAnthracite','GlossBlackGrille','MouldedPlastic','IntakeShadow'].includes(o.material.name))panels.push(o)});for(const side of[-1,1]){for(const a of[0,Math.PI/2,Math.PI,Math.PI*1.5]){const ray=new Raycaster(new Vector3(side*.55+Math.cos(a)*.075,.955+Math.sin(a)*.075,2.12),new Vector3(0,0,-1),0,.40);assert.equal(ray.intersectObjects(panels,false).length,0,`${n}: blocked lamp aperture`);}for(const [dx,dy]of[[0,0],[.018,0],[-.018,0],[0,.018],[0,-.018]]){const h=new Raycaster(new Vector3(side*.703+dx,1.037+dy,2.0),new Vector3(0,0,-1),0,.30).intersectObjects([s.getObjectByName('BodyShell'),grille],true)[0];assert.equal(h?.object.material.name,'IndicatorAmber',`${n}: wrap obscures amber lens`);}}}});
+
+test('five-door stock bumper keeps the original Kimi shell, optics and plate placement',()=>{
+ const bumper=s.getObjectByName('StockBumper');
+ const shell=bumper.getObjectByName('StockBumper__MouldedPlastic');
+ const bounds=new Box3().setFromObject(shell,true);
+ assert(Math.abs(bounds.max.x-bounds.min.x-1.62884)<.001);
+ assert(Math.abs(bounds.max.y-.802)<.001 && Math.abs(bounds.min.y-.412)<.001);
+ assert(Math.abs(bounds.max.z-1.889)<.001);
+ const optics=bumper.getObjectByName('StockBumper__LampLens');
+ const lettering=bumper.getObjectByName('Front_Jimny_registration_lettering');
+ assert(optics && lettering);
+ const letters=new Box3().setFromObject(lettering,true);
+ const plate=new Box3().setFromObject(bumper.getObjectByName('StockBumper__WheelGunmetal'),true);
+ assert(Math.abs(plate.max.z-1.893)<.001);
+ assert(letters.min.z>plate.max.z && letters.max.z<plate.max.z+.008,'Lettering must sit on the stock plate face');
+ for(const side of [-1,1]){
+  const ray=new Raycaster(new Vector3(side*.607,.5932,2),new Vector3(0,0,-1),0,.25);
+  assert.equal(ray.intersectObject(bumper,true)[0]?.object.material.name,'FogLampGlass');
+ }
+});

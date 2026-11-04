@@ -24,7 +24,10 @@ test('front inner structure remains opaque with the stock bumper removed',async(
   const hits=new Raycaster(new Vector3(x,y,2.12),new Vector3(0,0,-1),0,.55).intersectObject(body,true);
   assert(hits.some(h=>h.object.material.name==='IntakeShadow'),`Open view through engine bay at ${x}/${y}`);
  }
- assert(!scene.getObjectByName('Front_Jimny_registration_lettering'),'Detached plate lettering must not survive bumper replacement');
+ const bumper=scene.getObjectByName('StockBumper');
+ assert(bumper.getObjectByName('Front_Jimny_registration_lettering'));
+ bumper.removeFromParent();
+ assert(!scene.getObjectByName('Front_Jimny_registration_lettering'),'Removing the stock bumper must remove its lettering');
 });
 test('replacement lamps fit the new centre and bumper tray meets the lower grille',()=>{
  const rig=new Group(),mats=accessoryMaterials(),builder=accessoryBuilder({accessoryRig:rig,mats,detailed:true,modelBody:'5door',colour:'#aaa',lampEmitters:{}});
