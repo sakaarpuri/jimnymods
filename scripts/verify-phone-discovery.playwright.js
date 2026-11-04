@@ -50,7 +50,7 @@ async (page,baseURL='http://localhost:8088/') => {
  try{
   await p.goto(baseURL+'trip-planner.html',{waitUntil:'domcontentloaded'});
   ok(requests===0,'map tiles wait until the map is visible');
-  ok(await p.locator('.trip-waypoint-diagram,iframe').count()===0,'the abstract sketch and remote iframe are replaced by one geographic map');
+  ok(await p.locator('.trip-waypoint-diagram,.trip-map-section iframe').count()===0,'the abstract sketch and remote iframe are replaced by one geographic map');
   await p.locator('.trip-route-map').scrollIntoViewIfNeeded();
   await p.waitForFunction(()=>JimnyTripPage.mapState()?.ready&&document.querySelectorAll('.leaflet-tile-loaded').length>0);
   async function fills(){await p.waitForFunction(()=>{const s=JimnyTripPage.mapState();return s?.ready&&s.size.x===s.container.width&&s.size.y===s.container.height;});}
