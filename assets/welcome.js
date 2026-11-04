@@ -48,6 +48,15 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
     window.addEventListener('jimny-model-change',e=>{if(container.isConnected)update(e.detail);});
   }
 
+  function showFeaturedNotice(){
+    const notice=document.createElement('aside');notice.className='welcome-loaded-notice';
+    notice.innerHTML=`<p role="status">Loaded Heritage Club (${buildSelectionCount()} parts)</p><button type="button" data-welcome-stock>Start from stock</button><button type="button" data-welcome-dismiss>Got it</button>`;
+    const dismiss=()=>{notice.remove();document.querySelector('#garage [role=tab][aria-selected=true]')?.focus({preventScroll:true});};
+    notice.querySelector('[data-welcome-stock]').addEventListener('click',()=>{loadPayload({body:bodyStyle});dismiss();});
+    notice.querySelector('[data-welcome-dismiss]').addEventListener('click',dismiss);
+    document.querySelector('#garage .garage-heading').before(notice);
+  }
+
   function renderPage(){
     const page=document.createElement('section');
     page.className='welcome-page';page.id='welcome';page.setAttribute('aria-labelledby','welcomeTitle');
@@ -59,8 +68,7 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
   <h1 id="welcomeTitle" tabindex="-1">Build it<br>here first.</h1>
   <p class="welcome-lede">Explore modifications in 3D, discover parts and make your Jimny your own.</p>
   <form class="welcome-form" data-welcome-form>${questions('welcomePage')}
-   <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">${startFeatured?'Start from Heritage Club':'Open the Garage'} ${arrow}</button>
-   ${startFeatured?'<button type="button" class="welcome-quiet" data-welcome-go="garage">Start with stock instead</button>':''}
+   <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">${startFeatured?'Customise this Jimny':'Open the Garage'} ${arrow}</button>
    <nav class="welcome-routes" aria-label="Other places to start"><a href="trip-planner.html" data-welcome-go="trip">Plan a trip</a></nav></div>
   </form>
  </div>
@@ -75,7 +83,7 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
     document.body.prepend(page);trackBodyImage(page,'welcomePage');
     const close=(go,{apply=true,featured=false}={})=>{
       if(apply)applyAnswers(page,'welcomePage');
-      if(featured&&startFeatured){applyPkg(featuredLook,'replace');showToast(`Loaded Heritage Club · ${buildSelectionCount()} items in build`,'Start from stock',()=>{loadPayload({body:bodyStyle});});}
+      if(featured&&startFeatured){applyPkg(featuredLook,'replace',{notify:false});showFeaturedNotice();}
       markSeen();outside.forEach(el=>{el.inert=false;});page.remove();delete root.dataset.welcome;
       if(go==='trip')return;// The link navigates.
       const mode={garage:'garage',parts:'parts',fitters:'fitters'}[go]||'garage';

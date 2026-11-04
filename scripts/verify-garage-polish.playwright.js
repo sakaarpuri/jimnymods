@@ -6,11 +6,11 @@ async (page,baseURL='http://localhost:8087/') => {
   p.on('pageerror',e=>errors.push(e.message));
   try{
    await p.goto(baseURL,{waitUntil:'domcontentloaded'});
-   await p.getByRole('button',{name:'Start from Heritage Club',exact:true}).click();
+   await p.getByRole('button',{name:'Customise this Jimny',exact:true}).click();
    await p.waitForFunction(()=>window.jimny3D?.getState().detailedReady,null,{timeout:120000});
    ok(await p.locator('#previewExplanation').isVisible(),`${width}: one preview explanation appears initially`);
    ok(await p.locator('.model-accuracy-note,.garage-honesty').count()===0,`${width}: duplicate warning paragraphs are removed`);
-   await p.getByRole('button',{name:'Got it',exact:true}).click();
+   await p.locator('[data-preview-got-it]').click();
    for(const category of ['popular','paint','graphics','wheels','grille','cabin']){
     await p.locator(`[data-garage-category="${category}"]`).click();
     ok(await p.locator('#previewExplanation').isHidden(),`${width}: ${category} keeps the explanation dismissed`);
@@ -39,7 +39,7 @@ async (page,baseURL='http://localhost:8087/') => {
    ok(await p.locator('#previewExplanation').isHidden(),`${width}: Got it persists after reload`);
    await p.getByRole('button',{name:'Preview, not exact',exact:true}).click();
    ok(await p.locator('#previewExplanation').isVisible(),`${width}: the compact label reopens the explanation`);
-   await p.getByRole('button',{name:'Got it',exact:true}).click();
+   await p.locator('[data-preview-got-it]').click();
    ok(await p.locator('.site-nav [data-mode-select="clubs"],.site-nav [data-mode-select="tools"]').count()===0,`${width}: paused destinations are absent from the shared menu`);
    for(const mode of ['clubs','tools']){
     await p.evaluate(mode=>setWorkbenchMode(mode),mode);
