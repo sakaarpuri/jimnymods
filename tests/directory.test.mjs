@@ -17,9 +17,9 @@ test('duplicate regional supplier records are removed but separate country branc
  assert.equal(directory.countryName('IN'),'India');
  assert.equal(directory.countryName('ZZ'),'Location unconfirmed');
 });
-test('clubs have a separate navigable mode, labelled country/search filters and an explicit listing invitation',()=>{
+test('paused clubs retain their country/search filters and listing data for a future launch',()=>{
  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
- assert.match(html,/clubs:"clubs-title"/);assert.match(html,/data-mode-select="clubs"/);
+ assert.match(html,/clubs:"clubs-title"/);assert.match(html,/HIDDEN_MODES=new Set\(\['clubs','tools'\]\)/);
  assert.match(html,/id="regionalClubs" data-mode="clubs"/);
  for(const id of ['clubSearch','clubCountry','sourceCountry','shopCountry'])assert(html.includes(`id="${id}"`));
  assert(!html.includes('data-local-tab="clubs"'));

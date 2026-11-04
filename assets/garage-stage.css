@@ -361,3 +361,16 @@ html[data-ui-theme] #garage .garage-wheel-designs h2{margin:0 0 12px!important;c
 .wheel-design:focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
 .wheel-design:disabled{opacity:.55;cursor:default}
 @media(max-width:899px){.wheel-design-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Shared preview guidance stays short after acknowledgement. */
+.preview-guidance{flex:none;margin:0;padding:8px 24px;color:var(--a-muted);font:14px/1.5 var(--font-body)}
+.preview-explanation{display:flex;align-items:center;gap:20px;max-width:1100px;margin:auto;padding:12px 16px;background:var(--a-panel);border:1px solid var(--a-line);border-radius:10px}
+.preview-explanation p{margin:0;flex:1}
+.preview-guidance button{min-height:44px;padding:8px 14px;border:1px solid var(--a-line-strong);border-radius:8px;background:var(--a-panel2);color:var(--a-text);font:600 14px var(--font-body);cursor:pointer}
+.preview-guidance .preview-summary{padding:0;border:0;background:transparent;color:var(--a-muted);min-height:28px;text-decoration:underline;text-underline-offset:3px}
+.preview-guidance [hidden]{display:none!important}
+body:not([data-mode=garage]):not([data-mode=explore]) .preview-guidance{display:none}
+.footer-brand .footer-logo{display:block;width:240px;max-width:100%;background:transparent}
+.footer-logo img{display:block;width:100%;height:auto}
+html[data-ui-theme] .rally-workshop .paint-chip[aria-pressed=true]{outline:3px solid var(--a-accent-text);outline-offset:2px}
+html[data-ui-theme] .rally-workshop .paint-chip[aria-pressed=true]::after{content:'✓';background:var(--a-lime);color:var(--a-on-lime)}
+@media(max-width:899px){.preview-guidance{padding:8px 12px}.preview-explanation{gap:12px;align-items:start}.preview-explanation p{font-size:14px}}
