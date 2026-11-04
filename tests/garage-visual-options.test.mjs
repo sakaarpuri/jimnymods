@@ -20,7 +20,7 @@ test('paint uses compact accessible swatches rather than repeated car-photo tile
   assert.match(renderer,/class=\"paint-chip\"/);
   assert.match(renderer,/aria-label=\"\$\{escHtml\(name\)\}/);
   assert.doesNotMatch(renderer,/<img|more-paint/);
-  assert.match(html,/Tap a swatch to repaint your Jimny instantly/);
+  assert.match(html,/Choose a colour, finish or individual part to customise/);
 });
 
 test('all published design/paint thumbnails exist for both bodies',()=>{
@@ -39,9 +39,8 @@ test('every named garage family option has a shipped image, including market ali
  for(const id of new Set(Object.values(families).flat()))assert(existsSync(new URL(`../assets/previews/part-${id}.webp`,import.meta.url)),`Missing image for ${id}`);
 });
 
-test('seat covers support repeat-to-remove, selected state and body guards',()=>{
- assert.match(html,/const remove=state.seats&&designState.cabin===cover.dataset.cabinColour/);
- assert.match(html,/setPartSelection\('seats',!remove\)/);
+test('upholstery choices keep covers fitted, with selected state and body guards',()=>{
+ assert.match(html,/designState.cabin=cover.dataset.cabinColour;setPartSelection\('seats',true\)/);
  assert.match(html,/b.disabled=!ready;/);
  assert.match(html,/window.addEventListener\('jimny-model-change',\(\)=>\{renderVisualEditors\(\);renderGarageParts\(\);\}\)/);
 });

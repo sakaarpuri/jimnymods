@@ -1,0 +1,109 @@
+/* One control language: the Angles & scenery panel's spacing, tabs and states. */
+html[data-ui-theme] body .gc-legacy-controls,html[data-ui-theme] body #garage .gc-legacy-control,html[data-ui-theme] body #buildDrawer .gc-legacy-control{display:none!important}
+html[data-ui-theme] body :is(.gc-panel,.gc-colour,.gc-target-browser,.gc-rename,.gc-saved-list) [hidden],html[data-ui-theme] body .gc-panel[hidden],html[data-ui-theme] body .gc-target-browser[hidden],html[data-ui-theme] body .gc-rename[hidden],html[data-ui-theme] body #roofColourPicker[hidden]{display:none!important}
+.gc-workspace,.gc-panel{min-width:0}
+.gc-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;padding:4px;margin:0 0 18px;border-radius:10px;background:var(--a-ground)}
+html[data-ui-theme] body .gc-tabs button,html[data-ui-theme] body .on-car-tabs button{min-width:0;min-height:44px;padding:8px 5px;border:0;border-radius:7px;background:transparent;color:var(--a-muted);font:600 14px/1.3 var(--font-body);cursor:pointer}
+html[data-ui-theme] body .gc-tabs [aria-selected=true],html[data-ui-theme] body .on-car-tabs [aria-selected=true]{background:var(--a-panel2);color:var(--a-text);border:0}
+html[data-ui-theme] body #garage .gc-section-title,.gc-target-browser h3{font:600 15px/1.4 var(--font-body);color:var(--a-text);margin:20px 0 12px}
+.gc-note{margin:0 0 14px;color:var(--a-muted);font:400 14px/1.5 var(--font-body)}
+html[data-ui-theme] body .gc-field{display:grid;gap:7px;color:var(--a-muted);font:500 13px/1.4 var(--font-body);min-width:0}
+html[data-ui-theme] body .gc-field input:not([type=range]){min-width:0;width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--a-line-strong);border-radius:9px;background:var(--a-panel2);color:var(--a-text);font:500 15px var(--font-body)}
+html[data-ui-theme] body :is(.gc-primary,.gc-secondary,.gc-change-part,.gc-custom-form button,.gc-saved-actions button,.gc-rename button){min-height:44px;padding:9px 14px;border:1px solid var(--a-line-strong);border-radius:9px;background:transparent;color:var(--a-text);font:600 14px/1.3 var(--font-body);cursor:pointer}
+html[data-ui-theme] body .gc-primary,html[data-ui-theme] body .gc-custom-form button{background:var(--a-chip);color:var(--a-on-chip);border-color:var(--a-chip)}
+.gc-current{display:flex;align-items:center;gap:12px;margin:0 0 18px}
+.gc-current>i{display:block;width:48px;height:48px;flex:none;border:1px solid var(--a-line-strong);border-radius:10px}
+.gc-current>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;min-width:0;flex:1}
+.gc-current small{grid-column:1/-1;color:var(--a-muted);font-size:12px}
+.gc-current strong{font:600 16px/1.3 var(--font-body);color:var(--a-text)}
+.gc-current span{font:400 12px/1.5 var(--font-body);color:var(--a-muted)}
+.gc-colour-filters{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
+html[data-ui-theme] body .gc-colour-filters button{min-height:36px;padding:6px 10px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--a-muted);font:500 13px var(--font-body);cursor:pointer}
+html[data-ui-theme] body .gc-colour-filters [aria-pressed=true]{border-color:var(--a-line-strong);background:var(--a-panel2);color:var(--a-text)}
+.gc-palette{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+html[data-ui-theme] body .gc-palette button{display:flex;flex-direction:column;align-items:stretch;gap:7px;min-width:0;min-height:78px;padding:6px;border:1px solid var(--a-line);border-radius:10px;background:transparent;color:var(--a-text);font:500 12px/1.3 var(--font-body);text-align:left;cursor:pointer}
+.gc-palette button>i{display:block;position:relative;width:100%;height:30px;border-radius:5px;background:var(--swatch);border:1px solid #ffffff14}
+.gc-palette button>span{overflow-wrap:anywhere}
+html[data-ui-theme] body .gc-palette [aria-pressed=true]{border-color:var(--a-accent-text);box-shadow:inset 0 0 0 1px var(--a-accent-text)}
+.gc-palette [aria-pressed=true]>i::after{content:'✓';position:absolute;right:3px;top:3px;width:19px;height:19px;border-radius:50%;background:var(--a-lime);color:var(--a-on-lime);font:700 12px/19px var(--font-body);text-align:center}
+.gc-colour-field{height:174px;position:relative;overflow:hidden;border-radius:10px;border:1px solid var(--a-line-strong);background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),var(--hue);touch-action:none;cursor:crosshair}
+.gc-colour-field>i{position:absolute;width:14px;height:14px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #25302b;transform:translate(-50%,-50%);pointer-events:none}
+.gc-colour .gc-field:has([type=range]){margin:14px 0}
+.gc-colour input[type=range]{appearance:none;width:100%;height:16px;min-height:16px;padding:0;border:1px solid var(--a-line);border-radius:10px;background:linear-gradient(to right,#f44,#ff4,#4e4,#4ee,#44f,#f4f,#f44)}
+.gc-colour input[type=range]::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border:2px solid var(--a-text);border-radius:50%;background:var(--a-panel)}
+.gc-colour input[type=range]::-moz-range-thumb{width:18px;height:18px;border:2px solid var(--a-text);border-radius:50%;background:var(--a-panel)}
+.gc-custom-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}
+.gc-colour-error{grid-column:1/-1;color:var(--a-text);border-left:3px solid #d89a70;padding-left:10px;font-size:13px}
+.gc-draft{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px;color:var(--a-muted)}
+.gc-draft i{width:28px;height:28px;border:1px solid var(--a-line-strong);border-radius:6px}
+.gc-look-card{display:flex;align-items:center;gap:14px;min-height:78px;width:100%;margin:18px 0;padding:12px;border:1px solid var(--a-line);border-radius:10px;background:var(--a-panel2);color:var(--a-text);text-align:left;cursor:pointer}
+html[data-ui-theme] body .gc-look-card[aria-pressed=true]{border-color:var(--a-accent-text);box-shadow:inset 0 0 0 1px var(--a-accent-text)}
+.gc-look-card svg{width:76px;height:48px;flex:none}.gc-look-card span{display:grid;gap:4px}.gc-look-card small{color:var(--a-muted);font-size:13px}
+#roofColourPicker{border-top:1px solid var(--a-line);padding-top:20px;margin-top:24px}
+html[data-ui-theme] body #paintMore>.surface-controls{display:block!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important}
+#paintMore .surface-controls>details{display:block!important;padding:0;border:0}
+html[data-ui-theme] body #paintMore .surface-targets{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+html[data-ui-theme] body #paintMore .surface-targets label{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr);gap:3px 8px;padding:12px;min-height:66px;border:1px solid var(--a-line);border-radius:10px;background:var(--a-panel);color:var(--a-text);font:500 14px/1.3 var(--font-body)}
+#paintMore .surface-targets small{grid-column:2;color:var(--a-muted);font-size:12px}
+html[data-ui-theme] body #paintMore .surface-targets label:has(:checked){border-color:var(--a-accent-text);background:var(--a-panel2)}
+#paintMore .surface-targets input{appearance:none;width:20px;height:20px;min-height:20px;padding:0;margin:0;grid-row:1/3;border:1px solid var(--a-line-strong);border-radius:5px;background:transparent}
+#paintMore .surface-targets input:checked{background:var(--a-lime);border-color:var(--a-lime)}
+#paintMore .surface-targets input:checked::after{content:'✓';display:block;color:var(--a-on-lime);font:700 13px/18px var(--font-body);text-align:center}
+#paintMore :is(.surface-pick-actions,.surface-apply){display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px}
+html[data-ui-theme] body #paintMore button{min-height:44px;border:1px solid var(--a-line-strong);border-radius:9px;background:transparent;color:var(--a-text);font:500 14px var(--font-body)}
+#paintMore .surface-apply button{background:var(--a-panel2)!important}
+html[data-ui-theme] body .on-car-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;border:0;border-radius:10px;background:var(--a-ground)}
+html[data-ui-theme] body.on-car-editing .on-car-heading,html[data-ui-theme] body.on-car-editing .on-car-tabs{position:static!important}
+.gc-change-part{margin:0 0 16px}.gc-target-browser{padding:14px 0}
+.gc-target-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+html[data-ui-theme] body .gc-target-grid button{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:8px;border:1px solid var(--a-line);border-radius:10px;background:transparent;color:var(--a-text);text-align:left;font:500 13px/1.4 var(--font-body)}
+.gc-target-grid :is(img,svg){width:64px;height:48px;object-fit:contain;border-radius:5px}
+html[data-ui-theme] body .gc-target-grid [aria-pressed=true]{border-color:var(--a-accent-text);background:var(--a-panel2)}
+.on-car-editor:has(.gc-target-browser:not([hidden])) :is(.on-car-tabs,#partEditorContent,.on-car-help){display:none!important}
+html[data-ui-theme] body .on-car-finish{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+html[data-ui-theme] body .on-car-editor .on-car-finish [aria-pressed=true]{border-color:var(--a-accent-text);background:var(--a-panel2);color:var(--a-text)}
+html[data-ui-theme] body #garage .cabin-material-studio{margin:0;padding:0;border:0;background:transparent}
+html[data-ui-theme] body #garage .cabin-material-studio .gc-tabs{margin-top:0}
+html[data-ui-theme] body #garage .cabin-palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+html[data-ui-theme] body #garage .cabin-palette button{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:78px;padding:10px 4px;border:1px solid var(--a-line);border-radius:10px;background:transparent;color:var(--a-text);font:500 13px var(--font-body)}
+.cabin-palette button i{width:30px;height:30px;border-radius:7px;border:1px solid var(--a-line-strong)}
+html[data-ui-theme] body #garage :is(.cabin-palette button,.cabin-fabric-grid button,.cabin-tour-controls button)[aria-pressed=true]{border-color:var(--a-accent-text);box-shadow:inset 0 0 0 1px var(--a-accent-text)}
+html[data-ui-theme] body #garage .cabin-fabric-grid,html[data-ui-theme] body #garage .cabin-tour-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+html[data-ui-theme] body #garage :is(.cabin-fabric-grid,.cabin-tour-controls) button{display:flex;flex-direction:column;align-items:stretch;min-width:0;padding:0;overflow:hidden;border:1px solid var(--a-line);border-radius:10px;background:transparent;color:var(--a-text);text-align:left;font:500 14px/1.4 var(--font-body)}
+html[data-ui-theme] body #garage :is(.cabin-fabric-grid,.cabin-tour-controls) img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+html[data-ui-theme] body #garage :is(.cabin-fabric-grid,.cabin-tour-controls) button>span{padding:10px 10px 4px}
+.cabin-tour-controls button small{padding:0 10px 10px;color:var(--a-muted);font-size:13px}
+html[data-ui-theme] body #garage .cabin-match-actions{display:grid;grid-template-columns:1fr;gap:8px;margin:16px 0}
+html[data-ui-theme] body #garage .cabin-match-actions button,html[data-ui-theme] body #garage [data-fit-tourer]{min-height:44px;padding:10px 12px;border:1px solid var(--a-line-strong);border-radius:9px;background:var(--a-panel2);color:var(--a-text);font:600 14px var(--font-body)}
+html[data-ui-theme] body #garage .gc-switch{display:flex;align-items:center;gap:12px;position:relative;min-height:48px;color:var(--a-text);font-size:14px}
+.gc-switch input{position:absolute;right:0;width:44px;height:24px;opacity:0;z-index:1;cursor:pointer}
+.gc-switch i{margin-left:auto;width:44px;height:24px;background:var(--a-line-strong);border-radius:14px;position:relative;pointer-events:none}
+.gc-switch i::after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--a-text);transition:transform .15s}
+.gc-switch:has(:checked) i{background:var(--a-lime)}.gc-switch:has(:checked) i::after{transform:translateX(20px);background:var(--a-on-lime)}.gc-switch:has(:focus-visible) i{outline:2px solid var(--a-accent-text);outline-offset:3px}.gc-switch:has(:disabled){opacity:.45}
+html[data-ui-theme] body #garage .cabin-options{display:block!important}
+html[data-ui-theme] body #garage .cabin-options label{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:68px;padding:12px;border:1px solid var(--a-line);border-radius:10px;color:var(--a-text);font-size:13px;background:transparent}
+html[data-ui-theme] body #garage .cabin-options label:has(:checked){border-color:var(--a-accent-text);background:var(--a-panel2)}
+html[data-ui-theme] body .gc-save-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:18px 0}
+.gc-save-row .field{margin:0;min-width:0}.gc-save-row input{width:100%}
+html[data-ui-theme] body .gc-save-row #saveSnapshot{min-height:48px;padding:10px 14px;border-radius:10px;background:var(--a-chip);color:var(--a-on-chip);border:1px solid var(--a-chip);font:600 14px var(--font-body)}
+html[data-ui-theme] body .gc-build-drawer .drawer-item{grid-template-columns:64px minmax(0,1fr) 40px!important;grid-template-rows:auto auto auto;gap:5px 12px;font-size:15px!important}
+html[data-ui-theme] body .gc-build-drawer .drawer-item img{grid-column:1;grid-row:1/4;width:64px;height:56px}
+html[data-ui-theme] body .gc-build-drawer .drawer-item>:is(span,.drawer-item-name){grid-column:2;grid-row:1;font-size:15px!important}
+html[data-ui-theme] body .gc-build-drawer .drawer-item>b{grid-column:2;grid-row:2;font-size:13px!important}
+html[data-ui-theme] body .gc-build-drawer .drawer-item .gc-row-edit{grid-column:2;grid-row:3;justify-self:start;min-height:36px;padding:3px 8px;border:1px solid var(--a-line);border-radius:7px;background:transparent;color:var(--a-text);font-size:13px}
+html[data-ui-theme] body .gc-build-drawer .drawer-item .remove-item{grid-column:3;grid-row:1/4}
+html[data-ui-theme] body .gc-build-drawer .drawer-item:not(:has(img))>:is(span,.drawer-item-name,b,.gc-row-edit){grid-column:1/3}
+.gc-saved-list{display:grid;gap:12px}.gc-saved-card{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;padding:14px 10px;border:1px solid var(--a-line);border-radius:10px;background:var(--a-panel2)}
+.gc-saved-preview{display:grid;place-items:center;align-self:start;min-height:64px;border-radius:8px;background:var(--a-ground)}.gc-saved-preview svg{width:72px;height:50px}
+.gc-saved-card h3{margin:0 0 5px;font:600 16px/1.3 var(--font-body);color:var(--a-text);overflow-wrap:anywhere}.gc-saved-card p{margin:0 0 8px;color:var(--a-muted);font:400 13px/1.5 var(--font-body)}
+.gc-saved-actions{display:flex;flex-wrap:wrap;gap:6px}.gc-rename{display:grid;gap:8px;margin-top:12px}.gc-rename button{justify-self:start}.gc-empty{padding:24px 14px;border:1px solid var(--a-line);border-radius:10px;color:var(--a-muted);font-size:14px}.gc-empty h3{font-size:16px;color:var(--a-text);margin:0 0 8px}.gc-empty p{line-height:1.5}
+html[data-ui-theme] body :is(.gc-colour,.gc-panel,.gc-save-row,.gc-target-browser) :is(button,input,.gc-colour-field):focus-visible{outline:2px solid var(--a-accent-text);outline-offset:2px}
+html[data-ui-theme] body :is(.gc-colour,.gc-panel) button:disabled{opacity:.45;cursor:default}
+@media(max-width:599px){.gc-palette{grid-template-columns:repeat(3,minmax(0,1fr))}.gc-target-grid{grid-template-columns:minmax(0,1fr)}.gc-current>div{grid-template-columns:minmax(0,1fr)}.gc-current span{grid-column:1}.gc-colour-field{height:160px}.gc-saved-card{grid-template-columns:60px minmax(0,1fr)}.gc-saved-preview svg{width:60px}.gc-save-row{gap:8px}.gc-tabs button{font-size:13px!important}}
+@media(prefers-reduced-motion:reduce){.gc-switch i::after{transition:none}}
+
+html[data-ui-theme] body #garage .gc-tabs{background:var(--a-panel);border:1px solid var(--a-line)}
+html[data-ui-theme] body #garage .gc-tabs button{background:transparent!important;color:var(--a-muted)!important;border:0!important}
+html[data-ui-theme] body #garage .gc-tabs button[aria-selected=true]{background:var(--a-panel2)!important;color:var(--a-text)!important}
+html[data-ui-theme] body #garage.part-editing > :is(.garage-heading,.garage-intro,.garage-looks-launch){display:none!important}
+html[data-ui-theme] body #garage .cabin-options>.garage-part-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
