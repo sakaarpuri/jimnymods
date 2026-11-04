@@ -553,8 +553,8 @@ if(renderer){
     markSurfaceMaterials(mats,lampEmitters);surfaceStyler.apply([car],design);selectedLightProfiles=activeLightProfiles(parts);updateLamps();dirty=true;
     if(detailed&&modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel'))visiblePartIds.push('suzuki_nomade_steelwheel');
     visiblePartIds.push(...WHEEL_PARTS.filter(p=>parts.has(p.visual)).map(p=>p.visual));
-    const visibleCount=visiblePartIds.length;
-    status.textContent=assetError?'Simplified preview · detailed model unavailable':!detailed?'Loading detailed Jimny…':stock?'Stock preview':visibleCount?`${visibleCount} fitted · click a part to edit`:mount.dataset.touchMode==='scroll'?'Live 3D · expand to rotate':'Click a part · drag to rotate';
+    const visibleCount=visiblePartIds.length,selectionCount=window.getJimnyBuildCount?.()||0;
+    status.textContent=assetError?'Simplified preview · detailed model unavailable':!detailed?'Loading detailed Jimny…':stock?'Stock preview':selectionCount?`${selectionCount} item${selectionCount===1?'':'s'} in build · click a part to edit`:mount.dataset.touchMode==='scroll'?'Live 3D · expand to rotate':'Click a part · drag to rotate';
     if(isInside())status.textContent='Click an accessory · drag to look around';
     renderer.domElement.setAttribute('aria-label',(isInside()?'Rotatable enclosed Jimny cabin. Drag to look around, Shift-drag to move, scroll to zoom.':canvasLabel)+` ${visibleCount} visible modifications.`);
     mount.dataset.parts=visiblePartIds.join(',');mount.dataset.finish=design.finish||'oem';mount.dataset.grille=design.grille||'oem';mount.dataset.decal=design.decal||'none';

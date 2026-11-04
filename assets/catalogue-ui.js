@@ -60,7 +60,7 @@
   const photo=photos()[m.id];let src=null,badge,alt;
   if(i.try){src=previewImage(m);badge='3D preview';alt=`${m.name} — representative model, not an exact product`;}
   else if(photo){src=photo.local;badge=m.market?'Photo only':'Photo';alt=m.name+(photo.kind==='manufacturer-range-photo'?' — maker range photo, check the exact variant':' — supplier product photo');}
-  else if(!m.market){src=previewImage(m);badge='Upgrade idea';alt=`${m.name} — representative upgrade idea`;}
+  else if(!m.market&&bodyStyle!=='3door'){src=previewImage(m);badge='Upgrade idea';alt=`${m.name} — representative upgrade idea`;}
   else badge='No photo yet';
   const image=src?`<img src="${esc(src)}" alt="${esc(alt)}" width="760" height="570" loading="lazy" decoding="async">`:`<span class="pcard-nophoto"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="m4 17 5-4.5 3.5 3L15 13l5 4.5"/></svg>No photo yet</span>`;
   return {image,badge};

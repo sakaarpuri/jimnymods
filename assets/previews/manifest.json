@@ -1,11 +1,11 @@
 {
-  "generated": "2026-11-02",
+  "generated": "2026-11-04",
   "source": "Live Three.js renderer using the authored Blender model, not AI photographs",
   "modelSha256": "4b7d26ac75c11dbe765eb2ba66d5f7b193ec1e7722b2381630a503fa9bc2e6f8",
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
-    "src/viewer3d.js": "5ea27007f0c80dca59e913f47ecfcfa3505133c8a824f61039ffabfb0ae74977",
+    "src/viewer3d.js": "24ec6d298a5706c0a5324e8da360d68da10343341626f146b0f4f6718387d88f",
     "src/refined-parts.js": "d2049e4c2f73154431ac15cd7f2d1f685f8f799c63cd94a292d4bf2522dcfaf2",
     "src/decals.js": "516955d34ab00513bf36f4b00581c5741346170d913e33883b693faa4ae6403a",
     "src/accessories.js": "5450451fa25700fdecc77ee93648bb9023e300cafd406468fe3cd052a112a3fb",
@@ -140,7 +140,8 @@
     "tires",
     "seats",
     "doortrim",
-    "snorkel"
+    "snorkel",
+    "flares"
   ],
   "wheelVariants": [
     "road-oem",

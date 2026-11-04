@@ -38,7 +38,7 @@ for(const file of ['src/grille-scripts.js','src/grille-script-data.js','src/spar
 for(const file of ['src/trail/player.js','src/trail/replay.js'])manifest.renderSources[file]=await hash(file);
 manifest.modelSha256=await hash('assets/models/jimny-lwb-blender.glb');
 manifest.swbModelSha256=await hash('assets/models/jimny-swb-blender.glb');
-manifest.swbPresets=[...manifest.presets];manifest.swbParts=['tires','seats','doortrim','snorkel'];
+manifest.swbPresets=[...manifest.presets];manifest.swbParts=['tires','seats','doortrim','snorkel','flares'];
 manifest.wheelVariants=wheelVariants;
 manifest.tyreTypes=tyreTypes;
 manifest.catalogueParts=catalogueParts;

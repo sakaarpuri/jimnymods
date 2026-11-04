@@ -43,7 +43,9 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
 
   function trackBodyImage(container,prefix){
     const img=container.querySelector('.welcome-car img');if(!img)return;
-    container.addEventListener('change',e=>{if(e.target.name===`${prefix}-body`){img.src=carImage(e.target.value);img.alt=`Heritage Club: a customised ${e.target.value==='3door'?'three':'five'}-door Jimny with sunset decals, bronze wheels and a SUZUKI grille`;}});
+    const update=body=>{img.src=carImage(body);img.alt=`Heritage Club: a customised ${body==='3door'?'three':'five'}-door Jimny with sunset decals, bronze wheels and a SUZUKI grille`;};
+    container.addEventListener('change',e=>{if(e.target.name===`${prefix}-body`)update(e.target.value);});
+    window.addEventListener('jimny-model-change',e=>{if(container.isConnected)update(e.detail);});
   }
 
   function renderPage(){
@@ -57,7 +59,7 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
   <h1 id="welcomeTitle" tabindex="-1">Build it<br>here first.</h1>
   <p class="welcome-lede">Explore modifications in 3D, discover parts and make your Jimny your own.</p>
   <form class="welcome-form" data-welcome-form>${questions('welcomePage')}
-   <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">${startFeatured?'Customise this Jimny':'Open the Garage'} ${arrow}</button>
+   <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">${startFeatured?'Start from Heritage Club':'Open the Garage'} ${arrow}</button>
    ${startFeatured?'<button type="button" class="welcome-quiet" data-welcome-go="garage">Start with stock instead</button>':''}
    <nav class="welcome-routes" aria-label="Other places to start"><a href="trip-planner.html" data-welcome-go="trip">Plan a trip</a></nav></div>
   </form>
@@ -73,7 +75,7 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
     document.body.prepend(page);trackBodyImage(page,'welcomePage');
     const close=(go,{apply=true,featured=false}={})=>{
       if(apply)applyAnswers(page,'welcomePage');
-      if(featured&&startFeatured)applyPkg(featuredLook,'replace');
+      if(featured&&startFeatured){applyPkg(featuredLook,'replace');showToast(`Loaded Heritage Club · ${buildSelectionCount()} items in build`,'Start from stock',()=>{loadPayload({body:bodyStyle});});}
       markSeen();outside.forEach(el=>{el.inert=false;});page.remove();delete root.dataset.welcome;
       if(go==='trip')return;// The link navigates.
       const mode={garage:'garage',parts:'parts',fitters:'fitters'}[go]||'garage';
