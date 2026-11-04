@@ -19,7 +19,7 @@ test('desktop follows frame 03: car, category rail, panel; build bar on the car'
 
 test('on phones the live viewer docks as a thumbnail by resizing, never by re-creating the renderer',()=>{
  assert.doesNotMatch(js,/new THREE|WebGLRenderer|getContext\(/,'no second renderer');
- assert.match(css,/garage-car-docked\[data-mode=garage\] #viewer3d\{position:fixed!important/);
+ assert.match(css,/garage-car-docked:is\(\[data-mode=garage\],\[data-mode=explore\]\) #viewer3d\{position:fixed!important/);
  assert.match(css,/#spin360\{z-index:45!important\}/,'thumbnail sits above the pinned chips');
  assert.match(css,/\.garage-categories\{position:sticky!important;top:var\(--site-header-h\)!important/);
  const viewer=read('src/viewer3d.js');

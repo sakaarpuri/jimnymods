@@ -148,26 +148,26 @@ details[open]>summary.summary-chevron::before{transform:rotate(-135deg);margin-t
 
 /* ---------- Phone (≤899px): one scrolling page ---------- */
 @media(max-width:899px){
-  html[data-ui-theme] body.phone-garage[data-mode=garage]{display:block!important;position:static!important;height:auto!important;min-height:100dvh;overflow:visible!important}
-  body.phone-garage[data-mode=garage] .wrap{max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important}
-  body.phone-garage[data-mode=garage] .workbench{display:block!important;height:auto!important;min-height:0!important;margin:0!important;gap:0!important;overflow:visible!important}
-  body.phone-garage[data-mode=garage] .planner-rail{display:block!important;position:relative!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:visible!important;background:var(--a-ground)!important}
-  body.phone-garage[data-mode=garage] .planner-main{overflow:visible!important;height:auto!important;max-height:none!important;padding:0 16px calc(112px + env(safe-area-inset-bottom))!important;margin:0!important}
-  body.phone-garage[data-mode=garage] #spin360:not(.expanded){position:relative!important;height:clamp(220px,30dvh,264px)!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;background:var(--a-panel)}
-  body.phone-garage[data-mode=garage] #spin360:not(.expanded) #viewer3d{inset:0}
+  html[data-ui-theme] body.phone-garage:is([data-mode=garage],[data-mode=explore]){display:block!important;position:static!important;height:auto!important;min-height:100dvh;overflow:visible!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) .wrap{display:block!important;flex:none!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) .workbench{display:block!important;flex:none!important;height:auto!important;min-height:0!important;margin:0!important;gap:0!important;overflow:visible!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) .planner-rail{display:block!important;position:relative!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:visible!important;background:var(--a-ground)!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) .planner-main{overflow:visible!important;height:auto!important;max-height:none!important;padding:0 16px calc(112px + env(safe-area-inset-bottom))!important;margin:0!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) #spin360:not(.expanded){position:relative!important;height:clamp(220px,30dvh,264px)!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;background:var(--a-panel)}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) #spin360:not(.expanded) #viewer3d{inset:0}
   .garage-stage-top{top:12px;left:12px;right:12px;justify-content:space-between}
   body.phone-garage .garage-angles-open{width:48px;min-height:48px;padding:0;justify-content:center}
   body.phone-garage .garage-angles-open span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   .garage-stage-tools{display:none}
-  html[data-ui-theme] body.phone-garage[data-mode=garage] .garage-pick-direction{display:block!important;position:absolute!important;left:50%!important;right:auto!important;bottom:12px!important;top:auto!important;transform:translateX(-50%);z-index:5;max-width:calc(100% - 24px);margin:0!important;padding:8px 16px!important;border-radius:999px!important;background:rgba(17,23,22,.78)!important;color:#f1f3ea!important;font:500 14px var(--font-body)!important;white-space:nowrap;pointer-events:none}
+  html[data-ui-theme] body.phone-garage:is([data-mode=garage],[data-mode=explore]) .garage-pick-direction{display:block!important;position:absolute!important;left:50%!important;right:auto!important;bottom:12px!important;top:auto!important;transform:translateX(-50%);z-index:5;max-width:calc(100% - 24px);margin:0!important;padding:8px 16px!important;border-radius:999px!important;background:rgba(17,23,22,.78)!important;color:#f1f3ea!important;font:500 14px var(--font-body)!important;white-space:nowrap;pointer-events:none}
 
   /* Category chips: one scrolling row, pinned under the header. */
-  html[data-ui-theme] body.phone-garage[data-mode=garage] .garage-categories{position:sticky!important;top:var(--site-header-h)!important;z-index:30!important;display:flex!important;grid-template-columns:none!important;gap:8px!important;margin:0 -16px!important;padding:12px 16px!important;overflow-x:auto!important;overscroll-behavior-x:contain;scrollbar-width:none;background:var(--a-ground)!important;border:0!important;border-bottom:1px solid var(--a-line)!important;box-shadow:none!important}
+  html[data-ui-theme] body.phone-garage:is([data-mode=garage],[data-mode=explore]) .garage-categories{position:sticky!important;top:var(--site-header-h)!important;z-index:30!important;display:flex!important;grid-template-columns:none!important;gap:8px!important;margin:0 -16px!important;padding:12px 16px!important;overflow-x:auto!important;overscroll-behavior-x:contain;scrollbar-width:none;background:var(--a-ground)!important;border:0!important;border-bottom:1px solid var(--a-line)!important;box-shadow:none!important}
   body.phone-garage .garage-categories::-webkit-scrollbar{display:none}
   html[data-ui-theme] body.phone-garage .garage-categories button{flex:0 0 auto!important;width:auto!important;min-height:48px!important;padding:0 20px!important;border:1px solid var(--a-line-strong)!important;border-radius:999px!important;background:transparent!important;color:var(--a-text)!important;font:500 16px var(--font-body)!important;white-space:nowrap}
   html[data-ui-theme] body.phone-garage .garage-categories button[aria-selected=true]{background:var(--a-chip)!important;border-color:var(--a-chip)!important;color:var(--a-on-chip)!important}
   body.phone-garage .garage-categories button svg{display:none}
-  html[data-ui-theme] body.phone-garage.garage-car-docked[data-mode=garage] .garage-categories{padding-left:108px!important}
+  html[data-ui-theme] body.phone-garage.garage-car-docked:is([data-mode=garage],[data-mode=explore]) .garage-categories{padding-left:108px!important}
   body.phone-garage #garage{padding-top:0!important}
   html[data-ui-theme] body.phone-garage #garage .garage-heading{margin-top:24px!important;align-items:center}
   html[data-ui-theme] body.phone-garage #garage .garage-heading h1{font-size:34px!important}
@@ -181,31 +181,31 @@ details[open]>summary.summary-chevron::before{transform:rotate(-135deg);margin-t
   html[data-ui-theme] body.phone-garage #garage .garage-part-name{padding:12px 14px 14px!important;font-size:15px!important}
 
   /* Docked: the same viewer element, now a thumbnail at the start of the chip row. */
-  html body.phone-garage.garage-car-docked[data-mode=garage] #viewer3d{position:fixed!important;inset:auto!important;top:calc(var(--site-header-h) + 10px)!important;left:16px!important;width:80px!important;height:52px!important;z-index:41;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px var(--a-line-strong)}
+  html body.phone-garage.garage-car-docked:is([data-mode=garage],[data-mode=explore]) #viewer3d{position:fixed!important;inset:auto!important;top:calc(var(--site-header-h) + 10px)!important;left:16px!important;width:80px!important;height:52px!important;z-index:41;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px var(--a-line-strong)}
   body.phone-garage.garage-car-docked #viewer3d canvas{pointer-events:none}
   /* #spin360 isolates its children at z-index 1; lift it so the thumbnail sits above the pinned chips. */
-  html body.phone-garage.garage-car-docked[data-mode=garage] #spin360{z-index:45!important}
+  html body.phone-garage.garage-car-docked:is([data-mode=garage],[data-mode=explore]) #spin360{z-index:45!important}
   .garage-thumb{display:none}
-  body.phone-garage.garage-car-docked[data-mode=garage] .garage-thumb{position:fixed;top:calc(var(--site-header-h) + 10px);left:16px;z-index:46;display:grid;place-items:end;width:80px;height:52px;padding:4px;border:0;border-radius:10px;background:transparent;color:#f1f3ea;cursor:pointer}
+  body.phone-garage.garage-car-docked:is([data-mode=garage],[data-mode=explore]) .garage-thumb{position:fixed;top:calc(var(--site-header-h) + 10px);left:16px;z-index:46;display:grid;place-items:end;width:80px;height:52px;padding:4px;border:0;border-radius:10px;background:transparent;color:#f1f3ea;cursor:pointer}
   body.phone-garage .garage-thumb svg{width:22px;height:22px;padding:3px;border-radius:6px;background:rgba(17,23,22,.8)}
   body.phone-garage .garage-thumb:focus-visible{outline:3px solid var(--a-accent-text);outline-offset:2px}
 
   /* Just fitted with the car in view: a toast above the build bar. */
   body.phone-garage .garage-fitted.show{position:fixed;left:12px;right:12px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:52}
   /* Just fitted while docked: the viewer grows into a card above Undo / View car. */
-  html body.phone-garage.garage-car-docked.garage-peek[data-mode=garage] #viewer3d{top:calc(var(--site-header-h) + 84px)!important;left:12px!important;width:calc(100vw - 24px)!important;height:min(52vw,208px)!important;border-radius:16px 16px 0 0;box-shadow:none}
+  html body.phone-garage.garage-car-docked.garage-peek:is([data-mode=garage],[data-mode=explore]) #viewer3d{top:calc(var(--site-header-h) + 84px)!important;left:12px!important;width:calc(100vw - 24px)!important;height:min(52vw,208px)!important;border-radius:16px 16px 0 0;box-shadow:none}
   body.phone-garage.garage-car-docked.garage-peek .garage-fitted.show{top:calc(var(--site-header-h) + 84px + min(52vw,208px));bottom:auto;z-index:47;border-radius:0 0 16px 16px;padding:14px 12px 14px 20px}
   body.phone-garage.garage-peek .garage-fitted img{display:none}
   body.phone-garage.garage-peek .garage-fitted-view{display:inline-flex;align-items:center;min-height:48px}
 
   /* Build bar: always reachable, opens My build. */
   .garage-buildbar{display:none}
-  body.phone-garage[data-mode=garage] .garage-buildbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;display:flex;padding:8px 8px 8px 0;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) .garage-buildbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;display:flex;padding:8px 8px 8px 0;box-shadow:0 14px 40px rgba(0,0,0,.4)}
   body.phone-garage .garage-buildbar-summary span{font-size:14px}
   html[data-ui-theme] body.phone-garage .garage-buildbar a[href="game.html"]{min-height:56px;padding:0 16px;font-size:16px}
   html[data-ui-theme] body.phone-garage .garage-buildbar a[href="game.html"]::after{content:none}
-  body.phone-garage[data-mode=garage] #buildFab{display:none!important}
-  body.phone-garage[data-mode=garage] #toast{bottom:calc(96px + env(safe-area-inset-bottom))!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) #buildFab{display:none!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) #toast{bottom:calc(96px + env(safe-area-inset-bottom))!important}
 
   /* Angles & scenery: a bottom sheet. */
   body.phone-garage .garage-angles{width:100vw;max-width:none;max-height:80dvh;margin:auto 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom));border-bottom:0;border-radius:20px 20px 0 0}
@@ -216,8 +216,8 @@ details[open]>summary.summary-chevron::before{transform:rotate(-135deg);margin-t
 }
 /* Tablets in portrait get the same one-page Garage with more room for the car. */
 @media(min-width:600px) and (max-width:899px){
-  body.phone-garage[data-mode=garage] #spin360:not(.expanded){height:clamp(300px,40dvh,440px)!important}
-  html[data-ui-theme] body.phone-garage[data-mode=garage] #garage .garage-part-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  body.phone-garage:is([data-mode=garage],[data-mode=explore]) #spin360:not(.expanded){height:clamp(300px,40dvh,440px)!important}
+  html[data-ui-theme] body.phone-garage:is([data-mode=garage],[data-mode=explore]) #garage .garage-part-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
 
 /* ---------- Try in 3D / full-screen studio: same dark ground as the rest ---------- */
@@ -374,3 +374,27 @@ body:not([data-mode=garage]):not([data-mode=explore]) .preview-guidance{display:
 html[data-ui-theme] .rally-workshop .paint-chip[aria-pressed=true]{outline:3px solid var(--a-accent-text);outline-offset:2px}
 html[data-ui-theme] .rally-workshop .paint-chip[aria-pressed=true]::after{content:'✓';background:var(--a-lime);color:var(--a-on-lime)}
 @media(max-width:899px){.preview-guidance{padding:8px 12px}.preview-explanation{gap:12px;align-items:start}.preview-explanation p{font-size:14px}}
+
+/* The inspiration home shares the phone page scroll and compact return bar. */
+.garage-thumb-label{display:none}
+@media(max-width:899px){
+ body.phone-garage[data-mode=explore] .location-strip{display:none!important}
+ body.phone-garage.garage-car-docked[data-mode=explore] .garage-thumb{left:12px;width:calc(100% - 24px);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border:1px solid var(--a-line-strong);background:var(--a-panel);font:600 15px var(--font-body)}
+ html body.phone-garage.garage-car-docked[data-mode=explore] #viewer3d{display:none!important}
+ body.phone-garage.garage-car-docked[data-mode=explore] .garage-thumb-label{display:block;order:-1}
+ body.phone-garage.garage-car-docked[data-mode=explore] .garage-thumb svg{flex:none}
+ html:has(body.phone-garage.garage-car-docked[data-mode=explore]){scroll-padding-top:calc(var(--site-header-h) + 84px)}
+ #explore .section-heading{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:16px}
+ #explore .section-heading>div{min-width:0}
+ #explore .section-heading h2{margin-bottom:0}
+ #explore .garage-looks-return{position:static;justify-self:start;min-height:44px;max-width:100%;width:auto;padding:10px 14px;font-size:15px;white-space:normal}
+}
+html[data-ui-theme] .build-drawer .drawer-versions>summary{justify-content:space-between;gap:16px;margin:10px 0;padding:12px 14px;border:1px solid var(--a-line-strong);border-radius:10px;background:var(--a-panel2);color:var(--a-text);font-weight:600;list-style:none}
+.drawer-versions>summary::-webkit-details-marker{display:none}
+.drawer-versions>summary::after{content:'⌄';font-size:22px;line-height:1;transition:transform .15s}
+.drawer-versions[open]>summary::after{transform:rotate(180deg)}
+.drawer-versions>summary:hover{border-color:var(--a-accent-text)!important}
+.drawer-versions>summary:focus-visible{outline:3px solid var(--a-accent-text);outline-offset:3px}
+
+.garage-dock-backdrop{display:none}
+@media(max-width:899px){body.phone-garage.garage-car-docked[data-mode=explore] .garage-dock-backdrop{display:block;position:fixed;top:var(--site-header-h);left:0;right:0;height:72px;background:var(--a-ground);border-bottom:1px solid var(--a-line);z-index:40}}

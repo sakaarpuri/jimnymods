@@ -146,3 +146,6 @@ body .planner-main>#partsPurposeGuide:not([open]){display:none!important}
  .pcard-seller{order:3;font-size:14px}
 }
 @media(prefers-reduced-motion:reduce){body.pp-sheet-anim .pp-side,body.pp-sheet-anim .pp-side.is-open{transition:none}}
+
+.pcard-price{margin:4px 0 0;color:var(--a-text);font:600 16px/1.45 var(--font-body)}
+@media(max-width:700px){.pcard-price{display:block;order:4;font-size:14px}.pcard-nophoto{font-size:14px;padding:12px;text-align:center}}
