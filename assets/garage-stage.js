@@ -127,6 +127,7 @@
   window.addEventListener('jimny-model-ready',syncViewSwitch);syncViewSwitch();
   angles.querySelector('.garage-angles-views').append(camera);
   angles.querySelector('.garage-angles-cabin').append(cabinViews);
+  scenery.classList.remove('garage-backgrounds');
   angles.querySelector('.garage-angles-scene').append(scenery);
   syncAngleChoices();
   drawerHead.after(tray);

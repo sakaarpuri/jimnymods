@@ -24,6 +24,7 @@ async(page,baseURL='http://localhost:8088/dist/')=>{
    await panel.getByRole('tab',{name:'Camera angles',exact:true}).focus();await p.keyboard.press('ArrowRight');
    ok(await panel.getByRole('tab',{name:'Scenery',exact:true}).getAttribute('aria-selected')==='true',`${width}: arrow keys switch tabs`);
    ok(await panel.locator('[data-angle-scenery]:visible').count()===5&&await panel.locator('[data-angle-scenery] svg').count()===5,`${width}: five scenery tiles render without photo requests`);
+   ok(await panel.locator('[data-scenery-status]').isVisible(),`${width}: scenery descriptions and loading feedback stay visible`);
    await panel.locator('[data-angle-scenery="studio"]').click();
    await p.waitForFunction(()=>jimny3D.getState().scenery==='studio');await open();
    ok(await panel.locator('[data-angle-scenery="studio"]').getAttribute('aria-pressed')==='true',`${width}: scenery tile changes the renderer and is selected`);
