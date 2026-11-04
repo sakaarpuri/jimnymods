@@ -59,7 +59,7 @@ ${[['5door','5-door','XL · Nomade'],['3door','3-door','Sierra · JB74']].map(([
   <form class="welcome-form" data-welcome-form>${questions('welcomePage')}
    <div class="welcome-actions"><button type="submit" class="welcome-primary" data-welcome-go="garage">${startFeatured?'Customise this Jimny':'Open the Garage'} ${arrow}</button>
    ${startFeatured?'<button type="button" class="welcome-quiet" data-welcome-go="garage">Start with stock instead</button>':''}
-   <nav class="welcome-routes" aria-label="Other places to start"><a href="trip-planner.html" data-welcome-go="trip">Plan a trip</a></nav></div>
+   <nav class="welcome-routes" aria-label="Other places to start"><a href="/builds/">Browse premade builds</a> <a href="trip-planner.html" data-welcome-go="trip">Plan a trip</a></nav></div>
   </form>
  </div>
  <figure class="welcome-car"><img src="${carImage(body)}" width="800" height="600" alt="Heritage Club: a customised ${body==='3door'?'three':'five'}-door Jimny with sunset decals, bronze wheels and a SUZUKI grille" fetchpriority="high"><figcaption>Heritage Club · sunset stripes, bronze wheels, all-terrain tyres. Change any part in the Garage.</figcaption></figure>

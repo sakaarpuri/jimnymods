@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "model:optimize": "node scripts/optimize-model.mjs",
+    "predev": "node --input-type=module -e \"import {buildGallery} from './scripts/build-gallery.mjs'; await buildGallery('.', 'http://localhost:8080')\"",
     "dev": "python3 -m http.server 8080",
     "test": "node --test"
   },

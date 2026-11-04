@@ -183,6 +183,11 @@
   .look-inspo h3{font-size:.95rem}
   .look-inspo p{color:var(--muted);font-size:max(.78rem,var(--fs-copy,0px));margin:4px 0 12px}
   .look-inspo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #lookInspoGrid [hidden]{display:none}
+  .look-discovery{display:flex;align-items:center;flex-wrap:wrap;gap:1rem;margin:1rem 0}
+  .look-discovery label,.look-discovery a{font-weight:700}
+  .look-discovery select{font:inherit;padding:.5rem}
+  .look-discovery a,.look-tile .copy a{color:inherit;text-underline-offset:.18em}
   .look-tile{min-width:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);display:grid;grid-template-rows:auto 1fr}
   .look-tile img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#11161a}
   .look-tile .copy{display:flex;min-width:0;flex-direction:column;align-items:flex-start;padding:10px}
@@ -345,7 +350,7 @@
 <script>/* First-visit welcome, decided before first paint so the Garage never flashes.
    Returning = welcomed before, a chosen region, or a saved build with parts. */
 (()=>{const forced=location.hash==='#welcome';let returning=false;try{const ls=localStorage,build=JSON.parse(ls.getItem('thatsuvmod-build')||ls.getItem('thatsuvlab-build')||ls.getItem('jimnylab-build')||'null');returning=!!(ls.getItem('thatsuvmod-welcomed')||ls.getItem('thatsuvmod-region')||build?.parts?.length||JSON.parse(ls.getItem('thatsuvmod-snapshots')||'[]').length);}catch{returning=true;}
-if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.search).has('build')||(location.hash.length>1));document.documentElement.dataset.welcome=deep?'sheet':'page';})();
+if(!forced&&(returning||new URLSearchParams(location.search).has('look')))return;const deep=!forced&&(new URLSearchParams(location.search).has('build')||(location.hash.length>1));document.documentElement.dataset.welcome=deep?'sheet':'page';})();
 </script>
 <script src="assets/ui-theme.js"></script>
 <script src="assets/surface-style-state.js"></script>
@@ -428,6 +433,7 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
     <div class="section-heading"><div><p class="eyebrow">The inspiration edit</p><h2 id="look-inspo-title">One Jimny. Many personalities.</h2></div><button type="button" class="garage-looks-return" data-quickfits-return>Explore Quick fits</button></div>
     <p class="section-lead"><span class="desktop-explore-copy">A starting point for your own build. Choose a direction, then find the parts and people to make it happen.</span><span class="mobile-explore-copy">Find your style. Make it your own.</span></p>
     <p class="model-accuracy-note"><strong>3D preview only.</strong> The Jimny and parts are not 100% accurate. Colours, proportions and fit may differ from the real vehicle. Check product details and fitment with the seller or a qualified installer before buying or modifying your car.</p>
+    <div class="look-discovery"><label>Filter by style <select id="lookStyleFilter"><option value="">All styles</option></select></label><a href="/builds/">Browse the build gallery ↗</a><span id="lookStyleCount" role="status"></span></div>
     <div class="look-inspo-grid" id="lookInspoGrid"></div>
     <p class="image-caption">Every preview is rendered from this same 3D Jimny. Open a setup to rotate it, then apply it or keep your current build. Part shapes remain representative; check seller photos for exact detail.</p>
   </section>
@@ -598,6 +604,7 @@ if(returning&&!forced)return;const deep=!forced&&(new URLSearchParams(location.s
 <script src="assets/practical-accessories-data.js"></script>
 <script src="assets/interior-products.js"></script>
 <script src="assets/look-packages.js"></script>
+<script src="assets/build-styles.js"></script>
 <script src="assets/build-kits.js"></script>
 <script src="assets/regions.js"></script>
 <script src="assets/directory.js"></script>
@@ -1160,8 +1167,20 @@ function packageResourceMarkup(p){
 document.getElementById("lookInspoGrid").innerHTML=PACKAGES.map((p,index)=>{
   const desc=p.tag;
   const num=String(index+1).padStart(2,'0');
-  return `<article class="look-tile" data-look-tile="${p.id}"><button class="look-photo" type="button" data-look-preview="${p.id}" aria-label="Rotate ${escHtml(p.name)} in 3D"><img src="${packageImage(p.id)}" alt="${escHtml(p.name)} rendered with the live Jimny model" width="800" height="600" loading="lazy" decoding="async"><span class="photo-number">${num} · 3D</span><span class="photo-expand" aria-hidden="true">↻</span></button><div class="copy"><b>${escHtml(p.name)}</b><span class="look-vibe">${escHtml(p.vibe||'')}</span><p class="look-description">${escHtml(desc)}</p><div class="lookline">${packageLookMarkup(p)}</div><button type="button" data-use-setup="${p.id}" aria-pressed="false">Use this setup</button></div></article>`;
+  return `<article class="look-tile" data-look-tile="${p.id}"><button class="look-photo" type="button" data-look-preview="${p.id}" aria-label="Rotate ${escHtml(p.name)} in 3D"><img src="${packageImage(p.id)}" alt="${escHtml(p.name)} rendered with the live Jimny model" width="800" height="600" loading="lazy" decoding="async"><span class="photo-number">${num} · 3D</span><span class="photo-expand" aria-hidden="true">↻</span></button><div class="copy"><b><a href="/builds/${p.id}/">${escHtml(p.name)}</a></b><small>${window.JIMNY_BUILD_STYLES[p.id]?.join(" · ")||""}</small><span class="look-vibe">${escHtml(p.vibe||'')}</span><p class="look-description">${escHtml(desc)}</p><div class="lookline">${packageLookMarkup(p)}</div><button type="button" data-use-setup="${p.id}" aria-pressed="false">Use this setup</button></div></article>`;
 }).join("");
+const lookFilter=document.getElementById('lookStyleFilter');
+for(const tag of [...new Set(Object.values(window.JIMNY_BUILD_STYLES).flat())].sort()) lookFilter.add(new Option(tag,tag));
+function filterLookTiles(){
+  let visible=0;
+  for(const tile of document.querySelectorAll('#lookInspoGrid [data-look-tile]')){
+    tile.hidden=!!lookFilter.value&&!window.JIMNY_BUILD_STYLES[tile.dataset.lookTile]?.includes(lookFilter.value);
+    if(!tile.hidden)visible++;
+  }
+  document.getElementById('lookStyleCount').textContent=visible+' '+(visible===1?'build':'builds');
+}
+lookFilter.addEventListener('change',filterLookTiles);
+filterLookTiles();
 PACKAGES.forEach(p=>{
   const names = p.parts.map(id=>modById[id].name.split(" (")[0]).join(" · ");
   pkgsEl.insertAdjacentHTML("beforeend", `
@@ -1379,7 +1398,10 @@ function sanitizeBuild(data){
   pruneSurfaceFinishes(cleanDesign,readyParts);
   return {v:2,vehicle:"jimny",body:source.body==='3door'?'3door':'5door',name:cleanName,colour:/^#[0-9a-f]{6}$/i.test(source.colour||'')?source.colour:'#d9b744',parts:readyParts,design:cleanDesign,tyre:{width:allowed.width.includes(+tyre.width)?+tyre.width:215,ratio:allowed.ratio.includes(+tyre.ratio)?+tyre.ratio:75,rim:allowed.rim.includes(+tyre.rim)?+tyre.rim:15,lift:allowed.lift.includes(+tyre.lift)?+tyre.lift:0}};
 }
-const savedBuild = sanitizeBuild((sharedParam && decodeBuild(sharedParam)) || readJSON("thatsuvmod-build",readJSON("thatsuvlab-build",readJSON("jimnylab-build",{}))));
+const lookParams = new URLSearchParams(location.search);
+const publicLook = PACKAGES.find(p=>p.id===lookParams.get('look'));
+const requestedLook = publicLook && {...presetPayload(publicLook),name:publicLook.name,body:lookParams.get('body')==='3door'?'3door':'5door'};
+const savedBuild = sanitizeBuild((sharedParam && decodeBuild(sharedParam)) || requestedLook || readJSON("thatsuvmod-build",readJSON("thatsuvlab-build",readJSON("jimnylab-build",{}))));
 let selectedPaint=savedBuild.colour;
 let bodyStyle=savedBuild.body;
 const state = {};
