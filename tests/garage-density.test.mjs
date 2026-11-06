@@ -3,8 +3,8 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const html=read('index.html'),panels=read('assets/garage-panels.js'),css=read('assets/garage-stage.css'),flow=read('assets/workbench-flow.js');
 
 test('repeated shortcuts appear once instead of in every category',()=>{
- // Ready-made looks only in Quick fits.
- assert.match(css,/#garage:not\(\[data-category=popular\]\) \.garage-looks-launch\{display:none!important\}/);
+ // Ready-made looks only beside Paint.
+ assert.match(css,/#garage:not\(\[data-category=paint\]\) \.garage-looks-launch\{display:none!important\}/);
  // All black + Matte / gloss move into Paint's More options (or Grilles' panel), never above every category.
  assert.match(css,/#garage>\.surface-controls\{display:none!important\}/);
  assert.match(flow,/garageCategory==='paint'&&paintMore\)\{if\(surfaces\.parentElement!==paintMore\)paintMore\.append\(surfaces\)/);

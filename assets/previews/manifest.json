@@ -5,7 +5,7 @@
   "rendererRevision": "blender-lwb-6",
   "sampling": "1600 × 1200 supersampled to 800 × 600",
   "renderSources": {
-    "src/viewer3d.js": "24ec6d298a5706c0a5324e8da360d68da10343341626f146b0f4f6718387d88f",
+    "src/viewer3d.js": "bb5f2438552932b95fdd0caa4e9523db4394b0aec4d5cb01daeefd8ac435a9f8",
     "src/refined-parts.js": "d2049e4c2f73154431ac15cd7f2d1f685f8f799c63cd94a292d4bf2522dcfaf2",
     "src/decals.js": "516955d34ab00513bf36f4b00581c5741346170d913e33883b693faa4ae6403a",
     "src/accessories.js": "5450451fa25700fdecc77ee93648bb9023e300cafd406468fe3cd052a112a3fb",
