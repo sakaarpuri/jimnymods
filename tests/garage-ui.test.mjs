@@ -5,10 +5,10 @@ import vm from 'node:vm';
 
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../design.css',import.meta.url),'utf8');
-test('ready-made looks launch beside the garage heading and return directly to quick fits',()=>{
+test('ready-made looks launch beside the garage heading and return directly to Paint',()=>{
  assert.match(html,/garage\.querySelector\('\.garage-heading>div'\)\.insertAdjacentHTML\('beforeend',`<button[^`]*garage-looks-launch/);
  assert.match(html,/PACKAGES\.length\} ready-made looks/);
- assert.match(html,/data-quickfits-return[^\n]*openGarageCategory\('popular',\{focus:true\}\)/);
+ assert.match(html,/data-garage-return[^\n]*openGarageCategory\('paint',\{focus:true\}\)/);
  assert.match(html,/lookInspoGrid"\)\.innerHTML=PACKAGES\.map/);
 });
 test('grille category puts pictures before collapsed optional appearance tools',()=>{
@@ -28,12 +28,13 @@ test('breakpoint navigation preserves focus without cropping the heading and use
 test('inline garage application parses without dependencies',()=>{
   for(const script of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if(script[1].trim())new vm.Script(script[1]);
 });
-test('the six first-screen quick fits all have actual renderer thumbnails',()=>{
-  const literal=html.match(/const GARAGE_FAMILIES=(\{[^;]+\});/)[1];
-  const families=vm.runInNewContext('('+literal+')');
-  assert.equal(families.popular.length,6);
-  assert.equal(new Set(families.popular).size,6);
-  for(const id of families.popular)assert.ok(existsSync(new URL(`../assets/previews/part-${id}.webp`,import.meta.url)),id);
+test('Quick fits is removed and the Garage starts in Paint',()=>{
+  const families=vm.runInNewContext('('+html.match(/const GARAGE_FAMILIES=(\{[^;]+\});/)[1]+')');
+  assert.equal(families.popular,undefined);
+  assert.doesNotMatch(html,/Quick fits|data-quickfits-return/);
+  assert.match(html,/let garageCategory='paint'/);
+  assert.match(html,/GARAGE_FAMILIES.body=\['snorkel',/);
+  for(const id of ['snorkel',...families.roof,...families.rear])assert.ok(existsSync(new URL(`../assets/previews/part-${id}.webp`,import.meta.url)),id);
 });
 test('short body does not pretend unsupported parts are live previews',()=>{
   // This function is a single source line; a first-closing-brace regex also

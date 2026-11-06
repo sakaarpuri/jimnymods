@@ -16,6 +16,8 @@
  const legacy=document.createElement('div');legacy.className='gc-legacy-controls';
  const finishOptions=paint.querySelector('.garage-design-options'),oldMore=$('paintMore');
  for(const selector of ['.paint-label','#paintGallery','#swatches','.custom-paint','.paint-readout','#roofColourControl','#paintDisclaimer','.live-design-field']){const node=paint.querySelector(selector);if(node)legacy.append(node);}
+ // Keep the legacy inputs connected before binding the shared colour pickers.
+ paint.append(legacy);
  if(finishOptions)finishPane.append(finishOptions);
  const bodyColour=document.createElement('div');bodyColour.id='bodyColourControl';colourPane.append(bodyColour);
  bindColour(bodyColour,$('customPaint'),'Body colour',Object.entries(PAINTS),()=>selectedPaint);
@@ -25,7 +27,7 @@
  const resetRoof=document.createElement('button');resetRoof.type='button';resetRoof.className='gc-secondary';resetRoof.textContent='Remove two-tone roof';resetRoof.onclick=()=>{rememberUndo();designState.roofColour='original';selectDesign('finish','oem');};roofColour.append(resetRoof);
  const roofLink=document.createElement('button');roofLink.type='button';roofLink.className='gc-secondary';roofLink.textContent='Choose roof colour';finishPane.append(roofLink);
  const partHome=document.createElement('section');partHome.id='paintMore';partPane.append(partHome);partHome.innerHTML='<h3 class="gc-section-title">Finish selected parts</h3><p class="gc-note">Choose the parts, then apply one finish.</p>';
- oldMore?.replaceWith(workspace);workspace.append(colourPane,finishPane,partPane);paint.append(legacy);
+ oldMore?.replaceWith(workspace);workspace.append(colourPane,finishPane,partPane);
  const paintTabs=C.tabs(workspace);paintTabs.select('colour');roofLink.onclick=()=>{paintTabs.select('colour');roofColour.scrollIntoView({block:'nearest'});};
  const surfaces=document.querySelector('.surface-controls');surfaces.querySelector('details').open=true;surfaces.querySelector('details>summary').classList.add('gc-legacy-control');surfaces.querySelector('.surface-actions').classList.add('gc-legacy-control');
  function syncAppearance(){roofColour.hidden=designState.finish!=='twotone';roofLink.hidden=roofColour.hidden;black.setAttribute('aria-pressed',String(!!designState.allBlack));black.disabled=!window.jimny3D?.getState().detailedReady||!!window.jimny3D?.getState().modelLoading;restoreHardware.hidden=!designState.allBlack;bindings.forEach(sync=>sync());}

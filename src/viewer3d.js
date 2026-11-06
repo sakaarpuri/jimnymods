@@ -154,10 +154,10 @@ if(renderer){
     applyInsideCamera();
   }
   function updateInputMode(){
-    const compact=window.matchMedia('(max-width:899px)').matches&&!mount.parentElement.classList.contains('expanded');
-    controls.enabled=!compact&&!isInside();renderer.domElement.style.touchAction=compact?'pan-y':'none';mount.dataset.touchMode=compact?'scroll':isInside()?'look-around':'orbit';
-    renderer.domElement.setAttribute('aria-label',(isInside()?'Enclosed 3D Jimny cabin. Drag to look around, Shift-drag to move within the cabin, scroll to zoom.':canvasLabel)+(compact?' Expand the preview for touch rotation.':''));
-    if(status.textContent.startsWith('Live 3D'))status.textContent=compact?'Live 3D · expand to rotate':'Click a part · drag to rotate';
+    // The canvas owns car gestures at every size; the surrounding page still scrolls.
+    controls.enabled=!isInside();renderer.domElement.style.touchAction='none';mount.dataset.touchMode=isInside()?'look-around':'orbit';
+    renderer.domElement.setAttribute('aria-label',isInside()?'Enclosed 3D Jimny cabin. Drag to look around, Shift-drag to move within the cabin, scroll to zoom.':canvasLabel);
+    if(status.textContent.startsWith('Live 3D'))status.textContent='Click a part · drag to rotate';
   }
   new MutationObserver(updateInputMode).observe(mount.parentElement,{attributes:true,attributeFilter:['class']});
   window.matchMedia('(max-width:899px)').addEventListener('change',updateInputMode);updateInputMode();
@@ -554,7 +554,7 @@ if(renderer){
     if(detailed&&modelBody==='5door'&&parts.has('suzuki_nomade_steelwheel'))visiblePartIds.push('suzuki_nomade_steelwheel');
     visiblePartIds.push(...WHEEL_PARTS.filter(p=>parts.has(p.visual)).map(p=>p.visual));
     const visibleCount=visiblePartIds.length,selectionCount=window.getJimnyBuildCount?.()||0;
-    status.textContent=assetError?'Simplified preview · detailed model unavailable':!detailed?'Loading detailed Jimny…':stock?'Stock preview':selectionCount?`${selectionCount} item${selectionCount===1?'':'s'} in build · click a part to edit`:mount.dataset.touchMode==='scroll'?'Live 3D · expand to rotate':'Click a part · drag to rotate';
+    status.textContent=assetError?'Simplified preview · detailed model unavailable':!detailed?'Loading detailed Jimny…':stock?'Stock preview':selectionCount?`${selectionCount} item${selectionCount===1?'':'s'} in build · click a part to edit`:'Click a part · drag to rotate';
     if(isInside())status.textContent='Click an accessory · drag to look around';
     renderer.domElement.setAttribute('aria-label',(isInside()?'Rotatable enclosed Jimny cabin. Drag to look around, Shift-drag to move, scroll to zoom.':canvasLabel)+` ${visibleCount} visible modifications.`);
     mount.dataset.parts=visiblePartIds.join(',');mount.dataset.finish=design.finish||'oem';mount.dataset.grille=design.grille||'oem';mount.dataset.decal=design.decal||'none';
@@ -649,7 +649,7 @@ if(renderer){
   new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)dirty=true;},{rootMargin:'100px'}).observe(mount);
   controls.addEventListener('change',()=>{dirty=true;});
   renderer.domElement.addEventListener('pointerdown',e=>{
-    if(!isInside()||mount.dataset.touchMode==='scroll')return;
+    if(!isInside())return;
     insideCamera.drag={id:e.pointerId,x:e.clientX,y:e.clientY,pan:e.shiftKey||e.button===2};
     renderer.domElement.setPointerCapture(e.pointerId);e.preventDefault();
   });
@@ -667,7 +667,7 @@ if(renderer){
   installPartPicker({canvas:renderer.domElement,camera,root:car,planes:()=>renderer.clippingPlanes,enabled:()=>!!detailed&&!modelLoading&&!previewRestore&&!stock,onPick:detail=>window.dispatchEvent(new CustomEvent('jimny-part-pick',{detail}))});
   renderer.domElement.addEventListener('pointerup',endInsideDrag);renderer.domElement.addEventListener('pointercancel',endInsideDrag);
   renderer.domElement.addEventListener('contextmenu',e=>{if(isInside())e.preventDefault();});
-  renderer.domElement.addEventListener('wheel',e=>{if(!isInside()||mount.dataset.touchMode==='scroll')return;e.preventDefault();camera.fov=THREE.MathUtils.clamp(camera.fov+e.deltaY*.025,38,94);camera.updateProjectionMatrix();dirty=true;},{passive:false});
+  renderer.domElement.addEventListener('wheel',e=>{if(!isInside())return;e.preventDefault();camera.fov=THREE.MathUtils.clamp(camera.fov+e.deltaY*.025,38,94);camera.updateProjectionMatrix();dirty=true;},{passive:false});
   renderer.domElement.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();if(isInside()){insideCamera.yaw+=e.key==='ArrowLeft'?.12:e.key==='ArrowRight'?-.12:0;insideCamera.pitch=THREE.MathUtils.clamp(insideCamera.pitch+(e.key==='ArrowUp'?.08:e.key==='ArrowDown'?-.08:0),-1.15,.8);applyInsideCamera();return;}const delta=e.key==='ArrowLeft'?.16:e.key==='ArrowRight'?-.16:0;const pos=camera.position.clone().sub(controls.target);if(delta)pos.applyAxisAngle(new THREE.Vector3(0,1,0),delta);else pos.multiplyScalar(e.key==='ArrowUp'?.92:1.08);camera.position.copy(controls.target).add(pos);updateCameraControls();dirty=true;}});
   renderer.domElement.addEventListener('webglcontextlost',()=>{status.textContent='3D paused. Reload to restore the preview. Your build is saved.';});
   window.addEventListener('jimny-build-change',event=>{stock=false;sync(event.detail);});
