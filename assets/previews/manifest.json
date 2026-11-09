@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-04",
+  "generated": "2026-11-09",
   "source": "Live Three.js renderer using the authored Blender model, not AI photographs",
   "modelSha256": "4b7d26ac75c11dbe765eb2ba66d5f7b193ec1e7722b2381630a503fa9bc2e6f8",
   "rendererRevision": "blender-lwb-6",
@@ -36,13 +36,14 @@
     "src/workshop-stage.js": "eb8f7abd19fd373bd7b069a17da8dccd3241a417153d0dd581e46b5e12e6862f",
     "src/workshop-gear.js": "b2335bdb82f5a5b1ee76b9e48ef2b3ef18e057977f63fd9437d1b06410022d23",
     "src/outdoor-ground.js": "8b834bc3baef1d4055e0a1130e79cb13bcb08658e936a6ca2bc22e38ed9d7cbf",
-    "src/exterior-parts.js": "b2d82e85531fbf04cd6827b94ba3ab1edfeb823885e873b34c21c370fac2811f",
+    "src/exterior-parts.js": "8a7f1630a13a7008e100c298f5b6c5eb21bb428ea3db456e41215a1194367969",
     "src/detailed-wheels.js": "5da398a4101a2ee7c2d04dcd38a4bb36617c4b4e20aef2c0826ac8e55231e6df",
     "src/front-mounts.js": "fe75024a076a0836a9b7d34a39c53cd9cb117a8ae1282c647099aca0c60c30b0",
     "assets/exterior-parts-data.js": "5d830f253613743437e2dc33da2af83b23a3956ebd9370ccff2684e772e0b69a",
     "src/grille-scripts.js": "5b065cb95b75027ed1fd314fcee1434e37588b8a8927994b7cb2eaee4ee8f326",
     "src/grille-script-data.js": "4127682ce17017b8870f74150cf52c266238b950b393fef3664a34747434503f",
-    "src/spare-badge.js": "ec966f172ea33514989d7494d999bacd596ba6153fcedb834d489a3144198208"
+    "src/spare-badge.js": "ec966f172ea33514989d7494d999bacd596ba6153fcedb834d489a3144198208",
+    "assets/models/jimny-wordmark.json": "850bd959fb4114b38e0810261553b4f5ecdfa23b2314dd7b5201c10dd9937367"
   },
   "width": 800,
   "height": 600,
