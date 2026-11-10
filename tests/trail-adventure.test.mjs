@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ADVENTURE,ADVENTURE_MISSIONS,ADVENTURE_EVENTS,adventureGates,adventureRoute,adventureDrive,adventureStars,formatRaceTime,adventureApples,collectApples,stuckWheel,Breadcrumbs} from '../src/trail/adventure.js';
+import {ADVENTURE,ADVENTURE_MISSIONS,ADVENTURE_EVENTS,adventureGates,adventureRoute,adventureDrive,adventureStars,formatRaceTime,adventureApples,collectApples,huntApples,nearestApple,stuckWheel,Breadcrumbs} from '../src/trail/adventure.js';
+import {SECTION_FORDS,sectionRiverCentre} from '../src/trail/himachal-section.js';
 import {COURSES,getMissions,makeGates,makeWorld} from '../src/trail/courses.js';
 import {createVehicle} from '../src/trail/physics.js';
 import {createRigidVehicle} from '../src/trail/rigid-vehicle.js';
@@ -17,12 +18,15 @@ const read=path=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const mountain=COURSES.find(c=>c.id==='mountain'),missions=getMissions(mountain);
 const play=makeWorld(mountain,'driver',{adventure:true}),sim=makeWorld(mountain,'driver');
 const routes=difficulty=>ADVENTURE_EVENTS.map(event=>adventureRoute(event,id=>makeGates(mountain,difficulty,id)));
+const routeOf=(id,difficulty='driver')=>routes(difficulty)[ADVENTURE_EVENTS.findIndex(e=>e.id===id)];
 
-test('Adventure offers three events built from real routes, with rising star times',()=>{
- assert.deepEqual(ADVENTURE_EVENTS.map(e=>e.id),['grand-traverse','pass-road','rock-garden']);
+test('Adventure offers five distinct events, with rising star times',()=>{
+ assert.deepEqual(ADVENTURE_EVENTS.map(e=>e.id),['grand-traverse','pass-road','river-run','apple-hunt','rock-garden']);
  for(const event of ADVENTURE_EVENTS){
   assert(event.name&&event.summary&&ADVENTURE_MISSIONS[event.id]===event,event.id);assert(event.par[0]>20&&event.par[1]>event.par[0],event.id);
-  for(const id of event.chain)assert(missions.some(m=>m.id===id),id);
+  assert.equal([event.chain,event.route,event.hunt].filter(Boolean).length,1,`${event.id} is a chain, an authored route or a hunt`);
+  for(const id of event.chain||[])assert(missions.some(m=>m.id===id),id);
+  if(!event.chain)assert(Number.isFinite(event.spawn.x)&&Number.isFinite(event.spawn.z),`${event.id} has its own start`);
  }
  const joined=routes('driver')[0],parts=ADVENTURE_EVENTS[0].chain.map(id=>adventureGates(makeGates(mountain,'driver',id)));
  assert(joined.length>parts[0].length+parts[1].length&&joined.length<=parts.reduce((sum,p)=>sum+p.length,0));
@@ -34,7 +38,7 @@ test('gates are drive-through, except in the rock garden where the posts must be
  const hairpin=makeGates(mountain,'explorer','hairpin'),gates=adventureGates(hairpin);
  assert.equal(gates.length,hairpin.filter(g=>!g.reverse).length,'a reverse pocket is dropped');
  for(const gate of gates){for(const key of ['stop','range','gear','reverse','precision','headingTolerance'])assert(!(key in gate),key);assert(gate.radius>=5);}
- const garden=routes('driver')[2];assert(garden.filter(g=>g.precision).length>=3,'the rock garden keeps its wheel-placement gates');
+ const garden=routeOf('rock-garden');assert(garden.filter(g=>g.precision).length>=3,'the rock garden keeps its wheel-placement gates');
  for(const gate of garden)for(const key of ['stop','range','gear','reverse'])assert(!(key in gate),key);
 });
 
@@ -61,8 +65,10 @@ test('stars and the race clock',()=>{
 
 test('apples are few, sit off the direct line on drivable ground and are collected by driving through',()=>{
  for(const [index,event] of ADVENTURE_EVENTS.entries()){
-  const gates=routes('driver')[index],spawn=missions.find(m=>m.id===event.chain[0]).spawn||play.spawn,apples=adventureApples(spawn,gates,play),line=[spawn,...gates];
-  assert(apples.length>=2&&apples.length<=7,`${event.id}: ${apples.length} apples`);
+  if(event.hunt)continue;
+  const gates=routes('driver')[index],spawn=event.spawn||missions.find(m=>m.id===event.chain[0]).spawn||play.spawn,apples=adventureApples(spawn,gates,play),line=[spawn,...gates];
+  // A compact loop such as the river run may have no spot that is a detour from every leg.
+  assert(apples.length>=(event.route?0:2)&&apples.length<=7,`${event.id}: ${apples.length} apples`);if(!apples.length)continue;
   for(const apple of apples){
    let nearest=Infinity;for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],dx=b.x-a.x,dz=b.z-a.z,t=Math.max(0,Math.min(1,((apple.x-a.x)*dx+(apple.z-a.z)*dz)/(dx*dx+dz*dz||1)));nearest=Math.min(nearest,Math.hypot(apple.x-a.x-dx*t,apple.z-a.z-dz*t));}
    assert(nearest>3.5,`${event.id}: an apple sits on the racing line`);assert(play.contains(apple.x,apple.z,14));assert(Number.isFinite(apple.y));
@@ -73,6 +79,26 @@ test('apples are few, sit off the direct line on drivable ground and are collect
   assert.deepEqual(collectApples({...state,y:apples[0].y+20},apples,new Set()),[],'not collected from a bridge far above');
  }
  assert.equal(ADVENTURE.appleBonus,2);
+});
+
+test('the river run uses graded fords and the hunt spreads apples over both banks',()=>{
+ const run=routeOf('river-run'),wet=run.filter(g=>play.waterSurface(g.x,g.z)!==null);
+ assert(wet.length>=4,'several checkpoints sit in the stream');assert.equal(run.at(-1).x,60);
+ for(const z of SECTION_FORDS){
+  const steepest=(world,from,to)=>{let most=0;for(let x=from;x<to;x+=2)most=Math.max(most,Math.abs(world.height(x+2,z)-world.height(x,z)));return most;},centre=sectionRiverCentre(z);
+  assert(steepest(play,centre-22,centre)<.75,`west bank of the ford at z=${z} is a gentle ramp`);
+  assert(play.height(centre+14,z)<sim.height(centre+14,z)-.3&&play.height(centre+16,z)<sim.height(centre+16,z)-.3,`the wall at the top of the east bank is cut back at z=${z}`);
+  assert(Math.abs(play.height(centre+19,z)-sim.height(centre+19,z))<.05,'the riverside lane is not undercut');
+  assert(!play.sectionProps.some(p=>p.id.startsWith('section-bank')&&Math.abs(p.z-z)<4),'no bank rocks block a ford');
+ }
+ assert(play.sceneryObstacles.some(o=>o.ghost)&&!sim.sceneryObstacles.some(o=>o.ghost),'marker posts are pass-through only in the play world');
+ const hunt=ADVENTURE_MISSIONS['apple-hunt'].hunt,apples=huntApples(play,hunt);
+ assert.equal(apples.length,hunt.count);assert.deepEqual(huntApples(play,hunt),apples,'the same scatter every run');
+ assert(apples.some(a=>a.x<12)&&apples.some(a=>a.x>32),'apples lie on both banks');
+ for(const [i,a] of apples.entries()){assert(!(a.x>hunt.avoid[0]&&a.x<hunt.avoid[1]&&a.z>hunt.avoid[2]&&a.z<hunt.avoid[3]));for(const b of apples.slice(i+1))assert(Math.hypot(a.x-b.x,a.z-b.z)>=14);}
+ assert.deepEqual(adventureRoute(ADVENTURE_MISSIONS['apple-hunt'],()=>[]),[]);
+ const taken=new Set([0]);assert.notEqual(nearestApple(apples[0],apples,taken),apples[0]);assert.equal(nearestApple(apples[1],apples,taken),apples[1]);
+ assert.equal(nearestApple(apples[0],apples,new Set(apples.keys())),null);
 });
 
 test('recover returns to a recent safe position, not the start',()=>{
@@ -95,7 +121,7 @@ test('the play world has fordable water and climbable rocks; the Simulator world
  const rocks=world=>[...world.obstacles,...world.sceneryObstacles].filter(o=>o.type==='rock');
  assert(rocks(play).length>150&&rocks(play).every(o=>o.climbable&&o.height<=o.radius*.46+1e-9),'play rocks are low domes');
  assert(rocks(sim).every(o=>!o.climbable)&&rocks(sim).some(o=>o.height>o.radius*.6),'simulator rocks keep their shape');
- assert.equal(rocks(play).length,rocks(sim).length);
+ assert(rocks(play).length<rocks(sim).length&&rocks(play).length>rocks(sim).length-90,'only the ford bank rocks are missing');
  const river=play.river,mid=play.height(40,550+11*Math.sin(40/115));
  assert(river.minX<play.bounds.minX&&river.maxX>play.bounds.maxX,'the river runs off both edges of the map');
  assert(river.waterLevel-mid>.3&&river.waterLevel-mid<1,'the highland river is wadeable');assert.equal(sim.river.waterLevel,1.2);
@@ -167,8 +193,10 @@ test('Adventure is wired as the Himachal default without leaking into other cour
  assert.match(game,/timeTrialActive=!adventure&&/);assert.match(game,/makeWorld\(course,difficulty,\{adventure:nextAdventure\}\)/);assert.match(game,/&&!!world\.openWater===nextAdventure/);
  assert.match(game,/const crumb=adventure\|\|freeRoam\?crumbs\.back\(state\.elapsed\):null/);assert.match(game,/view\.render\(running\?blendPose\(previousPose,state,accumulator\*60\):state/);
  assert.match(game,/const review=freeRoam&&/,'the scenery review start is limited to free roam');
+ assert.match(game,/if\(!freeRoam&&!hunt\)\{const status=adventure\?/);assert.match(game,/if\(hunt&&countdown<=0&&tokens\.length&&takenTokens\.size===tokens\.length\)\{finish\(\);return;\}/);
+ assert.match(game,/view\.setTimeOfDay\(skyMode\(\)\)/);assert.match(scene,/lamp\.intensity=night\?270:dusk\?70:0/);assert.match(scene,/roadWash\.intensity=night\?2\.4:dusk\?\.45:0/,'a road wash carries the light well ahead at night');assert.match(scene,/new T\.SpotLight\('#fff0d2',0,0,\.52,\.8,1\.5\)/,'headlights fall off slowly enough to light the track well ahead');
  assert.match(scene,/chaseYaw\+=Math\.atan2\(Math\.sin\(state\.yaw-chaseYaw\)/);assert.match(scene,/if\(course\.id==='mountain'\)worldRoot\.add\(createHimachalLandmarks\(world\)\)/);
- assert.match(scene,/setNight\(value\)\{night=Boolean\(value\)/);assert.match(read('src/trail/environment.js'),/parent\.add\(boundarySkirt\(world\)\)/);
+ assert.match(scene,/setTimeOfDay\(mode\)\{night=mode==='night';dusk=mode==='dusk'/);assert.match(read('src/trail/environment.js'),/parent\.add\(boundarySkirt\(world\)\)/);
  assert.match(css,/#game\[data-style=adventure\] :is\(\.drive-controls,\.key-hint\)\{display:none\}/);
  assert.doesNotMatch(read('src/trail/adventure.js'),/from '(three|@dimforge)/,'the Adventure rules stay renderer- and solver-free');
 });

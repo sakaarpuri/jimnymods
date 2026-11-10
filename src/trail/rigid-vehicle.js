@@ -59,6 +59,7 @@ export async function createRigidVehicle(terrain, state, options = {}) {
   // A climbable rock is a shallow spherical cap: about 45° at its foot, so a wheel can ride up and over it.
   const capHull=(radius,height)=>{const sphere=(radius*radius+height*height)/(2*height),points=[];for(const ring of [1,.82,.6,.34,0]){const rho=radius*ring,y=Math.sqrt(sphere*sphere-rho*rho)-(sphere-height);for(let k=0;k<(ring?12:1);k++){const a=k/12*Math.PI*2;points.push(Math.cos(a)*rho,y,Math.sin(a)*rho);if(ring===1)points.push(Math.cos(a)*rho,-.35,Math.sin(a)*rho);}}return RAPIER.ColliderDesc.convexHull(new Float32Array(points));};
   for (const obstacle of [...(terrain.obstacles || []),...(terrain.companionObstacles || []),...(terrain.sceneryObstacles || [])]) {
+    if(obstacle.ghost)continue;
     const cap=obstacle.climbable&&obstacle.type==='rock'?capHull(obstacle.radius,obstacle.height):null;
     if(cap){fixed.set(simulation.createCollider(cap.setTranslation(obstacle.x,obstacle.y,obstacle.z).setFriction(.9).setRestitution(.02)).handle,obstacle.id);continue;}
     const desc = obstacle.type==='mesh'?RAPIER.ColliderDesc.trimesh(new Float32Array(obstacle.vertices),new Uint32Array(obstacle.indices)):obstacle.type==='cylinder'?RAPIER.ColliderDesc.cylinder(obstacle.height/2,obstacle.radius):obstacle.type === 'rock'
@@ -147,7 +148,7 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     // Coupled axle anti-roll response; contacts still come from four independent rays.
     chassis.resetForces(true);
     chassis.resetTorques(true);
-    const resistance=absSpeed>.02?(surface==='soft-sand'?.095:surface==='sand'?.055:surface==='loose'?.022:.012)*s.mass*9.81+.48*absSpeed*absSpeed+(s.extraDrag||0)*(s.mass*9.81*.16+260*absSpeed*absSpeed):0;
+    const resistance=absSpeed>.02?(surface==='soft-sand'?.095:surface==='sand'?.055:surface==='loose'?.022:.012)*s.mass*9.81+.48*absSpeed*absSpeed+(s.extraDrag||0)*(s.mass*9.81*.09+260*absSpeed*absSpeed):0;
     if(resistance)chassis.addForce({x:-forward.x*Math.sign(speed)*resistance,y:0,z:-forward.z*Math.sign(speed)*resistance},true);
     for(const axle of [[0,1],[2,3]]){
       const [a,b]=axle,la=vehicle.wheelSuspensionLength(a)||.28,lb=vehicle.wheelSuspensionLength(b)||.28,force=clamp((la-lb)*2200,-850,850);

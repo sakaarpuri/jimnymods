@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {himachalLandmarkPlan} from './himachal-landmark-plan.js';
+import {himachalLandmarkPlan,fordMarkers} from './himachal-landmark-plan.js';
 
 // Original procedural props. The five flag colours follow the traditional
 // blue, white, red, green, yellow order; no text or imagery is reproduced.
@@ -37,7 +37,7 @@ export function createHimachalLandmarks(world){
     part(g,new T.ConeGeometry(.2,1.05,10),gold,0,3.28,0);part(g,new T.SphereGeometry(.11,10,8),gold,0,3.86,0);
   }
   // Distance stones face oncoming traffic on the climb and the descent.
-  for(const m of plan.milestones){
+  for(const m of [...plan.milestones,...(world.openWater?fordMarkers():[])]){
     const g=new T.Group();g.position.set(m.x,world.height(m.x,m.z),m.z);g.rotation.y=m.yaw+Math.PI;root.add(g);
     part(g,new T.BoxGeometry(.5,.78,.2),stone,0,.39,0);const texture=milestoneTexture(m.label,m.value);textures.push(texture);
     const face=new T.Mesh(new T.PlaneGeometry(.46,.7),new T.MeshStandardMaterial({map:texture,roughness:.8}));face.position.set(0,.4,.102);g.add(face);

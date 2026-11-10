@@ -1,4 +1,4 @@
-import {HIMACHAL_SECTION} from './himachal-section.js';
+import {HIMACHAL_SECTION,SECTION_FORDS,sectionRiverCentre} from './himachal-section.js';
 import {MOUNTAIN_ROADS} from './himachal-mountain.js';
 
 // Roadside details typical of Himachal's high roads: prayer-flag lines over
@@ -27,6 +27,8 @@ export function himachalLandmarkPlan(){
   for(let s=110;s<drop-40;s+=160){const p=pointAt(paved,s);milestones.push({id:`stone-road-${milestones.length}`,...beside(p,4.9),yaw:p.yaw,label:'VALLEY',value:`${((drop-s)/1000).toFixed(1)} km`});}
   return cached=Object.freeze({flags:Object.freeze(flags),chortens:Object.freeze(chortens),milestones:Object.freeze(milestones)});
 }
+// Marker stones on both banks of each ford. They exist only in the play world, where the fords do.
+export const fordMarkers=()=>SECTION_FORDS.flatMap(z=>[-1,1].map(side=>({id:`stone-ford-${z}-${side}`,x:sectionRiverCentre(z)+side*19,z:z-8,yaw:0,label:'FORD',value:'0.8 m'})));
 // Only the chortens are solid; flag poles and distance stones are too slight to stop a car fairly.
 export function himachalLandmarkObstacles(height){
   return himachalLandmarkPlan().chortens.map(c=>({id:c.id,type:'cylinder',x:c.x,z:c.z,y:height(c.x,c.z),radius:1.45*c.scale,height:3.4*c.scale}));

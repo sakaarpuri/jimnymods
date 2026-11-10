@@ -112,7 +112,7 @@ export function makeWorld(course,difficulty='explorer',options={}){
   const articulation=mountainStepHeight(x,z,settings.obstacleScale,activeStoneLane);
   return fade*(ridge+distant+(.055*Math.sin(z*2.3)*Math.sin(x*2)+.025*Math.sin(x*4+z*3))*.25+articulation+mountainShoulderRelief(x,z,routeDistance(x,z))+adventureHeight(course,x,z,routeDistance(x,z)));
  };
- const localHeight=(x,z)=>{const base=riverHeight(baseHeight(x,z),x,z,exploration.river)+terrainElements.reduce((sum,e)=>sum+terrainElementHeight(e,x,z),0);return course.id==='mountain'?sectionRiverHeight(base+sectionShoulderRelief(x,z,routeDistance(x,z))+sectionTerraceHeight(x,z,activeStoneLane,sectionTerraceClearance(x,z)),x,z):base;};
+ const localHeight=(x,z)=>{const base=riverHeight(baseHeight(x,z),x,z,exploration.river)+terrainElements.reduce((sum,e)=>sum+terrainElementHeight(e,x,z),0);return course.id==='mountain'?sectionRiverHeight(base+sectionShoulderRelief(x,z,routeDistance(x,z))+sectionTerraceHeight(x,z,activeStoneLane,sectionTerraceClearance(x,z)),x,z,open):base;};
  // New landforms must not overwrite existing graded bridge approaches or
  // discovery obstacle beds. Keep the same smooth exclusion used for routes.
  const protectedTerrainDistance=(x,z)=>Math.min(legacyRouteDistance(x,z),riverApproachProtectionDistance(x,z,exploration.river),...terrainElements.map(e=>Math.max(0,Math.hypot(x-e.x,z-e.z)-15)));
@@ -170,6 +170,9 @@ export function makeWorld(course,difficulty='explorer',options={}){
  };
  if(open){
   for(const rock of [...obstacles,...sceneryObstacles])if(rock.type==='rock'){rock.height=Math.min(rock.height,rock.radius*.46);rock.climbable=true;}
+  // Thin marker posts stay visible but no longer stop the car dead.
+  // Bridge rail posts barely stand proud of the rails, yet snag a car sliding along them; the rails alone guard the deck.
+  for(const post of sceneryObstacles)if(post.type==='cylinder'&&post.radius<=.15||String(post.id).startsWith('section-post-'))post.ghost=true;
   world.recoveryReason=()=>'';
  }
  return world;
