@@ -189,3 +189,35 @@ body.drive-page #game .coach[data-coaching=compact] #thumbnailToggle{display:non
  body.drive-page #game .coach{left:8px;bottom:8px;width:min(420px,calc(100% - 100px));max-height:calc(100% - 16px)}
 }
 @media(prefers-reduced-motion:reduce){body.drive-page #game :where(#console,#hud) button:active{transform:none}}
+/* Driving feel layer: checkpoint marker, confirmations, speed target and score breakdown.
+   The marker and toast live inside #stage without a z-index, so the HUD panels stay on top. */
+body.drive-page #stage{overflow:hidden}
+body.drive-page #stage #waypoint{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;will-change:transform}
+body.drive-page #stage #waypoint i{position:absolute;left:-10px;top:-10px;width:20px;height:20px;background:#ff9a4d;clip-path:polygon(50% 0,100% 100%,50% 76%,0 100%);filter:drop-shadow(0 1px 2px #0009)}
+body.drive-page #stage #waypoint b{position:absolute;left:0;top:15px;transform:translateX(-50%);padding:3px 8px;border-radius:999px;background:#151b1ee6;color:#f5f2e8;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap}
+body.drive-page #stage #waypoint[data-offscreen=false] b{top:auto;bottom:15px}
+body.drive-page #stage #driveToast{position:absolute;left:50%;top:17%;transform:translate(-50%,-8px);display:grid;justify-items:center;gap:2px;padding:9px 18px;border-radius:999px;background:#151b1eeb;color:#f5f2e8;font-size:16px;font-weight:700;line-height:1.2;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease}
+body.drive-page #stage #driveToast.show{opacity:1;transform:translate(-50%,0)}
+body.drive-page #stage #driveToast span{font-size:12px;font-weight:600;color:var(--a-lime,#e2f25a)}
+body.drive-page #game .telemetry [data-over=true] #speed{color:#ff9d6c}
+body.drive-page #results .loss-list{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+body.drive-page #results .loss-list li{display:flex;align-items:center;gap:8px;padding:6px 11px;border-radius:999px;background:var(--a-panel2,#263036);color:var(--a-text,#f5f2e8);font-size:13px}
+body.drive-page #results .loss-list b{color:#ff9d6c}
+body.drive-page #pause .graphics-settings select{width:100%;margin-top:6px}
+@media(max-height:520px){body.drive-page #stage #driveToast{top:9%;font-size:14px;padding:7px 14px}}
+@media(prefers-reduced-motion:reduce){body.drive-page #stage #driveToast{transition:opacity .01s;transform:translate(-50%,0)}}
+/* Adventure style: the selector, transfer lever and assists work themselves, so their controls step aside. */
+body.drive-page #game[data-style=adventure] :is(.drive-controls,.key-hint){display:none}
+body.drive-page #game[data-style=adventure] #pedalReadout{display:none}
+body.drive-page #results #resultTitle[aria-label$="stars"]{color:var(--a-lime,#e2f25a);letter-spacing:.08em;font-size:44px;line-height:1}
+body.drive-page #lobby .style-picker select{width:100%}
+/* Loading panel in the lobby. The bar animates with transform, so it keeps moving while the main thread builds the terrain. */
+body.drive-page #lobby #loadProgress{display:grid;gap:4px;margin:0 0 8px}
+body.drive-page #lobby #loadProgress[hidden]{display:none}
+body.drive-page #lobby #loadProgress .load-bar{height:6px;border-radius:999px;background:var(--a-panel2,#263036);overflow:hidden}
+body.drive-page #lobby #loadProgress .load-bar i{display:block;height:100%;background:var(--a-lime,#e2f25a);transform:scaleX(.02);transform-origin:left center;transition:transform 1s cubic-bezier(.2,.7,.3,1);will-change:transform}
+body.drive-page #lobby #loadProgress p{margin:0;line-height:1.35;color:var(--a-text,#f5f2e8)}
+body.drive-page #lobby #loadProgress .load-stage{font-weight:700;font-size:14px}
+body.drive-page #lobby #loadProgress .load-tip{font-size:13px;color:var(--a-muted,#aeb7b4);min-height:1.35em}
+body.drive-page #lobby #loadProgress .check-label{font-size:13px;margin:0}
+@media(prefers-reduced-motion:reduce){body.drive-page #lobby #loadProgress .load-bar i{transition:none}}

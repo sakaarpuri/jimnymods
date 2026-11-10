@@ -2,14 +2,14 @@
 // No microphone or network. Audio starts only inside a player gesture.
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const aborted=()=>new DOMException('Coaching playback was cancelled.','AbortError');
-export const DEFAULT_MIX={vehicle:.65,environment:.35,coaching:.85,ui:.45,master:.7};
+export const DEFAULT_MIX={vehicle:.42,environment:.35,coaching:.85,ui:.45,master:.6};
 export function audioParameters(state,{surface='loose',interior=false,coaching=false}={}){
   const speed=Math.abs(state.speed||0),load=clamp(state.throttle||0),rpm=clamp(state.rpm||850,600,6500);
   const contact=(state.wheelLoads||state.loads||[1,1,1,1]).filter(x=>x>.08).length/4;
-  return {firing:rpm/30,load,engine:(.075+load*.16+rpm/75000)*(interior?.76:1),
+  return {firing:rpm/30,load,engine:(.055+load*.09+rpm/120000)*(interior?.76:1),
     tyre:clamp(speed/15)*contact*(surface==='tarmac'?.018:.055),
     scrub:clamp(state.slip||0)*contact*.12,wind:clamp(speed/24)*.055,
-    cutoff:interior?950:4200,duck:coaching?.55:1,
+    cutoff:interior?700:1400,duck:coaching?.55:1,
     surfaceHz:surface==='tarmac'?1200:surface==='sand'||surface==='soft-sand'?850:2600};
 }
 export class TrailAudio{
@@ -33,10 +33,12 @@ export class TrailAudio{
     this.destination=c.createMediaStreamDestination();this.limiter.connect(this.destination);
     this.vehicle=c.createGain();this.ambience=c.createGain();this.coach=c.createGain();this.ui=c.createGain();
     for(const [node,key] of [[this.vehicle,'vehicle'],[this.ambience,'environment'],[this.coach,'coaching'],[this.ui,'ui']]){node.gain.value=this.mix[key];node.connect(this.master);}
-    this.engineFilter=c.createBiquadFilter();this.engineFilter.type='lowpass';this.engineFilter.frequency.value=4200;this.engineFilter.connect(this.vehicle);
-    // Keep a restrained fundamental, but place audible combustion harmonics
-    // above laptop-speaker roll-off. This is not an OEM exhaust recording.
-    this.harmonics=[1,2,3,4,6].map((multiple,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i===0?'sine':'triangle';gain.gain.value=0;osc.connect(gain);gain.connect(this.engineFilter);osc.start();return {osc,gain,multiple,weight:[.38,.6,.4,.3,.16][i]};});
+    this.engineFilter=c.createBiquadFilter();this.engineFilter.type='lowpass';this.engineFilter.frequency.value=1400;this.engineFilter.connect(this.vehicle);
+    // A soft, low burble: pure tones weighted toward the lower orders, under a
+    // gentle low-pass, with just enough above laptop-speaker roll-off to be
+    // heard at idle. The earlier triangle-wave harmonics whined as revs rose.
+    // This is not an OEM exhaust recording.
+    this.harmonics=[1,2,3,4,6].map((multiple,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type='sine';gain.gain.value=0;osc.connect(gain);gain.connect(this.engineFilter);osc.start();return {osc,gain,multiple,weight:[.5,.55,.36,.14,.05][i]};});
     const noise=c.createBuffer(1,c.sampleRate*3,c.sampleRate),data=noise.getChannelData(0);let seed=123456,brown=0;
     for(let i=0;i<data.length;i++){seed=(1664525*seed+1013904223)>>>0;const white=seed/4294967296*2-1;brown=(brown+.025*white)/1.025;data[i]=white*.65+brown*3;}
     const noiseLayer=(parent,type,hz)=>{const source=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();source.buffer=noise;source.loop=true;filter.type=type;filter.frequency.value=hz;gain.gain.value=0;source.connect(filter);filter.connect(gain);gain.connect(parent);source.start();return {source,filter,gain};};

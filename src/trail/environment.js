@@ -11,6 +11,7 @@ import {coarseBedRelief,articulationBedRelief,mountainStoneMask} from './adventu
 import {createHimachalSection,sectionWaterExclusion} from './himachal-section.js';
 import {sectionShoulderDistance,sectionGreenWeight} from './himachal-dressing.js';
 import {HIMACHAL_ELEVATION,himachalElevationNormalized} from './himachal-elevation.js';
+import {gridHeights} from './height-grid.js';
 import {createMountainRoads} from './mountain-road-render.js';
 import {sectionTerraceStone} from './himachal-terraces.js';
 import {createQuarryArt,quarryBedMaterial} from './quarry-art.js';
@@ -50,12 +51,23 @@ export function himachalWearCoordinates(world,x,z,extension=world.mountainExtens
  const fade=1-smooth(T.MathUtils.clamp((best.distance-2.2)/1.8,0,1));
  return [best.lateral,best.along,best.weight*fade];
 }
+const warmGround=new WeakMap();
+// Computes the terrain grids ahead of the scene build, so the work overlaps the model and texture downloads.
+export function warmLandscape(world){
+  const grid=(bounds,spacing)=>gridHeights(world,bounds,Math.ceil((bounds.maxX-bounds.minX)/spacing),Math.ceil((bounds.maxZ-bounds.minZ)/spacing));
+  grid(world.bounds,world.mountainExtension?2:world.course.theme==='urban'?2.5:4);
+  if(world.himachalSection)grid(world.himachalSection.bounds,world.himachalSection.groundSpacing);
+  // The main ground mesh needs no GPU or textures, so it is built here too and handed to createLandscape once.
+  warmGround.set(world,groundGeometry(world,world.bounds,world.mountainExtension?2:undefined));
+}
 export function groundGeometry(world,bounds=world.bounds,spacing=world.course.theme==='urban'?2.5:4,lift=0){
   const columns=Math.ceil((bounds.maxX-bounds.minX)/spacing),rows=Math.ceil((bounds.maxZ-bounds.minZ)/spacing),n=columns+1,pos=[],col=[],idx=[],uv=[],blends=[],stones=[],greens=[],wear=[],sand=world.course.theme==='sand',urban=world.course.theme==='urban';
   const track=new T.Color(sand?'#b88750':urban?'#515758':'#c8b693'),edge=new T.Color(sand?'#c29458':urban?'#626968':'#929b70'),soft=new T.Color('#cca970');
   const stepColour=new T.Color('#c7c7b9'),hillColour=new T.Color('#877758');
   const sectionPatch=bounds===world.himachalSection?.bounds;
-  for(let j=0;j<=rows;j++){const z=bounds.minZ+j/rows*(bounds.maxZ-bounds.minZ);for(let i=0;i<=columns;i++){const x=bounds.minX+i/columns*(bounds.maxX-bounds.minX),y=world.height(x,z)+lift-(bounds===world.bounds?coarseBedRelief(world.course,x,z):sectionPatch?articulationBedRelief(world.course,x,z):0),distance=world.routeDistance(x,z),shoulder=sectionShoulderDistance(world,x,z),blend=smooth(T.MathUtils.clamp(shoulder===null?(distance-world.course.width/2+.45)/2.8:shoulder/3.2,0,1)),c=track.clone().lerp(edge,blend),surface=world.surface(x,z);
+  // Raw heights are shared with the physics heightfield, which samples the same grid.
+  const heights=gridHeights(world,bounds,columns,rows);
+  for(let j=0;j<=rows;j++){const z=bounds.minZ+j/rows*(bounds.maxZ-bounds.minZ);for(let i=0;i<=columns;i++){const x=bounds.minX+i/columns*(bounds.maxX-bounds.minX),y=heights[j*n+i]+lift-(bounds===world.bounds?coarseBedRelief(world.course,x,z):sectionPatch?articulationBedRelief(world.course,x,z):0),distance=world.routeDistance(x,z),shoulder=sectionShoulderDistance(world,x,z),blend=smooth(T.MathUtils.clamp(shoulder===null?(distance-world.course.width/2+.45)/2.8:shoulder/3.2,0,1)),c=track.clone().lerp(edge,blend),surface=world.surface(x,z);
       if(surface==='soft-sand')c.copy(soft);else if(urban&&surface==='sand')c.set('#c3aa7e');else if(urban&&surface==='loose')c.set('#8b8271');else if(surface==='wet-tarmac')c.set('#424c51');
       // Contrast follows the actual heightfield, not decorative non-colliding rocks.
       if(urban&&x>=-74&&x<=-56&&z>=82&&z<=117)c.lerp(stepColour,T.MathUtils.clamp((y-lift)/.065,0,1));
@@ -201,10 +213,12 @@ export function groundMaterial(photographic,theme='mountain'){
     `);
   };m.customProgramCacheKey=()=>`trail-surface-v11-${photographic}-${theme}`;return m;
 }
-export function createLandscape(world,parent){
+// options.deferDecor leaves trees and course furniture for later: parent.userData.pendingDecor holds the steps.
+export function createLandscape(world,parent,options={}){
   createProTrials(world,parent);
   createGorge(world,parent);
-  const course=world.course,sand=course.theme==='sand',urban=course.theme==='urban',terrain=new T.Mesh(groundGeometry(world,world.bounds,world.mountainExtension?2:undefined),groundMaterial(!sand&&!urban,course.theme));terrain.receiveShadow=true;terrain.castShadow=!['school','custom'].includes(course.id);parent.add(terrain);
+  const course=world.course,sand=course.theme==='sand',urban=course.theme==='urban',terrain=new T.Mesh(warmGround.get(world)||groundGeometry(world,world.bounds,world.mountainExtension?2:undefined),groundMaterial(!sand&&!urban,course.theme));warmGround.delete(world);terrain.receiveShadow=true;terrain.castShadow=!['school','custom'].includes(course.id);parent.add(terrain);
+  if(!['school','custom'].includes(course.id))parent.add(boundarySkirt(world));
   for(const b of world.finePatches||[]){const patch=new T.Mesh(groundGeometry(world,b,b.spacing,.012),groundMaterial(false,course.theme));patch.name='Shared fine dune contact surface';patch.castShadow=patch.receiveShadow=true;parent.add(patch);}
   if(course.id==='sand')parent.add(createDesertDressing(world));
   if(world.himachalSection){const patch=new T.Mesh(groundGeometry(world,world.himachalSection.bounds,world.himachalSection.groundSpacing,.012),groundMaterial(true,course.theme));patch.name='Himachal shared fine ground';patch.castShadow=patch.receiveShadow=true;parent.add(patch);}
@@ -267,8 +281,8 @@ export function createLandscape(world,parent){
    const material=rockMaterial('mountain');material.color.set('#ffffff');
    const stones=instances(parent,new T.DodecahedronGeometry(1,0),material,debris);stones.name='Mountain road surface gravel';stones.castShadow=false;
   }
-  buildVegetationGeometry(world,parent);
-  addCourseFurniture(world,parent);
+  const decor=[()=>addCourseFurniture(world,parent),()=>buildVegetationGeometry(world,parent)];
+  if(options.deferDecor)parent.userData.pendingDecor=decor;else{parent.userData.pendingDecor=[];decor.forEach(step=>step());}
   createCourseLandmarks(world,parent);
   createTerrainElements(world,parent);
   createExplorationFeatures(world,parent);
@@ -352,6 +366,16 @@ function addSign(parent,text,x,y,z,color){
   const pole=new T.Mesh(new T.CylinderGeometry(.04,.04,1.7,8),new T.MeshStandardMaterial({color:'#6c7064',roughness:.9}));pole.position.set(x,y-1,z);pole.castShadow=true;parent.add(pole);
 }
 
+// The outer landform is coarser than the playable ground, so the two cannot meet
+// vertex for vertex. An earth curtain below the playable edge closes the cracks.
+function boundarySkirt(world){
+ const b=world.bounds,step=world.course.theme==='mountain'?2:4,positions=[],indices=[];
+ const edge=(x0,z0,x1,z1)=>{const count=Math.ceil(Math.hypot(x1-x0,z1-z0)/step),start=positions.length/3;
+  for(let i=0;i<=count;i++){const x=x0+(x1-x0)*i/count,z=z0+(z1-z0)*i/count,y=world.height(x,z);positions.push(x,y-.02,z,x,y-70,z);if(i<count){const a=start+i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}}};
+ edge(b.minX,b.minZ,b.maxX,b.minZ);edge(b.maxX,b.minZ,b.maxX,b.maxZ);edge(b.maxX,b.maxZ,b.minX,b.maxZ);edge(b.minX,b.maxZ,b.minX,b.minZ);
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
+ const skirt=new T.Mesh(geometry,new T.MeshStandardMaterial({color:world.course.theme==='sand'?'#8f7147':'#4c4838',roughness:1,side:T.DoubleSide}));skirt.name='Boundary skirt';return skirt;
+}
 function addDistantLandscape(world,parent){
  const sand=world.course.theme==='sand',half=world.size/2,cz=(world.bounds.minZ+world.bounds.maxZ)/2;
  // One continuous outer heightfield: no billboard ring, depressed skirt or
@@ -407,7 +431,7 @@ function addDistantLandscape(world,parent){
      strata*=.65+dot(crag,vec3(.2126,.7152,.0722))*.85;
     #endif
     float rock=smoothstep(.16,.48,slope);
-    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.095,.115,.12)*strata,rock*.83);
+    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.2,.2,.185)*strata,rock*.8);
     float woodland=smoothstep(.34,.58,ridgeNoise(ridgePosition.xz*.018))* (1.0-smoothstep(.25,.5,slope));
     vec3 forest=vec3(.063,.095,.045)*(.72+ridgeNoise(ridgePosition.xz*.11)*.62);
     diffuseColor.rgb=mix(diffuseColor.rgb,forest,woodland*.68);
@@ -415,7 +439,7 @@ function addDistantLandscape(world,parent){
     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.12,.19,.24),distanceHaze*.32);
    `);
   };
-  material.customProgramCacheKey=()=> 'himachal-ridgeline-v2';
+  material.customProgramCacheKey=()=> 'himachal-ridgeline-v3';
  }
  const distant=new T.Mesh(geometry,material);distant.name='DistantLandform';
  if(mountain)distant.userData.elevation={source:'SRTM N32E077 via Mapzen',scale:extent*2/HIMACHAL_ELEVATION.widthMeters,playable:false};

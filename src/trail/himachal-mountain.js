@@ -21,7 +21,20 @@ function roundedPath(input){
  }
  const end=input.at(-1),previous=points.at(-1);distance+=Math.hypot(end[0]-previous.x,end[1]-previous.z);points.push({x:end[0],z:end[1],s:distance});return points;
 }
-export const MOUNTAIN_ROADS=Object.freeze(Object.entries(control).map(([kind,input])=>Object.freeze({id:`mountain-${kind}`,kind,width:kind==='gravel'?6:6.8,blendWidth:kind==='gravel'?27:32,points:roundedPath(input)})));
+// Long straights become S-bends: a mid-point is pushed sideways, alternating left and right.
+// The first and last legs keep their line so the bridge exit, the pass and the finish still join.
+function winding(input,sway=7){
+ const out=[input[0]];let side=1;
+ for(let i=1;i<input.length;i++){
+  const a=input[i-1],b=input[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  if(i>1&&i<input.length-1&&length>44){out.push([(a[0]+b[0])/2+(b[1]-a[1])/length*sway*side,(a[1]+b[1])/2-(b[0]-a[0])/length*sway*side]);side=-side;}
+  out.push(b);
+ }
+ return out;
+}
+// Vertical scale of the whole pass road and its hillside about the anchor height.
+export const MOUNTAIN_RELIEF=1.28;
+export const MOUNTAIN_ROADS=Object.freeze(Object.entries(control).map(([kind,input])=>Object.freeze({id:`mountain-${kind}`,kind,width:kind==='gravel'?6:6.8,blendWidth:kind==='gravel'?27:32,points:roundedPath(winding(input))})));
 function gatesFor(road){let last=-99;const selected=road.points.filter((p,i)=>i>0&&(p.s-last>=18?(last=p.s,true):false));if(selected.at(-1)!==road.points.at(-1))selected.push(road.points.at(-1));return selected.map(p=>({x:p.x,z:p.z,radius:4.5}));}
 export const MOUNTAIN_EXTENSION_MISSIONS=MOUNTAIN_ROADS.map((road,i)=>{
  const points=gatesFor(road),first=road.points[0],next=road.points[1];
@@ -30,9 +43,9 @@ export const MOUNTAIN_EXTENSION_MISSIONS=MOUNTAIN_ROADS.map((road,i)=>{
 
 export function createMountainExtension(localHeight,legacyRouteDistance){
  const anchor=MOUNTAIN_ROADS[0].points.find(p=>p.x<-175),anchorHeight=localHeight(anchor.x,anchor.z),length=MOUNTAIN_ROADS[0].points.at(-1).s;
- const gravelHeight=p=>p.s<anchor.s?localHeight(p.x,p.z):anchorHeight+(p.s-anchor.s)*.075;
+ const gravelHeight=p=>p.s<anchor.s?localHeight(p.x,p.z):anchorHeight+(p.s-anchor.s)*.075*MOUNTAIN_RELIEF;
  const summit=gravelHeight(MOUNTAIN_ROADS[0].points.at(-1));
- const roads=MOUNTAIN_ROADS.map(road=>({...road,length:road.points.at(-1).s,points:road.points.map(p=>({...p,height:road.kind==='gravel'?gravelHeight(p):summit-p.s*.046}))}));
+ const roads=MOUNTAIN_ROADS.map(road=>({...road,length:road.points.at(-1).s,points:road.points.map(p=>({...p,height:road.kind==='gravel'?gravelHeight(p):summit-p.s*.046*MOUNTAIN_RELIEF}))}));
  // Local spatial index avoids an O(path-length) search for each of the
  // hundreds of thousands of physics/terrain samples.
  const cells=new Map(),cellSize=32;
@@ -42,7 +55,10 @@ export function createMountainExtension(localHeight,legacyRouteDistance){
    const key=`${ix},${iz}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(segment);
   }
  }
+ // One-entry memo: the terrain, surface and shoulder lookups for a vertex all ask about the same point.
+ let memoX=NaN,memoZ=NaN,memoProfiles=false,memo=null;
  const roadSamples=(x,z,profiles=false)=>{
+  if(x===memoX&&z===memoZ&&(memoProfiles||!profiles))return memo;
   const best=new Map(),banks=new Map();for(const {a,b,road}of cells.get(`${Math.floor(x/cellSize)},${Math.floor(z/cellSize)}`)||[]){
    const dx=b.x-a.x,dz=b.z-a.z,n=dx*dx+dz*dz,t=clamp(((x-a.x)*dx+(z-a.z)*dz)/n),px=a.x+dx*t,pz=a.z+dz*t,distance=Math.hypot(x-px,z-pz);
    const signedDistance=((x-px)*dz-(z-pz)*dx)/Math.sqrt(n),height=a.height+(b.height-a.height)*t;
@@ -54,9 +70,10 @@ export function createMountainExtension(localHeight,legacyRouteDistance){
    }
    if(best.has(road.id)&&distance>=best.get(road.id).distance)continue;
    best.set(road.id,{id:road.id,kind:road.kind,x:px,z:pz,distance,signedDistance,height,s:a.s+(b.s-a.s)*t,halfWidth:road.width/2,blendWidth:road.blendWidth,heading:Math.atan2(dx,dz)});
-  }return [...best.values()].map(p=>({...p,bankHeight:banks.get(p.id)?.weight?banks.get(p.id).sum/banks.get(p.id).weight:p.height}));
+  }memoX=x;memoZ=z;memoProfiles=profiles;return memo=[...best.values()].map(p=>({...p,bankHeight:banks.get(p.id)?.weight?banks.get(p.id).sum/banks.get(p.id).weight:p.height}));
  };
  const nearestRoad=(x,z)=>roadSamples(x,z).reduce((best,p)=>!best||p.distance<best.distance?p:best,null);
+ const hill=(x,z)=>-.071*x+.086*z-9.2+12*bell(x,z,-474,395,100,155)-8*bell(x,z,-270,260,125,120)+2.6*Math.sin(x*.021+z*.009)*Math.sin(z*.026),hillAnchor=hill(anchor.x,anchor.z);
  const height=(x,z)=>{
   const base=localHeight(x,z);if(x>-8||x<-650||z<35||z>515)return base;
   // Continue the uphill mass beyond the western playable boundary. Fading it
@@ -65,9 +82,7 @@ export function createMountainExtension(localHeight,legacyRouteDistance){
   // The broad hillside follows the elevation envelope of the fixed traverses.
   // The previous overlapping peaks were up to 100 m above the bench: cutting
   // both sides back to the road produced a trench, not a mountainside road.
-  const hillside=-.071*x+.086*z-9.2
-    +12*bell(x,z,-474,395,100,155)-8*bell(x,z,-270,260,125,120)
-    +2.6*Math.sin(x*.021+z*.009)*Math.sin(z*.026);
+  const hillside=hillAnchor+MOUNTAIN_RELIEF*(hill(x,z)-hillAnchor);
   const envelope=west*north*south*edge;
   const foundation=base+(hillside-base)*envelope;
   const samples=roadSamples(x,z,true);let correction=0,total=0;

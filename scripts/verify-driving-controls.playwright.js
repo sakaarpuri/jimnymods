@@ -27,7 +27,7 @@ async(page)=>{
    await p.keyboard.down('KeyF');await p.waitForTimeout(500);
    expect((await p.locator('#pedalReadout').innerText()).includes('100%'),'full pedal');
    await p.keyboard.up('KeyF');await p.keyboard.up('ArrowUp');await p.keyboard.down('Space');await p.waitForTimeout(800);await p.keyboard.up('Space');
-   const cameras=await p.locator('#cameraButton option').allTextContents();expect(JSON.stringify(cameras)===JSON.stringify(['Chase','Cockpit','Bonnet','Overview']),'four useful camera choices');
+   const cameras=await p.locator('#cameraButton option').allTextContents();expect(JSON.stringify(cameras)===JSON.stringify(['Chase','Cockpit','Bonnet','Overview','Wheels']),'five useful camera choices');
    expect(!await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),'page overflow');expect(!errors.length,errors.join('\n'));
    results.push({width,audio,cameras,errors});
   }finally{await context.close();}
