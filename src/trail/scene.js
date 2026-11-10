@@ -35,6 +35,7 @@ import {applyCatalogueWheel,disposeCatalogueWheels} from '../catalogue-parts.js'
 import {resolveTyreType,applyTyreType,disposeTyreTypes} from '../tyre-types.js';
 import {courseLighting} from './course-lighting.js';
 import {applyVehicleVisualPose} from './vehicle-visual.js';
+import {createDust} from './dust.js';
 
 export function wheelPreviewPose(state,index,actualCenter){
   if(!Number.isInteger(index)||index<0||index>3)return null;
@@ -53,7 +54,9 @@ function companion(parent,x,z,long=false){const g=companionVehicle(long);parent.
 
 export function createTrailScene(mount){
   const surfaceStyler=createSurfaceStyler();
-  const renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+  // Resolution can be scaled down while driving to hold a smooth frame rate.
+  let resolutionScale=1;const pixelRatio=()=>Math.min(devicePixelRatio,1.5)*resolutionScale,reducedMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(pixelRatio());renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
   mount.append(renderer.domElement);renderer.domElement.setAttribute('aria-label','Live 3D Jimny on a closed practice course. WASD or arrows to drive, Space to brake, Escape to pause.');renderer.domElement.setAttribute('role','img');renderer.domElement.tabIndex=0;
   const scene=new T.Scene(),camera=new T.PerspectiveCamera(47,1,.1,1600);scene.background=new T.Color('#c3d2d0');scene.fog=new T.Fog('#c3d2d0',180,450);
   const skies=new Map();let skyRequest=0,disposed=false;
@@ -88,6 +91,12 @@ export function createTrailScene(mount){
   const hemisphere=new T.HemisphereLight('#e9f2ff','#5a594b',.55);scene.add(hemisphere);const sun=new T.DirectionalLight('#fff7e8',2.4);sun.castShadow=true;const shadowSize=innerWidth<700?2048:4096;sun.shadow.mapSize.set(shadowSize,shadowSize);Object.assign(sun.shadow.camera,{left:-78,right:78,top:78,bottom:-78,near:1,far:250});sun.shadow.bias=-.00008;sun.shadow.normalBias=.012;scene.add(sun,sun.target);
   const worldRoot=new T.Group(),car=new T.Group(),bodyRig=new T.Group(),wheelRoot=new T.Group();scene.add(worldRoot,car);car.add(bodyRig,wheelRoot);
   const contactCanvas=document.createElement('canvas');contactCanvas.width=contactCanvas.height=64;const context=contactCanvas.getContext('2d'),gradient=context.createRadialGradient(32,32,4,32,32,32);gradient.addColorStop(0,'rgba(22,27,23,.36)');gradient.addColorStop(1,'rgba(22,27,23,0)');context.fillStyle=gradient;context.fillRect(0,0,64,64);const contact=new T.Mesh(new T.PlaneGeometry(2.1,4.1),new T.MeshBasicMaterial({map:new T.CanvasTexture(contactCanvas),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));contact.rotation.x=-Math.PI/2;scene.add(contact);
+  // Cosmetic driving feedback only: neither the dust nor the checkpoint beacon touches physics or scoring.
+  const dust=createDust(scene);
+  const beaconCanvas=document.createElement('canvas');beaconCanvas.width=4;beaconCanvas.height=128;{const g=beaconCanvas.getContext('2d'),fade=g.createLinearGradient(0,0,0,128);fade.addColorStop(0,'#000');fade.addColorStop(1,'#fff');g.fillStyle=fade;g.fillRect(0,0,4,128);}
+  const beaconGeometry=new T.CylinderGeometry(1,1,60,20,1,true);beaconGeometry.translate(0,30,0);
+  const beacon=new T.Mesh(beaconGeometry,new T.MeshBasicMaterial({color:'#ff9a4d',alphaMap:new T.CanvasTexture(beaconCanvas),transparent:true,opacity:.4,depthWrite:false,side:T.DoubleSide,fog:false,toneMapped:false}));beacon.visible=false;beacon.renderOrder=5;beacon.name='Checkpoint beacon';scene.add(beacon);
+  const projected=new T.Vector3();let speedFov=0,shake=0;
   let wheels=[],gates=[],world,currentBody='',currentBuildKey='',cameraMode='external',firstCamera=true,paintMeshes=[],playerObjects=[],capturing=false,lastShot='',wheelTravel=0,inspectionWheel=null,inspecting=false,cabinControls=null,thumbnailElapsed=1,cabinMaterials=null,visualWheelRadius=.3465,visualBodyLift=0,visibleParts=[],mirrors=null,windowMaterials=[];
   let wheelPreview=null,thumbnailVisible=true,thumbnailFrames=0,tyreType='highway',vegetation=null;
   const cabinCamera=new T.PerspectiveCamera(68,16/10,.025,750),cabinTarget=new T.WebGLRenderTarget(384,240),pixels=new Uint8Array(384*240*4),flipped=new Uint8ClampedArray(pixels.length);
@@ -211,7 +220,9 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     gates.forEach((g,i)=>{g.visible=i>=index||(inspecting&&i===index-1);g.children.forEach(o=>{if(o.geometry?.type==='RoundedBoxGeometry')o.material.color.set(i===index?'#d37740':'#736d55');});});
     const yaw=state.yaw,c=Math.cos(yaw),n=Math.sin(yaw),portrait=camera.aspect<1;
     const internal=['interior','dashboard','controls'].includes(cameraMode)&&!shot,bonnet=cameraMode==='bonnet';
-    const fov=internal?(cameraMode==='interior'&&!portrait?65:76):cameraMode==='external'||shot==='chase'?54:47,near=internal?.025:bonnet?.05:.1;
+    // The chase view opens slightly with speed; it is a camera effect, not a speed boost.
+    speedFov+=((cameraMode==='external'&&!shot&&!reducedMotion?Math.min(1,Math.max(0,Math.abs(state.speed)*3.6-25)/55)*7:0)-speedFov)*Math.min(1,dt*2.5);
+    const fov=(internal?(cameraMode==='interior'&&!portrait?65:76):cameraMode==='external'||shot==='chase'?54:47)+(speedFov>.02?speedFov:0),near=internal?.025:bonnet?.05:.1;
     if(camera.fov!==fov||camera.near!==near){camera.fov=fov;camera.near=near;camera.updateProjectionMatrix();}
     if(cameraMode==='external'||internal)cameraPosition.set(state.x-n*10+c*.5,state.y+(portrait?4.3:3.1),state.z-c*10-n*.5);
     else if(bonnet)cameraPosition.set(state.x+n*1.2,state.y+1.8,state.z+c*1.2);
@@ -233,12 +244,17 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     // Tracking shots are vehicle-relative. Different camera/target damping
     // otherwise drags the wheel out of frame as the vehicle accelerates.
     if(firstCamera||shot||internal||bonnet){camera.position.copy(cameraPosition);look.copy(aim);firstCamera=false;}else{camera.position.lerp(cameraPosition,1-Math.exp(-dt*5));look.lerp(aim,1-Math.exp(-dt*7));}
-    camera.lookAt(look);skyDome.position.copy(camera.position);const sunOffset=courseLighting(world.course.theme).sun;sun.position.set(state.x+sunOffset[0],state.y+sunOffset[1],state.z+sunOffset[2]);sun.target.position.set(state.x,state.y,state.z);
+    shake*=Math.exp(-dt*9);
+    if(shake>.002&&!shot){const t=performance.now()*.06;camera.lookAt(look.x+Math.sin(t*1.7)*shake,look.y+Math.cos(t*2.3)*shake,look.z+Math.sin(t*1.1)*shake);}else camera.lookAt(look);
+    skyDome.position.copy(camera.position);const sunOffset=courseLighting(world.course.theme).sun;sun.position.set(state.x+sunOffset[0],state.y+sunOffset[1],state.z+sunOffset[2]);sun.target.position.set(state.x,state.y,state.z);
     windowMaterials.forEach(material=>material.opacity=internal?.16:.63);
     renderer.toneMappingExposure=internal?1.08:courseLighting(world.course.theme).exposure;
     vegetation?.userData.update?.(camera);
     mirrors?.setEnabled(internal);mirrors?.update(camera,dt);
     camera.userData.skipRiverReflection=internal;
+    dust.update(state,world,dt,camera,renderer.domElement.height);
+    const target=!shot&&!inspecting?gates[index]:null;beacon.visible=false;
+    if(target){const distance=Math.hypot(target.position.x-state.x,target.position.z-state.z),fade=Math.min(1,Math.max(0,(distance-10)/22)),width=Math.max(.55,distance*.009);beacon.position.copy(target.position);beacon.scale.set(width,1,width);beacon.material.opacity=fade*(reducedMotion?.38:.34+.1*Math.sin(performance.now()*.004));beacon.visible=fade>.01;}
     renderer.render(scene,camera);
     thumbnailElapsed+=dt;
     const thumbnail=document.getElementById('cabinThumbnail');
@@ -259,8 +275,14 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     setWheelPreview(index){const next=Number.isInteger(index)&&index>=0&&index<4?index:null;if(next!==wheelPreview)thumbnailElapsed=1;wheelPreview=next;return wheelPreview;},
     setThumbnailVisible(visible){thumbnailVisible=Boolean(visible);if(thumbnailVisible)thumbnailElapsed=1;return thumbnailVisible;},
     beginCapture(width,height){capturing=true;renderer.setPixelRatio(1);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();firstCamera=true;},
-    endCapture(){capturing=false;renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));resize();firstCamera=true;lastShot='';},
+    endCapture(){capturing=false;renderer.setPixelRatio(pixelRatio());resize();firstCamera=true;lastShot='';},
     setCamera(mode){cameraMode=normalizeDrivingCamera(mode);firstCamera=true;return cameraMode;},
+    // Screen position and horizontal bearing (positive = screen right) of a world point, from the last rendered frame.
+    project(x,y,z){projected.set(x,y,z).applyMatrix4(camera.matrixWorldInverse);const bearing=Math.atan2(projected.x,-projected.z);projected.applyMatrix4(camera.projectionMatrix);return {ndcX:projected.x,ndcY:projected.y,bearing};},
+    impact(strength){if(!reducedMotion)shake=Math.min(.3,shake+Math.max(0,strength));},
+    setResolutionScale(value){const next=Math.max(.5,Math.min(1,value));if(Math.abs(next-resolutionScale)<.005)return resolutionScale;resolutionScale=next;if(!capturing)renderer.setPixelRatio(pixelRatio());return resolutionScale;},
+    setShadowSize(size){if(sun.shadow.mapSize.x===size)return;sun.shadow.mapSize.set(size,size);sun.shadow.map?.dispose();sun.shadow.map=null;},
+    defaultShadowSize:shadowSize,
     cycleCamera(){const modes=DRIVING_CAMERAS;cameraMode=modes[(modes.indexOf(cameraMode)+1)%modes.length];firstCamera=true;return cameraMode;},
-    cameraState:()=>({scannedRocks:rockAssetsReady(),mode:cameraMode,position:camera.position.toArray(),target:look.toArray(),cabin:cabinControls?.snapshot(),mirrors:mirrors?.snapshot(),body:currentBody,parts:[...visibleParts],wheelRadius:visualWheelRadius,bodyLift:bodyRig.position.y,tyreType,surfaceStyles:surfaceStyler.snapshot(),thumbnail:{visible:thumbnailVisible,wheel:wheelPreview,frames:thumbnailFrames,position:cabinCamera.position.toArray()}}),resetCamera(){firstCamera=true;},info:()=>renderer.info.render,dispose(){surfaceStyler.clear();disposed=true;skyRequest++;skies.forEach(entry=>{entry.texture.dispose();entry.environment.dispose();});skies.clear();skyDome.geometry.dispose();skyDome.material.dispose();observer.disconnect();mirrors?.dispose();cabinControls?.dispose();cabinMaterials?.dispose();cabinTarget.dispose();dispose(worldRoot);disposeCatalogueWheels(bodyRig.getObjectByName('SpareWheel'));dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeWheelDesigns(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);disposeRockAssets();disposeVegetationAssets();disposeAuthoredPineAssets();env.dispose();daylightEnvironment?.dispose();renderer.dispose();}};
+    cameraState:()=>({scannedRocks:rockAssetsReady(),mode:cameraMode,position:camera.position.toArray(),target:look.toArray(),cabin:cabinControls?.snapshot(),mirrors:mirrors?.snapshot(),body:currentBody,parts:[...visibleParts],wheelRadius:visualWheelRadius,bodyLift:bodyRig.position.y,tyreType,surfaceStyles:surfaceStyler.snapshot(),thumbnail:{visible:thumbnailVisible,wheel:wheelPreview,frames:thumbnailFrames,position:cabinCamera.position.toArray()}}),resetCamera(){firstCamera=true;},info:()=>({...renderer.info.render,resolutionScale,shadowSize:sun.shadow.mapSize.x,dust:dust.active,beacon:beacon.visible}),dispose(){surfaceStyler.clear();disposed=true;dust.dispose();beacon.geometry.dispose();beacon.material.alphaMap.dispose();beacon.material.dispose();skyRequest++;skies.forEach(entry=>{entry.texture.dispose();entry.environment.dispose();});skies.clear();skyDome.geometry.dispose();skyDome.material.dispose();observer.disconnect();mirrors?.dispose();cabinControls?.dispose();cabinMaterials?.dispose();cabinTarget.dispose();dispose(worldRoot);disposeCatalogueWheels(bodyRig.getObjectByName('SpareWheel'));dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeWheelDesigns(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);disposeRockAssets();disposeVegetationAssets();disposeAuthoredPineAssets();env.dispose();daylightEnvironment?.dispose();renderer.dispose();}};
 }

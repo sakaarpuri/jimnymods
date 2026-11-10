@@ -16,10 +16,23 @@ import {newlyUnlocked} from './trail/badges.js';
 import {mountBadges} from './trail/badge-ui.js';
 import {gauntletEquipment,gauntletRecovery,GAUNTLET_STAGES} from './trail/gorge-gauntlet.js';
 import {formatTrialTime,trialResult} from './trail/time-trial.js';
+import {GamepadDriver,mergeInputs} from './trail/gamepad.js';
+import {waypointMarker,formatDistance} from './trail/waypoint.js';
+import {createLossLedger,attributeVehiclePenalty,lossSummary,coachingTip} from './trail/score-breakdown.js';
+import {createResolutionGovernor} from './trail/adaptive-quality.js';
 
 const $=id=>document.getElementById(id),dialogs=['lobby','pause','help','results','shareRun','inspection','badges'];
 $('cameraButton').options[0].textContent='Chase';$('cameraButton').options[1].textContent='Cockpit';
 const pedalReadout=document.createElement('span');pedalReadout.id='pedalReadout';pedalReadout.textContent='Pedal 0%';$('rpm').after(pedalReadout);
+// Driving feel layer: checkpoint marker, short confirmations, controller and haptics.
+// These sit inside the stage so they track the 3D view, beneath the HUD panels.
+const waypoint=document.createElement('div');waypoint.id='waypoint';waypoint.hidden=true;waypoint.setAttribute('aria-hidden','true');waypoint.innerHTML='<i></i><b></b>';
+const driveToast=document.createElement('div');driveToast.id='driveToast';driveToast.setAttribute('aria-hidden','true');$('stage').append(waypoint,driveToast);
+let stageWidth=0,stageHeight=0,toastTimer=0,padInput=null;
+new ResizeObserver(([entry])=>{stageWidth=entry.contentRect.width;stageHeight=entry.contentRect.height;}).observe($('stage'));
+const pad=new GamepadDriver(),governor=createResolutionGovernor(),coarsePointer=matchMedia('(pointer:coarse)').matches,speedUnit=$('speed').nextElementSibling;
+function toast(title,detail=''){const strong=document.createElement('strong');strong.textContent=title;driveToast.replaceChildren(strong);if(detail){const small=document.createElement('span');small.textContent=detail;driveToast.append(small);}driveToast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>driveToast.classList.remove('show'),2400);}
+function haptic(strength,milliseconds){pad.rumble(strength,milliseconds);if(coarsePointer)try{navigator.vibrate?.(Math.round(milliseconds*.4));}catch{}}
 // Reserve real canvas space for mobile coaching, including longer audio errors.
 // This keeps the vehicle above the panel instead of merely covering the render.
 const coachPanel=document.querySelector('.coach');
@@ -46,7 +59,9 @@ function updatePlayer(){player=playerProfile({name:$('playerName').value,driver:
 for(const id of ['playerName','playerDecal'])$(id).addEventListener('change',updatePlayer);
 let selected=COURSES[0],course=COURSES[0],difficulty='explorer',state=createVehicle(build.body),world=makeWorld(course),gates=makeGates(course),gate=0,started=false,running=false,loading=false,sceneReady=false,view,accumulator=0,last=0,uiTick=0,notice='',noticeUntil=0,helpReturn='lobby',lastCollision=0,frameCount=0,frameSeconds=0,fps=0;
 let selectedMission=getMissions(selected)[0].id,mission=getMission(course,selectedMission),freeRoam=false,rigidVehicle=null;
-let proAirborne=null,cleanGateStreak=0,segmentIncidents=0,timeTrialActive=false;
+let proAirborne=null,cleanGateStreak=0,segmentIncidents=0,timeTrialActive=false,losses=createLossLedger(),splits=[];
+const splitStorageKey='jimnygami-time-trial-splits-v1',savedSplits=read(splitStorageKey,{}),bestSplits=savedSplits&&typeof savedSplits==='object'&&!Array.isArray(savedSplits)?savedSplits:{};
+const graphicsStorageKey='jimnygami-graphics-v1';let graphicsMode=['auto','sharp','fast'].includes(read(graphicsStorageKey,'auto'))?read(graphicsStorageKey,'auto'):'auto';
 const trialStorageKey='jimnygami-time-trial-v1',savedTrials=read(trialStorageKey,{}),trialRecords=savedTrials&&typeof savedTrials==='object'&&!Array.isArray(savedTrials)?savedTrials:{};
 const discovered=new Set();
 const missionPicker=document.createElement('label');missionPicker.className='mission-picker';missionPicker.innerHTML='Choose your mission<select id="missionChoice"></select><span class="mission-description" id="missionDescription"></span>';document.querySelector('.briefing .choices').before(missionPicker);
@@ -112,7 +127,7 @@ function closeDialogs(){for(const id of dialogs)if($(id).open)$(id).close();}
 function clearInputs(){physicalKeys.clear();keys.clear();touch.clear();state.throttle=0;state.braking=0;document.querySelectorAll('[data-input]').forEach(b=>b.classList.remove('held'));}
 function syncPressedKeys(){keys.clear();for(const code of canonicalPressedCodes(physicalKeys))keys.add(code);}
 function announce(message,seconds=5){notice=message;noticeUntil=performance.now()+seconds*1000;updateHUD();if(running)voice.sayAutomatic(message,{immediate:true});}
-function currentInput(){return drivingInput(keys,touch);}
+function currentInput(){return mergeInputs(drivingInput(keys,touch),padInput);}
 function bindHold(button){
   const name=button.dataset.input;
   button.addEventListener('pointerdown',event=>{if(!running)return;event.preventDefault();button.setPointerCapture(event.pointerId);touch.add(name);button.classList.add('held');});
@@ -215,7 +230,8 @@ function updateHUD(){
   wheelPreview=autoInspect?automaticWheelPreview(state,spotter.problem,spotter.lowProgress):null;view?.setWheelPreview(wheelPreview);
   $('cabinState').textContent=wheelPreview===null?`${state.gear} · ${state.range} · ${state.parking?'Park brake on':state.hdcActive?'HDC active':state.hdc?'HDC ready':'Park brake off'}`:`${WHEEL_NAMES[wheelPreview]} · ${state.wheelContacts?.[wheelPreview]===false?'no ground contact':'inspect clearance & contact'}`;updateCameraLabel();
   $('speed').textContent=Math.round(Math.abs(state.speed)*3.6);$('driveState').textContent=`${state.range} · ${state.gear}${['D','2'].includes(state.gear)?state.autoGear:''}`;$('rpm').textContent=`${Math.round(state.rpm/50)*50} rpm`;
-  const pedal=drivingInput(canonicalPressedCodes(physicalKeys),touch).throttle;pedalReadout.textContent=`${pedal===PEDAL.full?'Full pedal':pedal===PEDAL.gentle?'Gentle pedal':pedal>0?'Drive pedal':'Pedal'} ${Math.round(pedal*100)}%`;
+  const speedTarget=freeRoam?0:(mission.speedLimit||DIFFICULTIES[difficulty].speed);speedUnit.textContent=speedTarget?`km/h · max ${speedTarget}`:'km/h';speedUnit.parentElement.dataset.over=String(!!speedTarget&&Math.abs(state.speed)*3.6>speedTarget);
+  const pedal=currentInput().throttle;pedalReadout.textContent=`${pedal===PEDAL.full?'Full pedal':pedal===PEDAL.gentle?'Gentle pedal':pedal>0?'Drive pedal':'Pedal'} ${Math.round(pedal*100)}%`;
   $('checkpointLabel').textContent=freeRoam?(world.discoveries?.length?`Free roam · ${discovered.size}/${world.discoveries.length} places found`:`Free roam · ${Math.round(world.size)} m yard`):`Checkpoint ${gate+1} / ${gates.length} · ${Math.round(Math.hypot(state.x-gates[gate].x,state.z-gates[gate].z))} m`;$('progress').hidden=freeRoam;$('progress').max=gates.length;$('progress').value=gate;$('courseLabel').textContent=freeRoam?course.name:mission.name;
   $('lineScore').hidden=freeRoam;$('lineScore').textContent=`Line score ${resultFor(state,course,difficulty,mission.id).score}/100${cleanGateStreak>1?` · ${cleanGateStreak} clean gates`:''}${timeTrialActive?` · ${formatTrialTime(state.elapsed)}`:''}`;
   if(mission.chained&&!freeRoam)$('checkpointLabel').textContent=`Chapter ${gates[gate].chapter+1}/4 · ${GAUNTLET_STAGES[gates[gate].chapter].name} · ${gate+1}/${gates.length}`;
@@ -228,7 +244,7 @@ function updateHUD(){
   $('gear').value=state.gear;document.querySelectorAll('[data-range]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.range===state.range)));
   $('parking').setAttribute('aria-pressed',String(state.parking));$('parking').textContent=`Parking brake ${state.parking?'ON':'OFF'}`;$('hdc').setAttribute('aria-pressed',String(state.hdc));$('hdc').textContent=`Hill descent ${state.hdcActive?'ACTIVE':state.hdc&&state.hdcSuspended?'PAUSED':state.hdc?'READY':'OFF'}`;drawMap();
 }
-function resume(){closeDialogs();voice.stop();clearInputs();running=true;last=performance.now();accumulator=0;trailAudio.resume();updateHUD();$('stage').querySelector('canvas')?.focus({preventScroll:true});}
+function resume(){closeDialogs();voice.stop();clearInputs();running=true;last=performance.now();accumulator=0;trailAudio.resume();governor.settle();updateHUD();$('stage').querySelector('canvas')?.focus({preventScroll:true});}
 async function start(){
   if(!$('freeRoam').checked&&getMission(selected,selectedMission).equipmentRequired&&!gauntletEquipment(build,window.JIMNY_MARKET_PRODUCTS||[]).ready){renderLobby();expeditionPrep.scrollIntoView({block:'nearest'});return;}
   if(!sceneReady||loading||!view)return;loading=true;$('startButton').disabled=true;$('startButton').textContent='Preparing your Jimny…';
@@ -237,7 +253,7 @@ async function start(){
   voice.stop();voice.resetAutomatic();voiceEvents.length=0;voice.setEnabled(voiceWanted);lastSpokenCue='';spotter.reset();
   const nextBody=$('bodyChoice').value,nextCourse=selected,nextDifficulty=$('difficulty').value;
   proAirborne=null;
-  try{await Promise.all([view.loadVehicle(nextBody,build),view.prepareWorld(nextCourse)]);updatePlayer();const reuseWorld=course.id===nextCourse.id&&difficulty===nextDifficulty;course=nextCourse;difficulty=nextDifficulty;if(!reuseWorld)world=makeWorld(course,difficulty);mission=getMission(course,selectedMission);freeRoam=$('freeRoam').checked;timeTrialActive=!freeRoam&&course.id!=='school'&&$('timeTrial').checked;gates=makeGates(course,difficulty,mission.id);state=createVehicle(nextBody);Object.assign(state,(!freeRoam&&mission.spawn)||world.spawn||{x:0,z:0,yaw:0});state.y=(world.supportHeight||world.height)(state.x,state.z);gate=0;lastCollision=0;cleanGateStreak=0;segmentIncidents=0;discovered.clear();state.wheelHeights=[0,0,0,0];replayBuffer.reset();rigidVehicle?.dispose();rigidVehicle=null;rigidVehicle=await createRigidVehicle(world,state);view.setWorld(world,freeRoam?[]:gates);started=true;noticeUntil=0;for(const id of ['hud','quick','console'])$(id).hidden=false;updateHUD();resume();}
+  try{await Promise.all([view.loadVehicle(nextBody,build),view.prepareWorld(nextCourse)]);updatePlayer();const reuseWorld=course.id===nextCourse.id&&difficulty===nextDifficulty;course=nextCourse;difficulty=nextDifficulty;if(!reuseWorld)world=makeWorld(course,difficulty);mission=getMission(course,selectedMission);freeRoam=$('freeRoam').checked;timeTrialActive=!freeRoam&&course.id!=='school'&&$('timeTrial').checked;gates=makeGates(course,difficulty,mission.id);state=createVehicle(nextBody);Object.assign(state,(!freeRoam&&mission.spawn)||world.spawn||{x:0,z:0,yaw:0});state.y=(world.supportHeight||world.height)(state.x,state.z);gate=0;lastCollision=0;cleanGateStreak=0;segmentIncidents=0;losses=createLossLedger();splits=[];discovered.clear();state.wheelHeights=[0,0,0,0];replayBuffer.reset();rigidVehicle?.dispose();rigidVehicle=null;rigidVehicle=await createRigidVehicle(world,state);view.setWorld(world,freeRoam?[]:gates);started=true;noticeUntil=0;for(const id of ['hud','quick','console'])$(id).hidden=false;updateHUD();resume();}
   catch(error){$('buildNote').textContent='The vehicle or driving world could not start. Your saved build is safe; please retry or reload.';console.error(error);}
   finally{loading=false;$('startButton').disabled=false;$('startButton').textContent='Drive this course';renderLobby();}
 }
@@ -263,34 +279,75 @@ function finish(){
   badgeCollection.announce(newlyUnlocked(previousRecords,records));
   $('resultTitle').textContent=r.medal+'.';$('resultText').textContent=`${course.name} · ${DIFFICULTIES[difficulty].name} · ${state.body==='3door'?'3-door':'5-door'} Jimny`;
   $('resultStats').replaceChildren(...[[`${r.score}/100`,'Control score'],[`${Math.floor(r.seconds/60)}:${String(r.seconds%60).padStart(2,'0')}`,'Time, not a ranking'],[String(r.recoveries),'Recoveries']].map(([n,label])=>{const d=document.createElement('div'),b=document.createElement('strong'),s=document.createElement('span');b.textContent=n;s.textContent=label;d.append(b,s);return d;}));
-  if(timeTrialActive){const trial=trialResult(r.seconds,r.score,trialRecords[key]);if(trial.eligible&&trial.isNew){trialRecords[key]=trial.best;save(trialStorageKey,trialRecords);}const info=document.createElement('p');info.className='fine';info.textContent=trial.eligible?(trial.isNew?`New time-trial personal best: ${formatTrialTime(trial.best)}.`:`Time-trial best: ${formatTrialTime(trial.best)}.`):'Time trial not ranked: finish with a control score of at least 70.';$('resultStats').after(info);info.dataset.trialResult='';}
+  if(timeTrialActive){const trial=trialResult(r.seconds,r.score,trialRecords[key]);if(trial.eligible&&trial.isNew){trialRecords[key]=trial.best;save(trialStorageKey,trialRecords);bestSplits[key]=[...splits];save(splitStorageKey,bestSplits);}const info=document.createElement('p');info.className='fine';info.textContent=trial.eligible?(trial.isNew?`New time-trial personal best: ${formatTrialTime(trial.best)}.`:`Time-trial best: ${formatTrialTime(trial.best)}.`):'Time trial not ranked: finish with a control score of at least 70.';$('resultStats').after(info);info.dataset.trialResult='';}
+  // Show where the points went, so the next attempt has one clear thing to fix.
+  document.querySelector('[data-loss-list]')?.remove();
+  const lost=lossSummary(losses,state.recoveries,r.score),lossList=document.createElement('ul');lossList.className='loss-list';lossList.dataset.lossList='';lossList.setAttribute('aria-label','Where the points went');
+  lossList.replaceChildren(...(lost.length?lost:[{label:'No points dropped. A spotless run.',points:0}]).map(item=>{const li=document.createElement('li'),name=document.createElement('span');name.textContent=item.label;li.append(name);if(item.points){const points=document.createElement('b');points.textContent='−'+item.points;li.append(points);}return li;}));
+  $('resultStats').after(lossList);
   const continuation=mountainContinuation(course.id,mission.id);
-  $('resultAdvice').textContent=(continuation?.advice||(r.score>=90?'A controlled run. Try a tighter line on the next challenge.':'Try again with earlier braking, smaller steering inputs and less wheelspin.'))+(persisted?' Your best score is saved on this device.':' Browser storage is unavailable; this score could not be saved.');$('nextCourse').textContent=continuation?.label||(course.id==='school'?(getMissions(course).at(-1).id===mission.id?'Choose another lesson':'Next lesson'):'Choose the next trail');showDialog('results');voice.sayCue('mission-complete',{force:true});
+  $('resultAdvice').textContent=(continuation?.advice||(r.score>=90?'A controlled run. Try a tighter line on the next challenge.':coachingTip(lost)||'Try again with earlier braking, smaller steering inputs and less wheelspin.'))+(persisted?' Your best score is saved on this device.':' Browser storage is unavailable; this score could not be saved.');$('nextCourse').textContent=continuation?.label||(course.id==='school'?(getMissions(course).at(-1).id===mission.id?'Choose another lesson':'Next lesson'):'Choose the next trail');showDialog('results');voice.sayCue('mission-complete',{force:true});
 }
 function physicsTick(){
-  const input=currentInput();state.braking=input.brake;rigidVehicle?rigidVehicle.step(input,1/60):stepVehicle(state,input,world);
+  const input=currentInput(),penaltyBefore=state.penalty;state.braking=input.brake;rigidVehicle?rigidVehicle.step(input,1/60):stepVehicle(state,input,world);
+  attributeVehiclePenalty(losses,state.penalty-penaltyBefore,{slip:state.slip,roll:state.roll,surface:world.surface(state.x,state.z),range:state.range});
   const hazard=world.recoveryReason?.(state);if(hazard){recover();announce(hazard+(mission.chained&&!freeRoam?` Chapter ${gates[gate].chapter+1}/4 restarted on dry ground; earlier chapters kept.`:''),7);return;}
   if(mission.expertTrial&&!freeRoam){
     if(state.wheelContacts.every(c=>!c)){proAirborne??={y:state.y,time:state.elapsed};}
     else if(proAirborne){const fall=proAirborne.y-state.y>1.8&&state.elapsed-proAirborne.time>.4;proAirborne=null;if(fall){recover();announce(mission.chained?`Fell from the structure. Chapter ${gates[gate].chapter+1}/4 restarted; earlier chapters kept. Eight score points used.`:'Fell from the structure. Eight score points used; recover your line and try again.',6);return;}}
   }else proAirborne=null;
-  const found=nearbyDiscoveries(world,state,[...discovered]);if(found.length){found.forEach(place=>discovered.add(place.id));announce(`Discovered: ${found[0].name}. ${found[0].description}`,8);}
+  const found=nearbyDiscoveries(world,state,[...discovered]);if(found.length){found.forEach(place=>discovered.add(place.id));toast('Discovered',found[0].name);haptic(.3,90);announce(`Discovered: ${found[0].name}. ${found[0].description}`,8);}
   if(!freeRoam)state.penalty+=(Math.abs(state.speed)*3.6>(mission.speedLimit||DIFFICULTIES[difficulty].speed)?.015:0);
-  if(state.impact>.8&&state.elapsed-lastCollision>1){state.penalty+=6;lastCollision=state.elapsed;segmentIncidents++;cleanGateStreak=0;spotter.contact(state.elapsed);trailAudio.cue('impact');announce(cueText('contact'),3);}
+  if(!freeRoam&&Math.abs(state.speed)*3.6>(mission.speedLimit||DIFFICULTIES[difficulty].speed))losses.speeding+=.015;
+  if(state.impact>.8&&state.elapsed-lastCollision>1){state.penalty+=6;losses.impacts+=6;view.impact(Math.min(.3,state.impact*.06));haptic(Math.min(1,.4+state.impact/4),160);lastCollision=state.elapsed;segmentIncidents++;cleanGateStreak=0;spotter.contact(state.elapsed);trailAudio.cue('impact');announce(cueText('contact'),3);}
   // Open worlds have physical perimeter barriers, not invisible corridor resets.
   if(!world.contains(state.x,state.z,4)&&performance.now()>noticeUntil)announce(cueText('world-edge'),3);
   if(!freeRoam){const status=checkpointStatus(state,gates[gate],difficulty);
-    if(status.reached){cleanGateStreak=segmentIncidents?0:cleanGateStreak+1;segmentIncidents=0;if(gate===gates.length-1)finish();else{gate++;trailAudio.cue('checkpoint');announce(`Checkpoint ${gate} cleared${cleanGateStreak>1?` · ${cleanGateStreak} clean gates in a row`:''}. ${trainingRequirement()||'Choose your line to the next marker.'}`,3);}}
+    if(status.reached){cleanGateStreak=segmentIncidents?0:cleanGateStreak+1;segmentIncidents=0;splits.push(state.elapsed);if(gate===gates.length-1)finish();else{gate++;trailAudio.cue('checkpoint');checkpointFeedback();announce(`Checkpoint ${gate} cleared${cleanGateStreak>1?` · ${cleanGateStreak} clean gates in a row`:''}. ${trainingRequirement()||'Choose your line to the next marker.'}`,3);}}
   }
   replayBuffer.add(state,gate);
   // A spotter close-up must not interrupt the main driving camera or pause play.
   spotter.update(state,input,world);
 }
+function checkpointFeedback(){
+  const best=timeTrialActive?bestSplits[`${course.worldId}-${mission.id}-${difficulty}-${state.body}`]?.[splits.length-1]:undefined,delta=Number.isFinite(best)?splits.at(-1)-best:null;
+  toast(`Checkpoint ${gate} / ${gates.length}`,delta!==null?`${delta<=0?'−':'+'}${Math.abs(delta).toFixed(1)} s vs your best`:cleanGateStreak>1?`${cleanGateStreak} clean in a row`:cleanGateStreak?'Clean line':'');haptic(.35,90);
+}
+function updateWaypoint(){
+  const target=running&&!freeRoam?gates[gate]:null;
+  if(!target||!view||!stageWidth){waypoint.hidden=true;return;}
+  const distance=Math.hypot(state.x-target.x,state.z-target.z);
+  // Close enough that the gate itself is the guide.
+  if(distance<8){waypoint.hidden=true;return;}
+  const marker=waypointMarker(view.project(target.x,(target.elevation??world.height(target.x,target.z))+2.6,target.z));
+  waypoint.hidden=false;waypoint.dataset.offscreen=String(marker.offscreen);
+  waypoint.style.transform=`translate(${((marker.x*.5+.5)*stageWidth).toFixed(1)}px,${((.5-marker.y*.5)*stageHeight).toFixed(1)}px)`;waypoint.firstChild.style.transform=`rotate(${marker.rotation.toFixed(2)}rad)`;
+  const label=formatDistance(distance);if(waypoint.lastChild.textContent!==label)waypoint.lastChild.textContent=label;
+}
+// Controller buttons go through the same guarded actions as the keyboard and on-screen controls.
+function pollGamepad(){
+  const {input,pressed,connected,changed}=pad.poll();padInput=running?input:null;
+  if(changed&&started)announce(connected?'Controller connected. Triggers accelerate and brake; the left stick steers.':'Controller disconnected. Keyboard and on-screen controls still work.',4);
+  for(const action of pressed){
+    if(action==='pause'){if(running)showDialog('pause');else if($('pause').open)resume();continue;}
+    if(!running)continue;
+    if(action==='gearUp'||action==='gearDown')moveSelector(action==='gearUp'?1:-1);
+    else if(action==='rangeUp'||action==='rangeDown'){const order=['2H','4H','4L'],next=order[clamp(order.indexOf(state.range)+(action==='rangeUp'?1:-1),0,2)];if(next!==state.range)document.querySelector(`[data-range="${next}"]`).click();}
+    else if(action==='handbrake'){if(Math.abs(state.speed)<.1){state.parking=!state.parking;noticeUntil=0;updateHUD();}}
+    else if(action==='camera'){$('cameraButton').value=view.cycleCamera();updateCameraLabel();}
+    else if(action==='map')$('map').classList.toggle('map-expanded');
+    else if(action==='recover')recover();
+  }
+}
+function applyGraphics(){governor.reset();view?.setShadowSize(graphicsMode==='fast'?1024:view.defaultShadowSize);view?.setResolutionScale(graphicsMode==='fast'?.7:1);}
+function tuneGraphics(){if(!running||graphicsMode!=='auto'||exportController)return;view.setResolutionScale(governor.sample(fps));if(governor.exhausted)view.setShadowSize(1024);}
 function frame(now){
   const elapsed=last?Math.max(0,(now-last)/1000):0,dt=Math.min(elapsed,.08);last=now;
+  pollGamepad();
   if(running){accumulator+=dt;let ticks=0;while(accumulator>=1/60&&ticks++<5&&running){physicsTick();accumulator-=1/60;}}
-  if(view&&(!document.hidden)&&(running||(!started&&!previewDrawn))){view.render(state,gate,running?dt:.016);previewDrawn=true;frameCount++;frameSeconds+=elapsed;if(frameSeconds>2){fps=frameCount/frameSeconds;frameCount=frameSeconds=0;}}
-  if(running&&(uiTick+=dt)>.1){updateHUD();uiTick=0;if(sound)trailAudio.update(state,{surface:world.surface(state.x,state.z),interior:['interior','dashboard','controls'].includes($('cameraButton').value),coaching:!!voice.active});}
+  if(view&&(!document.hidden)&&(running||(!started&&!previewDrawn))){view.render(state,gate,running?dt:.016);previewDrawn=true;frameCount++;frameSeconds+=elapsed;if(frameSeconds>2){fps=frameCount/frameSeconds;frameCount=frameSeconds=0;tuneGraphics();}}
+  updateWaypoint();
+  if(running&&(uiTick+=dt)>.1){updateHUD();uiTick=0;if(state.slip>.25)pad.rumble(.18,110);if(sound)trailAudio.update(state,{surface:world.surface(state.x,state.z),interior:['interior','dashboard','controls'].includes($('cameraButton').value),coaching:!!voice.active});}
   requestAnimationFrame(frame);
 }
 $('startButton').onclick=start;$('resumeButton').onclick=resume;$('continueButton').onclick=resume;$('pauseButton').onclick=()=>showDialog('pause');$('menuButton').onclick=()=>{renderLobby();showDialog('lobby');};$('changeCourse').onclick=()=>{renderLobby();showDialog('lobby');};
@@ -325,6 +382,8 @@ const gearSteps=document.createElement('span');gearSteps.className='gear-steps';
 const gearSeg=document.createElement('span');gearSeg.className='gear-seg';$('gear').before(gearSeg);gearSeg.append($('gearPrevious'),$('gear'),$('gearNext'));gearSteps.remove();
 const mixSettings=document.createElement('details');mixSettings.className='audio-settings';mixSettings.innerHTML='<summary>Sound mix</summary><p class="fine">Original procedural engine, contact and wind effects — not a recording of a real Jimny. Device speech volume is controlled separately by your system.</p>';
 for(const [key,label] of [['master','Master'],['vehicle','Engine & tyres'],['environment','Wind & surroundings'],['coaching','Recorded instructor'],['ui','Control feedback']]){const item=document.createElement('label'),range=document.createElement('input');item.textContent=label;range.type='range';range.min='0';range.max='100';range.value=String((trailAudio.mix[key]??DEFAULT_MIX[key])*100);range.setAttribute('aria-label',label+' volume');range.oninput=()=>{trailAudio.setMix(key,Number(range.value)/100);save('thatsuvmod-audio-v1',trailAudio.mix);};item.append(range);mixSettings.append(item);}$('pause').append(mixSettings);
+const graphicsSettings=document.createElement('details');graphicsSettings.className='audio-settings graphics-settings';graphicsSettings.innerHTML='<summary>Graphics</summary><label>Detail<select id="graphicsMode"><option value="auto">Auto · keeps driving smooth</option><option value="sharp">Sharp · always full detail</option><option value="fast">Fast · for older phones and laptops</option></select></label><p class="fine">Auto lowers the render resolution only when the frame rate drops, and restores it when there is headroom.</p>';$('pause').append(graphicsSettings);
+$('graphicsMode').value=graphicsMode;$('graphicsMode').onchange=()=>{graphicsMode=$('graphicsMode').value;save(graphicsStorageKey,graphicsMode);applyGraphics();};
 function syncKeyboardHints(){
   $('gearPrevious').textContent='‹';$('gearNext').textContent='›';$('gearPrevious').title=`Previous selector position (${bindingLabel('gearDown')})`;$('gearNext').title=`Next selector position (${bindingLabel('gearUp')})`;
   document.querySelectorAll('[data-range]').forEach(b=>{const keys=bindingLabel(b.dataset.range.toLowerCase());b.textContent=b.dataset.range;b.title=`${b.dataset.range}: ${keys}`;});
@@ -334,6 +393,7 @@ function syncKeyboardHints(){
   document.querySelector('#help>p').textContent=`4-speed automatic only. ${bindingLabel('throttle')} holds a brisk ${Math.round(PEDAL.normal*100)}% pedal; ${bindingLabel('brake')} brakes, not reverse. ${bindingLabel('left')} / ${bindingLabel('right')} steers. ${bindingLabel('gentle')} holds gentle ${Math.round(PEDAL.gentle*100)}% throttle; ${bindingLabel('full')} holds full 100% throttle, overriding gentle while held. F is full power for overtaking and open ground; traction, brakes and gearing still limit acceleration. 4H and 4L are slower than 2H but pull harder at low speed. ${bindingLabel('gearDown')} / ${bindingLabel('gearUp')} changes selector. ${bindingLabel('2h')}, ${bindingLabel('4h')}, ${bindingLabel('4l')} request 2H, 4H, 4L with the usual stop, brake and Neutral guards. ${bindingLabel('handbrake')} holds the handbrake while moving or toggles the parking brake while stopped. ${bindingLabel('camera')} changes camera, ${bindingLabel('map')} enlarges the map, ${bindingLabel('pause')} pauses. On-screen controls always work.`;
   $('stage').querySelector('canvas')?.setAttribute('aria-label',`Live 3D Jimny practice course. ${bindingLabel('throttle')} accelerate, ${bindingLabel('brake')} brake, ${bindingLabel('pause')} pause. Use Controls & help for all keys.`);
 }
+const padHelp=document.createElement('p');padHelp.id='padHelp';padHelp.textContent='Controller (standard layout): the right trigger accelerates, the left trigger brakes, and the left stick or D-pad left / right steers. RB and LB move the selector. D-pad up and down request the next or previous transfer range, with the usual guards. A holds the handbrake, or toggles the parking brake when stopped. B recovers, Y changes camera, View enlarges the map and Menu pauses.';document.querySelector('#help>p').after(padHelp);
 const keyboardSettings=document.createElement('details');keyboardSettings.className='audio-settings keyboard-settings';keyboardSettings.innerHTML='<summary>Customize keyboard controls</summary>';$('closeHelp').before(keyboardSettings);const keyboardContainer=document.createElement('div');keyboardSettings.append(keyboardContainer);mountKeyBindingsSettings(keyboardContainer,{onChange:()=>{clearInputs();syncKeyboardHints();}});
 function renderInspection(shot,wheel=null){
   view.setInspection(wheel);view.render(state,gate,0,shot);const canvas=$('inspectionCanvas');canvas.getContext('2d').drawImage(view.canvas,0,0,canvas.width,canvas.height);
@@ -390,5 +450,5 @@ for(const id of ['skyweave','staircase','surge','high-pocket','gorge-gauntlet'])
 if(obstacleReviewMissions[location.hash]){const [id,missionId]=obstacleReviewMissions[location.hash];selected=COURSES.find(c=>c.id===id);selectedMission=missionId;}
 renderLobby();showDialog('lobby');
 const disclaimer=document.createElement('p');disclaimer.className='fine';disclaimer.textContent='jimnygami is an independent platform and is not affiliated with, endorsed by, or sponsored by Suzuki Motor Corporation or Maruti Suzuki India Limited. Suzuki and Jimny are trademarks of their respective owners.';$('lobby').append(disclaimer);
-try{course=selected;difficulty=$('difficulty').value;world=makeWorld(course,difficulty);gates=makeGates(course,difficulty,selectedMission);view=createTrailScene($('stage'));await Promise.all([view.loadVehicle($('bodyChoice').value,build),view.prepareWorld(course)]);view.setWorld(world,gates);view.setPlayer({...player,nameStyle:build.design||{}});syncKeyboardHints();$('loadStatus').hidden=true;$('stage').setAttribute('aria-busy','false');sceneReady=true;$('startButton').textContent='Drive this course';renderLobby();requestAnimationFrame(frame);if(course.theme!=='mountain')setTimeout(()=>{if(sceneReady&&!loading&&!running)view.prepareWorld(COURSES.find(c=>c.theme==='mountain'));},12000);}
+try{course=selected;difficulty=$('difficulty').value;world=makeWorld(course,difficulty);gates=makeGates(course,difficulty,selectedMission);view=createTrailScene($('stage'));applyGraphics();await Promise.all([view.loadVehicle($('bodyChoice').value,build),view.prepareWorld(course)]);view.setWorld(world,gates);view.setPlayer({...player,nameStyle:build.design||{}});syncKeyboardHints();$('loadStatus').hidden=true;$('stage').setAttribute('aria-busy','false');sceneReady=true;$('startButton').textContent='Drive this course';renderLobby();requestAnimationFrame(frame);if(course.theme!=='mountain')setTimeout(()=>{if(sceneReady&&!loading&&!running)view.prepareWorld(COURSES.find(c=>c.theme==='mountain'));},12000);}
 catch(error){$('stage').setAttribute('aria-busy','false');$('loadStatus').textContent=view?'The Jimny model could not be downloaded. Check your connection and reload.':'3D could not start. Try enabling hardware acceleration, or use another browser.';$('buildNote').textContent=view?'The model download failed. Your saved build is safe. Reload to try again.':'The driving game needs WebGL. You can still explore and save modifications in the main site.';$('startButton').textContent='3D unavailable';const retry=document.createElement('button');retry.type='button';retry.textContent='Reload game';retry.onclick=()=>location.reload();$('startButton').after(retry);console.error(error);}
