@@ -214,7 +214,8 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     playerObjects=[createNameDecals(profile.decal?profile.name:'',currentBody,paintMeshes,bodyRig,profile.nameStyle||{})];bodyRig.add(...playerObjects);car.position.copy(cp);car.rotation.copy(cr);bodyRig.rotation.copy(br);car.updateMatrixWorld(true);
   }
   let gateRoot=null,gateKey='';
-  function setWorld(nextWorld,nextGates){
+  // deferDecor: build the drivable world now and leave trees, props and support vehicles to finishWorld().
+  function setWorld(nextWorld,nextGates,{deferDecor=false}={}){
     const sameWorld=world===nextWorld,nextGateKey=JSON.stringify(nextGates);
     if(sameWorld&&gateKey===nextGateKey)return;
     if(!sameWorld){dispose(worldRoot);gateRoot=null;world=nextWorld;}
@@ -230,11 +231,12 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     // readable without lifting the exposure or bleaching the sunlit gravel.
     hemisphere.intensity=daylight.hemisphere;sun.intensity=daylight.sunIntensity;scene.environmentIntensity=daylight.environment;
     sun.color.set(daylight.sunColour);skyUniforms.sunPosition.value.set(...daylight.sun);
-    createLandscape(world,worldRoot);
+    createLandscape(world,worldRoot,{deferDecor});
     if(course.id==='mountain')worldRoot.add(createHimachalLandmarks(world));
     vegetation=worldRoot.getObjectByName('Layered vegetation');
     // Base camp remains outside the drivable line.
-    const a=companion(worldRoot,-10,-8),b=companion(worldRoot,10,-11,true);a.position.y=world.height(-10,-8);b.position.y=world.height(10,-11);
+    const camp=()=>{const a=companion(worldRoot,-10,-8),b=companion(worldRoot,10,-11,true);a.position.y=world.height(-10,-8);b.position.y=world.height(10,-11);};
+    if(deferDecor)worldRoot.userData.pendingDecor.push(camp);else camp();
     for(let i=0;i<7;i++){const x=-13+i*4;mesh(new T.ConeGeometry(.18,.5,8),mat('#b8643c'),worldRoot,x,world.height(x,-3)+.25,-3);}
     }
     gateRoot=new T.Group();worldRoot.add(gateRoot);gateKey=nextGateKey;
@@ -341,6 +343,8 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     setResolutionScale(value){const next=Math.max(.5,Math.min(1,value));if(Math.abs(next-resolutionScale)<.005)return resolutionScale;resolutionScale=next;if(!capturing)renderer.setPixelRatio(pixelRatio());return resolutionScale;},
     setShadowSize(size){if(sun.shadow.mapSize.x===size)return;sun.shadow.mapSize.set(size,size);sun.shadow.map?.dispose();sun.shadow.map=null;},
     defaultShadowSize:shadowSize,
+    // Builds deferred scenery: every remaining step, or one at a time so the page stays responsive. Returns the steps left.
+    finishWorld({all=true}={}){const steps=worldRoot.userData.pendingDecor||[];while(steps.length){steps.shift()();if(!all)break;}if(!steps.length)vegetation=worldRoot.getObjectByName('Layered vegetation');return steps.length;},
     setTokens(list=[]){tokenRoot.clear();for(const item of list){const token=new T.Group(),body=new T.Mesh(tokenGeometry,tokenMaterial),stem=new T.Mesh(stemGeometry,stemMaterial),leaf=new T.Mesh(leafGeometry,leafMaterial);stem.position.y=.5;leaf.position.set(.15,.56,0);leaf.rotation.z=-.5;body.castShadow=true;token.add(body,stem,leaf);token.userData.baseY=item.y+1.2;token.position.set(item.x,item.y+1.2,item.z);tokenRoot.add(token);}},
     setTimeOfDay(mode){night=mode==='night';dusk=mode==='dusk';if(world)applyLighting();return night?'night':dusk?'dusk':'day';},
     // A free-standing beacon for events without gates. Pass null to clear it.

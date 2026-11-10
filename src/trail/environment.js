@@ -51,11 +51,14 @@ export function himachalWearCoordinates(world,x,z,extension=world.mountainExtens
  const fade=1-smooth(T.MathUtils.clamp((best.distance-2.2)/1.8,0,1));
  return [best.lateral,best.along,best.weight*fade];
 }
+const warmGround=new WeakMap();
 // Computes the terrain grids ahead of the scene build, so the work overlaps the model and texture downloads.
 export function warmLandscape(world){
   const grid=(bounds,spacing)=>gridHeights(world,bounds,Math.ceil((bounds.maxX-bounds.minX)/spacing),Math.ceil((bounds.maxZ-bounds.minZ)/spacing));
   grid(world.bounds,world.mountainExtension?2:world.course.theme==='urban'?2.5:4);
   if(world.himachalSection)grid(world.himachalSection.bounds,world.himachalSection.groundSpacing);
+  // The main ground mesh needs no GPU or textures, so it is built here too and handed to createLandscape once.
+  warmGround.set(world,groundGeometry(world,world.bounds,world.mountainExtension?2:undefined));
 }
 export function groundGeometry(world,bounds=world.bounds,spacing=world.course.theme==='urban'?2.5:4,lift=0){
   const columns=Math.ceil((bounds.maxX-bounds.minX)/spacing),rows=Math.ceil((bounds.maxZ-bounds.minZ)/spacing),n=columns+1,pos=[],col=[],idx=[],uv=[],blends=[],stones=[],greens=[],wear=[],sand=world.course.theme==='sand',urban=world.course.theme==='urban';
@@ -210,10 +213,11 @@ export function groundMaterial(photographic,theme='mountain'){
     `);
   };m.customProgramCacheKey=()=>`trail-surface-v11-${photographic}-${theme}`;return m;
 }
-export function createLandscape(world,parent){
+// options.deferDecor leaves trees and course furniture for later: parent.userData.pendingDecor holds the steps.
+export function createLandscape(world,parent,options={}){
   createProTrials(world,parent);
   createGorge(world,parent);
-  const course=world.course,sand=course.theme==='sand',urban=course.theme==='urban',terrain=new T.Mesh(groundGeometry(world,world.bounds,world.mountainExtension?2:undefined),groundMaterial(!sand&&!urban,course.theme));terrain.receiveShadow=true;terrain.castShadow=!['school','custom'].includes(course.id);parent.add(terrain);
+  const course=world.course,sand=course.theme==='sand',urban=course.theme==='urban',terrain=new T.Mesh(warmGround.get(world)||groundGeometry(world,world.bounds,world.mountainExtension?2:undefined),groundMaterial(!sand&&!urban,course.theme));warmGround.delete(world);terrain.receiveShadow=true;terrain.castShadow=!['school','custom'].includes(course.id);parent.add(terrain);
   if(!['school','custom'].includes(course.id))parent.add(boundarySkirt(world));
   for(const b of world.finePatches||[]){const patch=new T.Mesh(groundGeometry(world,b,b.spacing,.012),groundMaterial(false,course.theme));patch.name='Shared fine dune contact surface';patch.castShadow=patch.receiveShadow=true;parent.add(patch);}
   if(course.id==='sand')parent.add(createDesertDressing(world));
@@ -277,8 +281,8 @@ export function createLandscape(world,parent){
    const material=rockMaterial('mountain');material.color.set('#ffffff');
    const stones=instances(parent,new T.DodecahedronGeometry(1,0),material,debris);stones.name='Mountain road surface gravel';stones.castShadow=false;
   }
-  buildVegetationGeometry(world,parent);
-  addCourseFurniture(world,parent);
+  const decor=[()=>addCourseFurniture(world,parent),()=>buildVegetationGeometry(world,parent)];
+  if(options.deferDecor)parent.userData.pendingDecor=decor;else{parent.userData.pendingDecor=[];decor.forEach(step=>step());}
   createCourseLandmarks(world,parent);
   createTerrainElements(world,parent);
   createExplorationFeatures(world,parent);

@@ -184,6 +184,17 @@ test('Himachal roadside landmarks stand clear of every route',()=>{
  assert(!makeWorld(COURSES.find(c=>c.id==='sand'),'explorer').sceneryObstacles.some(o=>String(o.id).startsWith('chorten')));
 });
 
+test('loading starts the model early, defers scenery that is not needed to drive, and can start unattended',()=>{
+ const game=read('src/trail-game.js'),scene=read('src/trail/scene.js'),environment=read('src/trail/environment.js'),html=read('game.html');
+ assert.match(html,/link\.rel='preload';link\.as='fetch';link\.crossOrigin='anonymous';link\.href='assets\/models\/jimny-'\+\(short\?'swb':'lwb'\)\+'-blender\.glb\.gz\?v='\+hashes\[short\?'3door':'5door'\]/,'the preload URL matches the one the loader requests');
+ assert(html.indexOf('assets/visual-release.js')<html.indexOf("link.rel='preload'"),'the model hashes are loaded before the preload script runs');
+ assert.match(game,/view\.setWorld\(world,gates,\{deferDecor:true\}\)/);assert.match(game,/view\.setWorld\(world,freeRoam\?\[\]:gates\);view\.finishWorld\(\);/,'nothing is still missing once driving starts');
+ assert.match(scene,/finishWorld\(\{all=true\}=\{\}\)/);assert.match(environment,/if\(options\.deferDecor\)parent\.userData\.pendingDecor=decor;else\{parent\.userData\.pendingDecor=\[\];decor\.forEach\(step=>step\(\)\);\}/);
+ assert.match(environment,/warmGround\.set\(world,groundGeometry\(world,world\.bounds/);assert.match(environment,/warmGround\.get\(world\)\|\|groundGeometry\(/);
+ assert.match(game,/await Promise\.race\(\[setSound\(soundWanted\),new Promise\(resolve=>setTimeout\(resolve,700\)\)\]\);/,'a held audio context cannot stall an unattended start');
+ assert.match(game,/const unattended=\$\('autoStart'\)\.checked;/);assert.match(game,/disabled=!sceneReady\|\|loading/);
+});
+
 test('Adventure is wired as the Himachal default without leaking into other courses',()=>{
  const game=read('src/trail-game.js'),scene=read('src/trail/scene.js'),css=read('assets/drive-controls.css');
  assert.match(game,/adventure=course\.id==='mountain'&&driveStyle==='adventure'/);
