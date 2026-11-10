@@ -2,6 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { clamp, SPECS, DRIVE_EFFICIENCY, maxAutoGear, revLimit } from './physics.js';
 import {elementFootprint} from './terrain-builder.js';
 import {coarseBedRelief,articulationBedRelief} from './adventure-terrain.js';
+import {gridHeights} from './height-grid.js';
 
 // Real rigid-body contact/suspension, with approximate tyre and engine tuning.
 // This is an educational vehicle, not measured/certified Suzuki simulation data.
@@ -23,24 +24,29 @@ export async function createRigidVehicle(terrain, state, options = {}) {
   const step = options.terrainStep || (terrain.course?.theme === 'urban' ? .8 : 2);
   const nx = Math.ceil(sx / step), nz = Math.ceil(sz / step), heights = new Float32Array((nx + 1) * (nz + 1));
   // Rapier heightfields use column-major (z rows, x columns) matrices.
-  for (let x = 0; x <= nx; x++) for (let z = 0; z <= nz; z++) {const px=bounds.minX+x/nx*sx,pz=bounds.minZ+z/nz*sz;heights[x*(nz+1)+z]=terrain.height(px,pz)-(terrain.course?coarseBedRelief(terrain.course,px,pz):0)-(terrain.extraCoarseRelief?.(px,pz)||0);}
+  // The ground mesh samples the same points, so the raw heights are shared instead of recomputed.
+  const coarse=gridHeights(terrain,bounds,nx,nz);
+  for (let x = 0; x <= nx; x++) for (let z = 0; z <= nz; z++) {const px=bounds.minX+x/nx*sx,pz=bounds.minZ+z/nz*sz;heights[x*(nz+1)+z]=coarse[z*(nx+1)+x]-(terrain.course?coarseBedRelief(terrain.course,px,pz):0)-(terrain.extraCoarseRelief?.(px,pz)||0);}
   simulation.createCollider(RAPIER.ColliderDesc.heightfield(nz, nx, heights, { x: sx, y: 1, z: sz }).setTranslation((bounds.minX + bounds.maxX) / 2, 0, (bounds.minZ + bounds.maxZ) / 2).setFriction(.75));
   if(terrain.himachalSection){
     const b=terrain.himachalSection.bounds,width=b.maxX-b.minX,depth=b.maxZ-b.minZ,spacing=terrain.himachalSection.groundSpacing;
     const n=Math.ceil(width/spacing),m=Math.ceil(depth/spacing),h=new Float32Array((n+1)*(m+1));
-    for(let x=0;x<=n;x++)for(let z=0;z<=m;z++){const px=b.minX+x/n*width,pz=b.minZ+z/m*depth;h[x*(m+1)+z]=terrain.height(px,pz)-articulationBedRelief(terrain.course,px,pz)+.008;}
+    const fine=gridHeights(terrain,b,n,m);
+    for(let x=0;x<=n;x++)for(let z=0;z<=m;z++){const px=b.minX+x/n*width,pz=b.minZ+z/m*depth;h[x*(m+1)+z]=fine[z*(n+1)+x]-articulationBedRelief(terrain.course,px,pz)+.008;}
     simulation.createCollider(RAPIER.ColliderDesc.heightfield(m,n,h,{x:width,y:1,z:depth}).setTranslation((b.minX+b.maxX)/2,0,(b.minZ+b.maxZ)/2).setFriction(.8));
   }
   // Dedicated high-resolution ramp beds preserve sub-metre wheel articulation.
   for(const b of terrain.finePatches||[]){
     const width=b.maxX-b.minX,depth=b.maxZ-b.minZ,n=Math.ceil(width/b.spacing),m=Math.ceil(depth/b.spacing),h=new Float32Array((n+1)*(m+1));
-    for(let x=0;x<=n;x++)for(let z=0;z<=m;z++)h[x*(m+1)+z]=terrain.height(b.minX+x/n*width,b.minZ+z/m*depth)+.008;
+    const fine=gridHeights(terrain,b,n,m);
+    for(let x=0;x<=n;x++)for(let z=0;z<=m;z++)h[x*(m+1)+z]=fine[z*(n+1)+x]+.008;
     simulation.createCollider(RAPIER.ColliderDesc.heightfield(m,n,h,{x:width,y:1,z:depth}).setTranslation((b.minX+b.maxX)/2,0,(b.minZ+b.maxZ)/2).setFriction(.75));
   }
   if (['mountain','urban'].includes(terrain.course?.theme)) {
     const urban=terrain.course.theme==='urban';
     const bx=urban?-74:56,bz=urban?82:108,width=18,depth=urban?35:73,n=60,m=Math.ceil(depth/.3),h=new Float32Array((n+1)*(m+1));
-    for(let x=0;x<=n;x++)for(let z=0;z<=m;z++)h[x*(m+1)+z]=terrain.height(bx+x/n*width,bz+z/m*depth)+.008;
+    const fine=gridHeights(terrain,{minX:bx,maxX:bx+width,minZ:bz,maxZ:bz+depth},n,m);
+    for(let x=0;x<=n;x++)for(let z=0;z<=m;z++)h[x*(m+1)+z]=fine[z*(n+1)+x]+.008;
     simulation.createCollider(RAPIER.ColliderDesc.heightfield(m,n,h,{x:width,y:1,z:depth}).setTranslation(bx+width/2,0,bz+depth/2).setFriction(.8));
   }
   for(const element of terrain.terrainElements||[]){
@@ -50,7 +56,11 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     simulation.createCollider(RAPIER.ColliderDesc.heightfield(m,n,h,{x:width,y:1,z:depth}).setTranslation((b.minX+b.maxX)/2,0,(b.minZ+b.maxZ)/2).setFriction(.8));
   }
   const fixed = new Map();
+  // A climbable rock is a shallow spherical cap: about 45° at its foot, so a wheel can ride up and over it.
+  const capHull=(radius,height)=>{const sphere=(radius*radius+height*height)/(2*height),points=[];for(const ring of [1,.82,.6,.34,0]){const rho=radius*ring,y=Math.sqrt(sphere*sphere-rho*rho)-(sphere-height);for(let k=0;k<(ring?12:1);k++){const a=k/12*Math.PI*2;points.push(Math.cos(a)*rho,y,Math.sin(a)*rho);if(ring===1)points.push(Math.cos(a)*rho,-.35,Math.sin(a)*rho);}}return RAPIER.ColliderDesc.convexHull(new Float32Array(points));};
   for (const obstacle of [...(terrain.obstacles || []),...(terrain.companionObstacles || []),...(terrain.sceneryObstacles || [])]) {
+    const cap=obstacle.climbable&&obstacle.type==='rock'?capHull(obstacle.radius,obstacle.height):null;
+    if(cap){fixed.set(simulation.createCollider(cap.setTranslation(obstacle.x,obstacle.y,obstacle.z).setFriction(.9).setRestitution(.02)).handle,obstacle.id);continue;}
     const desc = obstacle.type==='mesh'?RAPIER.ColliderDesc.trimesh(new Float32Array(obstacle.vertices),new Uint32Array(obstacle.indices)):obstacle.type==='cylinder'?RAPIER.ColliderDesc.cylinder(obstacle.height/2,obstacle.radius):obstacle.type === 'rock'
       ? RAPIER.ColliderDesc.roundCuboid(obstacle.radius * .72, obstacle.height * .45, obstacle.radius * .72, Math.min(.14,obstacle.radius*.2))
       : RAPIER.ColliderDesc.cuboid(obstacle.width / 2, obstacle.height / 2, obstacle.depth / 2);
@@ -137,7 +147,7 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     // Coupled axle anti-roll response; contacts still come from four independent rays.
     chassis.resetForces(true);
     chassis.resetTorques(true);
-    const resistance=absSpeed>.02?(surface==='soft-sand'?.095:surface==='sand'?.055:surface==='loose'?.022:.012)*s.mass*9.81+.48*absSpeed*absSpeed:0;
+    const resistance=absSpeed>.02?(surface==='soft-sand'?.095:surface==='sand'?.055:surface==='loose'?.022:.012)*s.mass*9.81+.48*absSpeed*absSpeed+(s.extraDrag||0)*(s.mass*9.81*.16+260*absSpeed*absSpeed):0;
     if(resistance)chassis.addForce({x:-forward.x*Math.sign(speed)*resistance,y:0,z:-forward.z*Math.sign(speed)*resistance},true);
     for(const axle of [[0,1],[2,3]]){
       const [a,b]=axle,la=vehicle.wheelSuspensionLength(a)||.28,lb=vehicle.wheelSuspensionLength(b)||.28,force=clamp((la-lb)*2200,-850,850);

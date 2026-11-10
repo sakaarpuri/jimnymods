@@ -4,34 +4,29 @@ import {gateReached} from './courses.js';
 // rigid-body world. It automates the selector and transfer lever, scales
 // engine force and tyre grip, and scores by time. It is deliberately not a
 // representation of a stock Jimny; Simulator style keeps the guarded controls.
-export const ADVENTURE=Object.freeze({power:1.75,grip:1.15,recoverPenalty:5,tokenBonus:.5,tokenSpacing:22,tokenRadius:2.6});
-// Himachal-inspired names. The trails remain fictional closed courses.
-// par = [three-star, two-star] seconds, set from scripts/adventure-times.mjs: about 1.2× and 1.65× the
-// autopilot's time at 40 km/h cruise after its token bonus. They are not human-tested.
-export const ADVENTURE_MISSIONS=Object.freeze({
- 'rock-river-technical':{name:'Nallah boulder climb',summary:'Charge the stone steps beside the stream, round the lookout and race back over the timber bridge. Inspired by the nallah crossings on the Gramphu–Batal track.',par:[34,48]},
- 'rock-river-bypass':{name:'Riverside run',summary:'The fast line: sweep up the wide lane, round the lookout and finish across the bridge. Inspired by the Chandra valley tracks.',par:[38,54]},
- lookout:{name:'Lookout dash',summary:'Pick your own way up through the pines to the viewpoint. Inspired by the meadows above Hampta.',par:[44,62]},
- 'cross-axle':{name:'Rock garden scramble',summary:'Keep your momentum over the offset rock steps. Inspired by the boulder beds of the Chandra river.',par:[29,42]},
- hairpin:{name:'Shelf-road hairpins',summary:'Climb the narrow shelf and swing round the hairpin. Inspired by the Sach Pass road.',par:[36,52]},
- descent:{name:'Ridge to valley drop',summary:'Up to the ridge, then all the way down to the valley floor. Inspired by the Jalori Pass descent.',par:[50,72]},
- 'mountain-ascent':{name:'Switchbacks to the pass',summary:'The long gravel climb: traverses and switchbacks to the top. Inspired by the road up to Kunzum La.',par:[90,128]},
- 'grand-traverse':{name:'Himachal grand traverse',summary:'The whole expedition in one run: riverside climb, timber bridge, switchbacks to the pass and the high road back down.',par:[180,250]},
- 'mountain-tarmac':{name:'High-road downhill',summary:'Flat out down the paved mountain road. Brake before the bends. Inspired by the Rohtang road.',par:[56,80]}
-});
-// Adventure-only events built by joining existing routes end to end.
+export const ADVENTURE=Object.freeze({power:1.75,grip:1.15,recoverPenalty:5,appleBonus:2,appleRadius:2.8});
+// Three events in one valley. Names cite Himachal areas as inspiration; the map is fictional.
+// par = [three-star, two-star] seconds, set from scripts/adventure-times.mjs. They are not human-tested.
 export const ADVENTURE_EVENTS=Object.freeze([
- {id:'grand-traverse',adventureOnly:true,chain:['rock-river-bypass','mountain-ascent','mountain-tarmac'],name:'Himachal grand traverse',summary:'The whole expedition in one run: riverside climb, timber bridge, switchbacks to the pass and the high road back down.',skill:'Endurance',mode:'4H'}
+ {id:'grand-traverse',chain:['rock-river-bypass','mountain-ascent','mountain-tarmac'],name:'Himachal grand traverse',summary:'The whole expedition in one run: riverside climb, timber bridge, winding switchbacks to the prayer-flagged pass and the high road back down. Inspired by the Gramphu–Batal track and the climb to Kunzum La.',skill:'Endurance',mode:'4H',par:[205,285]},
+ {id:'pass-road',chain:['mountain-ascent','mountain-tarmac'],name:'Pass road: up and over',summary:'Straight onto the mountain road: gravel switchbacks up to the pass, then flat out down the paved side. Inspired by the Rohtang road.',skill:'Road pace',mode:'4H',par:[170,235]},
+ {id:'rock-garden',chain:['cross-axle'],tight:true,name:'Rock garden',summary:'Slow, technical and unforgiving: thread every pair of posts over the offset rock steps. Driving round them does not count. Inspired by the boulder beds of the Chandra river.',skill:'Wheel placement',mode:'4L',par:[65,95]}
 ]);
+export const ADVENTURE_MISSIONS=Object.freeze(Object.fromEntries(ADVENTURE_EVENTS.map(event=>[event.id,event])));
 export const adventureMission=mission=>ADVENTURE_MISSIONS[mission?.id]||null;
-// Checkpoints become simple drive-through gates: no stop, range, gear or reverse conditions.
-export function adventureGates(gates){
+// Checkpoints become drive-through gates: no stop, range, gear or reverse conditions.
+// A tight event keeps its wheel-placement gates, so the obstacle cannot be driven around.
+export function adventureGates(gates,{tight=false}={}){
   const kept=gates.filter((gate,index)=>!gate.reverse||index===gates.length-1);
-  return kept.map((gate,index)=>{const {stop,range,gear,reverse,precision,depth,headingTolerance,minSpeed,maxSpeed,...rest}=gate;return {...rest,radius:Math.max(gate.radius||4,index===kept.length-1?5.5:5)};});
+  return kept.map((gate,index)=>{
+    const {stop,range,gear,reverse,precision,depth,headingTolerance,minSpeed,maxSpeed,...rest}=gate;
+    if(tight&&precision)return {...rest,precision:true,depth:Math.max(depth||2.5,3)};
+    return {...rest,radius:Math.max(gate.radius||4,index===kept.length-1?5.5:5)};
+  });
 }
-// Gates for a mission or a chained event. makeGates is passed in so this module stays free of world state.
+// Gates for an event. makeGates is passed in so this module stays free of world state.
 export function adventureRoute(mission,gatesFor){
-  const parts=(mission.chain||[mission.id]).map(id=>adventureGates(gatesFor(id)));
+  const parts=mission.chain.map(id=>adventureGates(gatesFor(id),mission));
   // Joining routes: drop a start gate that sits on top of the previous finish.
   return parts.flatMap((gates,index)=>index&&Math.hypot(gates[0].x-parts[index-1].at(-1).x,gates[0].z-parts[index-1].at(-1).z)<8?gates.slice(1):gates);
 }
@@ -55,25 +50,49 @@ export function adventureDrive(state,input,surface='loose',dt=1/60){
 }
 export function adventureStars(seconds,par=[90,130]){return seconds<=par[0]?3:seconds<=par[1]?2:1;}
 export function formatRaceTime(seconds){const t=Math.max(0,Number.isFinite(seconds)?seconds:0),whole=Math.floor(t);return `${Math.floor(whole/60)}:${String(whole%60).padStart(2,'0')}.${Math.floor((t-whole)*10)}`;}
-// Bonus tokens strung along the route, alternating either side of the direct line.
-export function adventureTokens(spawn,gates,{spacing=ADVENTURE.tokenSpacing,offset=2.2}={}){
-  const points=[{x:spawn.x,z:spawn.z},...gates],tokens=[];let carried=spacing*.6,side=1;
-  for(let i=1;i<points.length;i++){
-    const a=points[i-1],b=points[i],length=Math.hypot(b.x-a.x,b.z-a.z);if(length<1)continue;
-    const dx=(b.x-a.x)/length,dz=(b.z-a.z)/length;let at=spacing-carried;
-    for(;at<length;at+=spacing){
-      // Keep clear of the gates themselves so a token never hides inside the posts.
-      if(at<4||length-at<4)continue;
-      tokens.push({x:a.x+dx*at+dz*offset*side,z:a.z+dz*at-dx*offset*side});side=-side;
-    }
-    carried=length-(at-spacing);
-  }
-  return tokens;
+// A few apples per event, each a short detour off the direct line, never on it.
+function appleSpot(world,x,z){
+  if(world.contains&&!world.contains(x,z,14))return false;
+  const ground=world.height(x,z);
+  if(Math.abs(world.height(x+2,z)-world.height(x-2,z))>1.7||Math.abs(world.height(x,z+2)-world.height(x,z-2))>1.7)return false;
+  for(const o of [...(world.obstacles||[]),...(world.sceneryObstacles||[])])if(Math.hypot(o.x-x,o.z-z)<(o.radius||Math.max(o.width||0,o.depth||0)/2)+2.4)return false;
+  const level=world.waterSurface?.(x,z);
+  return level==null||level-ground<.75;
 }
-export function collectTokens(state,tokens,taken,radius=ADVENTURE.tokenRadius){
+export function adventureApples(spawn,gates,world,{max=7,spacing=150,offsets=[9,-9,6,-6,12,-12]}={}){
+  const points=[{x:spawn.x,z:spawn.z},...gates],legs=[];let total=0;
+  for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],length=Math.hypot(b.x-a.x,b.z-a.z);if(length>.5){legs.push({a,b,length,start:total});total+=length;}}
+  const count=Math.max(2,Math.min(max,Math.round(total/spacing))),apples=[];
+  for(let n=0;n<count;n++){
+    const at=total*(n+.62)/count,leg=legs.find(l=>at<=l.start+l.length)||legs.at(-1),t=(at-leg.start)/leg.length,dx=(leg.b.x-leg.a.x)/leg.length,dz=(leg.b.z-leg.a.z)/leg.length,px=leg.a.x+(leg.b.x-leg.a.x)*t,pz=leg.a.z+(leg.b.z-leg.a.z)*t;
+    for(let k=0;k<offsets.length;k++){
+      const offset=offsets[(k+n)%offsets.length],x=px+dz*offset,z=pz-dx*offset;
+      if(!appleSpot(world,x,z))continue;
+      const ground=(world.supportHeight||world.height)(x,z),level=world.waterSurface?.(x,z);apples.push({x,z,y:level==null?ground:Math.max(ground,level)});break;
+    }
+  }
+  return apples;
+}
+export function collectApples(state,apples,taken,radius=ADVENTURE.appleRadius){
   const found=[];
-  tokens.forEach((token,index)=>{if(!taken.has(index)&&Math.hypot(state.x-token.x,state.z-token.z)<radius&&(token.y===undefined||Math.abs(state.y-token.y)<3.5))found.push(index);});
+  apples.forEach((apple,index)=>{if(!taken.has(index)&&Math.hypot(state.x-apple.x,state.z-apple.z)<radius&&Math.abs(state.y-apple.y)<3.5)found.push(index);});
   return found;
+}
+// Recent safe positions, so Recover can put the car back where it got into trouble.
+export class Breadcrumbs{
+  constructor(){this.reset();}
+  reset(){this.points=[];this.last=-Infinity;}
+  add(state){
+    if(state.elapsed-this.last<.5)return;
+    const settled=state.wheelContacts?.every(Boolean)&&Math.abs(state.roll||0)<.45&&Math.abs(state.pitch||0)<.55&&(state.wading||0)<.45&&state.speed>1;
+    if(!settled)return;
+    this.last=state.elapsed;this.points.push({x:state.x,z:state.z,yaw:state.yaw,elapsed:state.elapsed});if(this.points.length>40)this.points.shift();
+  }
+  // The newest point at least \`age\` seconds old: far enough back to be clear of the hazard.
+  back(now,age=1.6){
+    for(let i=this.points.length-1;i>=0;i--)if(now-this.points[i].elapsed>=age){const point=this.points[i];this.points.length=i+1;return point;}
+    return this.points[0]||null;
+  }
 }
 // Which wheel the stuck camera should frame: an airborne wheel, else the most compressed corner.
 export function stuckWheel(state){

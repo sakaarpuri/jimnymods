@@ -1,10 +1,10 @@
 import {makeLandmarkPlan,landmarkCollisionHulls} from './course-landmarks.js';
 import {vegetationLayout,vegetationHash} from './vegetation-layout.js';
 import {terrainElementHeight,terrainElementProps,elementFootprint} from './terrain-builder.js';
-import {explorationPlan,riverHeight,riverCollisionPlan,riverHazard,discoveryCollisionPlan,riverApproachProtectionDistance} from './world-exploration.js';
+import {explorationPlan,riverHeight,riverCollisionPlan,riverHazard,discoveryCollisionPlan,riverApproachProtectionDistance,riverCentre} from './world-exploration.js';
 import {adventureHeight,adventureLines,adventureMarkers,mountainStepHeight} from './adventure-terrain.js';
 import {conceptObstacles} from './concept-setpieces.js';
-import {HIMACHAL_SECTION,HIMACHAL_MISSIONS,sectionRiverHeight,sectionCollisionPlan,sectionSupportHeight,sectionHazard} from './himachal-section.js';
+import {HIMACHAL_SECTION,HIMACHAL_MISSIONS,sectionRiverHeight,sectionCollisionPlan,sectionSupportHeight,sectionHazard,sectionRiverCentre,sectionWaterLevel} from './himachal-section.js';
 import {sectionShoulderRelief,sectionGeologyPlan} from './himachal-dressing.js';
 import {MOUNTAIN_EXTENSION_MISSIONS,createMountainExtension} from './himachal-mountain.js';
 import {sectionTerraceHeight} from './himachal-terraces.js';
@@ -74,9 +74,12 @@ export function getMissions(course){return course.missions||MISSIONS[course.worl
 export function getMission(course,id){return getMissions(course).find(m=>m.id===id)||getMissions(course)[0];}
 export function centerAt(course,z){const t=Math.max(0,z-20);return course.theme==='urban'?5*Math.sin(t/36):course.theme==='sand'?14*Math.sin(t/80):12*Math.sin(t/65)*Math.min(t/40,1);}
 export function courseFeatures(course){return course.id==='school'?[{x:-65,z:87,length:30,type:'ruts',name:'Offset wheel steps',height:.24},{x:-100,z:140,length:35,type:'climb',name:'Training hill'},{x:-100,z:180,length:40,type:'descent',name:'Controlled descent'},{x:-18,z:125,length:50,type:'soft',name:'Soft-sand lane'}]:course.theme==='mountain'?[{x:65,z:110,length:70,type:'ruts',name:'Offset rock garden',height:.26},{x:-132,z:185,length:20,type:'precision',name:'Hairpin pocket'},{x:35,z:280,length:105,type:'descent',name:'Ridge descent'}]:course.theme==='sand'?[{x:65,z:170,length:85,type:'soft',name:'Soft sand bowl'},{x:-65,z:220,length:40,type:'crest',name:'Blind dune crest'}]:[{x:-65,z:90,length:30,type:'ruts',name:'Offset wheel ramps',height:.24},{x:58,z:59,length:16,type:'precision',name:'Reverse parking bays'},{x:30,z:100,length:65,type:'precision',name:'Brake and slalom'}];}
-export function makeWorld(course,difficulty='explorer'){
+// options.adventure builds the Himachal play variant: fordable water and low, rounded rocks that can be driven over.
+export function makeWorld(course,difficulty='explorer',options={}){
+ const open=!!options.adventure&&course.id==='mountain';
  const settings=DIFFICULTIES[difficulty]||DIFFICULTIES.explorer,baseSize=course.size||600,expanded=!['school','custom'].includes(course.id),size=baseSize*(expanded?Math.sqrt(3):1),centerZ=baseSize*.3,bounds={minX:-size/2,maxX:size/2,minZ:centerZ-size/2,maxZ:centerZ+size/2};
  const exploration=explorationPlan(course),terrainElements=course.customPlan?.elements||exploration.elements,adventure=adventureLines(course);
+ if(open&&exploration.river)exploration.river={...exploration.river,waterLevel:.9};
  const activeStoneLane=course.id==='mountain'?({learn:60,trail:65,expert:70}[settings.route]):null;
  if(activeStoneLane!==null)for(const line of adventure)if(line.id==='stone-line')line.points=line.points.map(([x,z])=>[activeStoneLane,z]);
  const routes=getMissions(course).flatMap(m=>Object.values(m.routes));
@@ -150,7 +153,7 @@ export function makeWorld(course,difficulty='explorer'){
  world.landmarks=course.id==='custom'?[]:makeLandmarkPlan(world);sceneryObstacles.push(...landmarkCollisionHulls(world.landmarks));
  world.adventureMarkers=adventureMarkers(world);sceneryObstacles.push(...world.adventureMarkers);
  world.terrainProps=terrainElementProps(terrainElements,height);obstacles.push(...world.terrainProps.filter(p=>p.type==='rock'));sceneryObstacles.push(...world.terrainProps.filter(p=>p.type!=='rock'));
- world.riverProps=riverCollisionPlan(world);world.discoveryProps=discoveryCollisionPlan(world);sceneryObstacles.push(...world.riverProps,...world.discoveryProps);
+ world.openWater=open;world.riverProps=riverCollisionPlan(world);world.discoveryProps=discoveryCollisionPlan(world);sceneryObstacles.push(...world.riverProps,...world.discoveryProps);
  world.himachalSection=course.id==='mountain'?HIMACHAL_SECTION:null;world.sectionProps=world.himachalSection?sectionCollisionPlan(world):[];sceneryObstacles.push(...world.sectionProps);
  if(course.id==='mountain')sceneryObstacles.push(...himachalLandmarkObstacles(height));
  obstacles.push(...sectionGeologyPlan(world));
@@ -159,6 +162,16 @@ export function makeWorld(course,difficulty='explorer'){
  world.gorgeSolids=course.id==='urban'?gorgeSolids():[];sceneryObstacles.push(...world.gorgeSolids);
  world.supportHeight=(x,z)=>proSupportHeight(world.proTrials,x,z)??(world.himachalSection?sectionSupportHeight(x,z):null)??(world.river&&Math.abs(x-world.river.bridgeX)<world.river.bridgeWidth/2&&Math.abs(z-world.river.bridgeZ)<world.river.bridgeLength/2?world.river.deckTop:height(x,z));
  for(const tree of vegetationLayout(world))sceneryObstacles.push({id:tree.id,type:'cylinder',x:tree.x,z:tree.z,y:tree.y,radius:tree.radius,height:tree.height,yaw:0});
+ // Water surface height at a point, or null on dry ground and bridge decks.
+ world.waterSurface=(x,z)=>{
+  if(world.himachalSection){const r=HIMACHAL_SECTION.river;if(z>r.minZ+2&&z<r.maxZ-2&&Math.abs(x-sectionRiverCentre(z))<r.width/2+3&&sectionSupportHeight(x,z)===null)return sectionWaterLevel(z);}
+  const r=world.river;if(r&&x>r.minX&&x<r.maxX&&Math.abs(z-riverCentre(x))<r.width/2+4&&!(Math.abs(x-r.bridgeX)<r.bridgeWidth/2&&Math.abs(z-r.bridgeZ)<r.bridgeLength/2))return r.waterLevel;
+  return null;
+ };
+ if(open){
+  for(const rock of [...obstacles,...sceneryObstacles])if(rock.type==='rock'){rock.height=Math.min(rock.height,rock.radius*.46);rock.climbable=true;}
+  world.recoveryReason=()=>'';
+ }
  return world;
 }
 export function makeGates(course,difficulty='explorer',missionId){

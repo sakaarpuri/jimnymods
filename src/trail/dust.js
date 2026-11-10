@@ -3,7 +3,7 @@ import * as T from 'three';
 // Cosmetic wheel dust for loose ground and sand. It reads the solver's wheel
 // positions and aggregate slip but never feeds anything back into the physics.
 const COUNT=240,WHEEL_RADIUS=.3465;
-const RATE={sand:30,'soft-sand':42,loose:20},TINT={sand:'#c2a070','soft-sand':'#caa97a',loose:'#9c8d73'};
+const RATE={sand:30,'soft-sand':42,loose:20,water:46},TINT={sand:'#c2a070','soft-sand':'#caa97a',loose:'#9c8d73',water:'#e3ecec'};
 // Particles per second for one wheel. Paved surfaces raise none.
 export function dustRate(surface,speed=0,slip=0,handbrake=false){
   const base=RATE[surface]||0,v=Math.abs(speed);
@@ -32,7 +32,7 @@ export function createDust(scene){
       const sin=Math.sin(state.yaw),cos=Math.cos(state.yaw),direction=Math.sign(speed)||1;
       for(let i=0;i<4;i++){
         const p=centres[i];if(!p||state.wheelContacts?.[i]===false){carry[i]=0;continue;}
-        const surface=world.surface(p.x,p.z),driven=i>=2||state.range!=='2H',slip=driven?state.slip||0:0,rate=dustRate(surface,speed,slip,!!state.handbrake&&i>=2)*(i>=2?1:.5);
+        const surface=(state.wading||0)>.08?'water':world.surface(p.x,p.z),driven=i>=2||state.range!=='2H',slip=driven?state.slip||0:0,rate=dustRate(surface,speed,slip,!!state.handbrake&&i>=2)*(i>=2?1:.5);
         if(!rate){carry[i]=0;continue;}
         if(i>=2)material.uniforms.uColor.value.set(TINT[surface]);
         carry[i]=Math.min(6,carry[i]+rate*dt);const power=Math.min(1,slip*2+v/22);
