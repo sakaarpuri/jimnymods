@@ -206,3 +206,8 @@ body.drive-page #results .loss-list b{color:#ff9d6c}
 body.drive-page #pause .graphics-settings select{width:100%;margin-top:6px}
 @media(max-height:520px){body.drive-page #stage #driveToast{top:9%;font-size:14px;padding:7px 14px}}
 @media(prefers-reduced-motion:reduce){body.drive-page #stage #driveToast{transition:opacity .01s;transform:translate(-50%,0)}}
+/* Adventure style: the selector, transfer lever and assists work themselves, so their controls step aside. */
+body.drive-page #game[data-style=adventure] :is(.drive-controls,.key-hint){display:none}
+body.drive-page #game[data-style=adventure] #pedalReadout{display:none}
+body.drive-page #results #resultTitle[aria-label$="stars"]{color:var(--a-lime,#e2f25a);letter-spacing:.08em;font-size:44px;line-height:1}
+body.drive-page #lobby .style-picker select{width:100%}

@@ -98,7 +98,7 @@ test('dust is raised by loose ground and sand, never by paved surfaces or a stat
 
 test('the feel layer is wired into the game without touching the physics or the score formula',()=>{
  const game=read('src/trail-game.js'),scene=read('src/trail/scene.js'),css=read('assets/drive-controls.css'),bundle=read('assets/trail-game.js');
- assert.match(game,/function currentInput\(\)\{return mergeInputs\(drivingInput\(keys,touch\),padInput\);\}/);
+ assert.match(game,/function currentInput\(\)\{const base=drivingInput\(keys,touch\);[^}]*return mergeInputs\(base,padInput\);\}/);
  assert.match(game,/rigidVehicle\?rigidVehicle\.step\(input,1\/60\):stepVehicle\(state,input,world\);/);
  assert.match(game,/padInput=running\?input:null/,'a controller cannot drive a paused game');
  assert.match(game,/if\(action==='pause'\)\{if\(running\)showDialog\('pause'\);else if\(\$\('pause'\)\.open\)resume\(\);continue;\}\n    if\(!running\)continue;/);

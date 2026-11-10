@@ -9,6 +9,7 @@ import {sectionShoulderRelief,sectionGeologyPlan} from './himachal-dressing.js';
 import {MOUNTAIN_EXTENSION_MISSIONS,createMountainExtension} from './himachal-mountain.js';
 import {sectionTerraceHeight} from './himachal-terraces.js';
 import {quarryRampHeight} from './quarry-art.js';
+import {himachalLandmarkObstacles} from './himachal-landmark-plan.js';
 import {desertHeightDelta,desertObstaclePlan,DESERT_FINE_PATCHES,desertCoarseRelief} from './desert-art.js';
 import {PRO_MISSIONS,proTrialPlan,proSupportHeight,inProYard} from './pro-trials.js';
 import {GORGE_GAUNTLET,GORGE_PATCH,gorgeHeight,gorgeHazard,gorgeSolids,prepareGorgePiers,gorgeCoarseRelief} from './gorge-gauntlet.js';
@@ -151,6 +152,7 @@ export function makeWorld(course,difficulty='explorer'){
  world.terrainProps=terrainElementProps(terrainElements,height);obstacles.push(...world.terrainProps.filter(p=>p.type==='rock'));sceneryObstacles.push(...world.terrainProps.filter(p=>p.type!=='rock'));
  world.riverProps=riverCollisionPlan(world);world.discoveryProps=discoveryCollisionPlan(world);sceneryObstacles.push(...world.riverProps,...world.discoveryProps);
  world.himachalSection=course.id==='mountain'?HIMACHAL_SECTION:null;world.sectionProps=world.himachalSection?sectionCollisionPlan(world):[];sceneryObstacles.push(...world.sectionProps);
+ if(course.id==='mountain')sceneryObstacles.push(...himachalLandmarkObstacles(height));
  obstacles.push(...sectionGeologyPlan(world));
  world.recoveryReason=state=>(course.id==='urban'?gorgeHazard(state):'')||(world.himachalSection?sectionHazard(state):'')||riverHazard(world,state);
  world.proTrials=course.id==='urban'?prepareGorgePiers(proTrialPlan()):[];sceneryObstacles.push(...world.proTrials);

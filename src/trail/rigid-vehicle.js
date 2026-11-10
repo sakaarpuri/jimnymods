@@ -105,9 +105,11 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     else if(rpmAt(s.autoGear)<1300&&s.autoGear>1)s.autoGear--;
     const ratio=(s.gear==='R'?SPECS.reverse:SPECS.gears[s.autoGear-1])*SPECS.finalDrive*transfer;
     s.rpm=clamp(Math.max(850,absSpeed/SPECS.wheelRadius*60/(2*Math.PI)*ratio)+s.throttle*(absSpeed<2?1300:350),850,6200);
-    const torque=SPECS.peakTorque*(.65+.35*Math.exp(-(((s.rpm-4000)/2400)**2)));
+    // Adventure style scales engine force and grip; Simulator leaves both at 1.
+    const power=s.powerScale||1,gripScale=s.gripScale||1;
+    const torque=power*SPECS.peakTorque*(.65+.35*Math.exp(-(((s.rpm-4000)/2400)**2)));
     const demanded=drive?direction*(s.throttle*torque*ratio*DRIVE_EFFICIENCY[s.range]/SPECS.wheelRadius+(absSpeed<1.2?170:0))*revLimit(absSpeed/SPECS.wheelRadius*60/(2*Math.PI)*ratio):0;
-    const surface=terrain.surface(s.x,s.z),mu=grip(surface),slope=Math.asin(clamp(forward.y,-1,1)),brake=clamp(input.brake||0,0,1);
+    const surface=terrain.surface(s.x,s.z),mu=grip(surface)*gripScale,slope=Math.asin(clamp(forward.y,-1,1)),brake=clamp(input.brake||0,0,1);
     if(brake>.5&&absSpeed<.05&&drive&&slope*direction>.04)s.hold=2;else s.hold=Math.max(0,s.hold-dt);
     if(s.throttle>.12)s.hold=0;
     if(s.brakeHeat>.99)s.hdc=false;
@@ -119,7 +121,7 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     s.slip+=(spin-s.slip)*Math.min(1,dt*6);
     const engineBrake=drive&&s.throttle<.04?Math.min(absSpeed*85*transfer,low?1500:650):0;
     for(let i=0;i<4;i++) {
-      const location=vehicle.wheelContactPoint(i),localSurface=location?terrain.surface(location.x,location.z):surface,localGrip=grip(localSurface);
+      const location=vehicle.wheelContactPoint(i),localSurface=location?terrain.surface(location.x,location.z):surface,localGrip=grip(localSurface)*gripScale;
       vehicle.setWheelSteering(i,i<2?s.steer:0);
       const stopped=s.parking||s.gear==='P'||s.hold>0;
       // Rapier applies motor force OR braking impulse: residual throttle must not
