@@ -162,7 +162,16 @@ export function accessoryBuilder({accessoryRig,mats,detailed,modelBody,colour,ef
     if(!touring&&!parts.has('mod_halfmolly_5door'))show(['molle'],()=>[-1,1].forEach(side=>{box(accessoryRig,.012,.30,.42,side*.710,1.40,-1.37,mats.trim);for(let z=-1.52;z<-1.20;z+=.08)for(let y=1.30;y<1.53;y+=.08)box(accessoryRig,.015,.025,.045,side*.722,y,z,mats.metal);}));
     if(!touring&&!parts.has('exploresetups_drawer_5door'))show(['drawer'],()=>{const y=detailed?.80:.98;box(accessoryRig,1.2,.22,.58,0,y,-1.34,mats.darkmetal);for(const x of [-.30,.30]){box(accessoryRig,.565,.17,.018,x,y,-1.638,mats.trim);box(accessoryRig,.12,.032,.025,x,y+.035,-1.655,mats.metal);}box(accessoryRig,1.19,.012,.57,0,y+.116,-1.34,mats.seat);});
     if(!touring)show(['shelf'],()=>{box(accessoryRig,1.3,.025,.58,0,1.18,-1.30,mats.trim);for(const x of [-.60,.60])box(accessoryRig,.025,.08,.56,x,1.21,-1.30,mats.trim);});
-    show(['armrest'],()=>{box(accessoryRig,.20,.14,.35,0,.98,-.20,mats.seat);if(detailed)box(accessoryRig,.13,.12,.22,0,.88,-.20,mats.trim);});
+    show(['armrest'],()=>{
+      for(const side of [-1,1]){
+        const hinge=new THREE.Group();hinge.name='Cabin folding armrest '+side;
+        hinge.position.set(side*.135,1.06,-.16-(modelBody==='3door'?.17:0));
+        hinge.rotation.x=design.armrestsFolded===true?-Math.PI*.47:0;
+        accessoryRig.add(hinge);
+        cylinder(hinge,.025,.025,.045,0,0,0,mats.darkmetal,'x');
+        mesh(new RoundedBoxGeometry(.082,.052,.275,4,.020),mats.seat,hinge,0,.012,.115);
+      }
+    });
     show(['mats'],()=>[-.36,.36].forEach(x=>{const y=detailed?.685:.71;box(accessoryRig,.36,.018,.48,x,y,.42,mats.trim);for(let z=.22;z<.64;z+=.04)box(accessoryRig,.31,.006,.012,x,y+.011,z,mats.darkmetal);}));
     // Actual seat contours are part of the base cabin. The renderer applies a
     // two-tone fabric palette; extra boxes used to obscure those contours.

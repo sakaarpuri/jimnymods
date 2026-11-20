@@ -50,6 +50,7 @@
    const colours={...designState.partColours};for(const id of entry.data.parts){const target=JimnySurfaceStyles.target(modById[id]?.visual||id);if(entry.data.design.partColours?.[target])colours[target]=entry.data.design.partColours[target];}designState.partColours=colours;
    if(entry.data.parts.some(id=>partFamily(id)==='tires')){designState.tyreType=entry.data.design.tyreType;designState.wheelFinish=entry.data.design.wheelFinish;}
    if(entry.data.parts.some(id=>['seats','doortrim'].includes(partFamily(id)))){designState.cabin=entry.data.design.cabin;designState.seatFabric=entry.data.design.seatFabric;}
+   if(entry.data.parts.includes('armrest'))designState.armrestsFolded=entry.data.design.armrestsFolded===true;
    if(entry.data.parts.includes('touring')){designState.touringMode=entry.data.design.touringMode;designState.touringDrawers=entry.data.design.touringDrawers;}
    update();
   }
