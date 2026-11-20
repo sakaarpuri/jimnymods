@@ -84,7 +84,7 @@ test('narration-only recording excludes effects even when live effects are enabl
 test('sound-off recording captures chosen buses without becoming audible in the monitor',async()=>{
  const a=make();await a.beginRecording({effects:false});assert.equal(a.enabled,false);assert.equal(a.monitor.gain.value,0);assert.equal(a.vehicle.gain.value,0);assert.equal(a.coach.gain.value,.85);
  await a.playCoaching(cue);assert.equal(a.monitor.gain.value,0);a.setMix('coaching',.7);assert.equal(a.monitor.gain.value,0);a.endRecording();assert.equal(a.coachingSources.size,0);assert.equal(a.vehicle.gain.value,0);assert.equal(a.context.state,'suspended');
- await a.beginRecording();assert.equal(a.vehicle.gain.value,.65);assert.equal(a.monitor.gain.value,0);a.endRecording();a.dispose();
+ await a.beginRecording();assert.equal(a.vehicle.gain.value,DEFAULT_MIX.vehicle);assert.equal(a.monitor.gain.value,0);a.endRecording();a.dispose();
 });
 test('load errors notify once while cached and aborted loads obey cancellation',async()=>{
  const a=make({fetcher:async()=>({ok:false})}),calls=[];await a.playCoaching(cue,{onError:e=>calls.push(e.message)});assert.equal(calls.length,1);assert.equal(a.coachingSources.size,0);a.fetcher=async()=>response;await a.loadCoaching(cue);const c=new AbortController();c.abort();await assert.rejects(a.loadCoaching(cue,{signal:c.signal}),{name:'AbortError'});a.dispose();

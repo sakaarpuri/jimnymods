@@ -10,7 +10,7 @@ export function explorationPlan(course){
  const entries=presets[course.id]||[],elements=entries.map(([id,name,x,z,type])=>({id,type,x,z,yaw:0})),discoveries=entries.map(([id,name,x,z,type,description])=>({id,name,x,z,type,description,radius:24}));
  let river=null;
  if(course.id==='mountain'){
-  river={id:'highland-river',name:'Highland river bridge',minX:-475,maxX:475,width:18,waterLevel:1.2,bridgeX:-190,bridgeZ:riverCentre(-190),bridgeWidth:7,bridgeLength:48,deckTop:2.45};
+  river={id:'highland-river',name:'Highland river bridge',minX:-600,maxX:600,width:18,waterLevel:1.2,bridgeX:-190,bridgeZ:riverCentre(-190),bridgeWidth:7,bridgeLength:48,deckTop:2.45};
   discoveries.push({id:'river-bridge',name:'Highland river bridge',x:river.bridgeX,z:river.bridgeZ-35,radius:25,type:'bridge',description:'Cross only on the guarded bridge. The river is closed to vehicles; this game does not establish real-water crossing capability.'});
  }
  return {elements,discoveries,river};
@@ -41,7 +41,9 @@ export function riverCollisionPlan(world){
  const props=[{id:'river-bridge-deck',type:'box',x:r.bridgeX,z:r.bridgeZ,y:r.deckTop-.3,width:r.bridgeWidth,depth:r.bridgeLength,height:.3,yaw:0,color:'#8d8069'}];
  for(const side of [-1,1]){
   props.push({id:`river-bridge-rail-${side}`,type:'box',x:r.bridgeX+side*(r.bridgeWidth/2+.1),z:r.bridgeZ,y:r.deckTop,width:.3,depth:r.bridgeLength,height:1.15,yaw:0,color:'#695e4f'});
-  for(let x=r.minX;x<r.maxX;x+=8){const cx=x+4;if(Math.abs(cx-r.bridgeX)<r.bridgeWidth/2+5)continue;const z=riverCentre(cx)+side*13.5,derivative=11/115*Math.cos(cx/115),yaw=-Math.atan(derivative);
+  // Retaining walls guard the closed river in Simulator worlds; an open-water world has natural banks.
+  if(world.openWater)continue;
+  for(let x=r.minX;x<r.maxX;x+=8){const cx=x+4;if(Math.abs(cx-r.bridgeX)<r.bridgeWidth/2+5||world.bounds&&(cx<world.bounds.minX||cx>world.bounds.maxX))continue;const z=riverCentre(cx)+side*13.5,derivative=11/115*Math.cos(cx/115),yaw=-Math.atan(derivative);
    props.push({id:`river-bank-${side}-${x}`,type:'box',x:cx,z,y:world.height(cx,z)-.15,width:8.2,depth:1.15,height:1.25,yaw,color:'#8e8c7a'});
   }
  }
