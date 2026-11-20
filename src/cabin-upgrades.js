@@ -10,6 +10,13 @@ export function prepareCabinUpgrades(root,body='5door'){
  root.updateWorldMatrix(true,true);const parentInverse=root.parent?.matrixWorld.clone().invert()||new T.Matrix4(),canonical=new T.Group();canonical.name='ConfigurableSeating';canonical.applyMatrix4(root.matrix.clone().invert());root.add(canonical);
  const state={groups:{},materials:[],fabricKey:'',body},sources=[];root.traverse(o=>{if(o.isMesh&&!o.userData.cabinUpgrade&&['WovenCabinFabric','CabinSeatInsert','BrightChrome'].includes(o.material?.name))sources.push(o);});
  const offset=body==='3door'?-.17:0,v=new T.Vector3();
+ const trim=new T.MeshStandardMaterial({name:'CupholderConsoleTrim',color:'#232a2a',roughness:.7});
+ const shape=new T.Shape();shape.moveTo(-.085,-.445);shape.lineTo(.085,-.445);shape.lineTo(.085,-.090);shape.lineTo(-.085,-.090);shape.closePath();
+ for(const z of [-.365,-.168]){const hole=new T.Path();hole.absarc(0,z,.052,0,Math.PI*2,true);shape.holes.push(hole);}
+ const surround=new T.Mesh(new T.ExtrudeGeometry(shape,{depth:.022,bevelEnabled:true,bevelSize:.004,bevelThickness:.003,bevelSegments:2,steps:1}),trim);
+ surround.name='Moulded cupholder console';surround.rotation.x=Math.PI/2;surround.position.set(0,.710,offset);
+ surround.userData.cabinUpgrade=true;surround.userData.disposableMaterial=true;surround.castShadow=surround.receiveShadow=true;canonical.add(surround);
+
  for(const mesh of sources){
   const source=mesh.geometry,p=source.attributes.position,index=source.index,transform=parentInverse.clone().multiply(mesh.matrixWorld),buckets={keep:[],rear:[],passengerBack:[],passengerHead:[],front:[]};
   for(let i=0;i<(index?.count||p.count);i+=3){const ids=[0,1,2].map(j=>index?index.getX(i+j):i+j);let x=0,y=0,z=0;for(const id of ids){v.fromBufferAttribute(p,id).applyMatrix4(transform);x+=v.x/3;y+=v.y/3;z+=v.z/3;}

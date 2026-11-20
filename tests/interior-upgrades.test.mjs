@@ -31,3 +31,19 @@ test('tourer uses actual split deck size and a supported single berth beyond tha
 test('touring replaces overlapping cargo parts and disposes owned fabric maps',()=>{
  const rig=new Group(),build=accessoryBuilder({accessoryRig:rig,mats:accessoryMaterials(),detailed:null,modelBody:'5door',lampEmitters:{}});build(new Set(['touring','drawer','shelf','doortrim']),{seatFabric:'canvas',touringMode:'camp'});assert(rig.getObjectByName('TouringInterior'));assert(!rig.children.some(o=>o.name==='shelf'));const resources=new Set();rig.traverse(o=>o.userData.ownedMaterials?.forEach(m=>{resources.add(m);resources.add(m.map);resources.add(m.bumpMap);}));resources.delete(undefined);resources.delete(null);let disposed=0;resources.forEach(r=>r.addEventListener('dispose',()=>disposed++));build(new Set(),{});assert.equal(disposed,resources.size);
 });
+test('paired seat armrests fold clear of the console and rebuild without retaining old geometry',()=>{
+ const rig=new Group(),build=accessoryBuilder({accessoryRig:rig,mats:accessoryMaterials(),detailed:null,modelBody:'5door',lampEmitters:{}});
+ build(new Set(['armrest']),{});
+ const left=rig.getObjectByName('Cabin folding armrest -1'),right=rig.getObjectByName('Cabin folding armrest 1');
+ assert(left&&right);const down=new Box3().setFromObject(left);assert(down.max.x<-.08);assert(new Box3().setFromObject(right).min.x>.08);
+ let disposed=0;left.traverse(o=>o.geometry?.addEventListener('dispose',()=>disposed++));
+ build(new Set(['armrest']),{armrestsFolded:true});assert.equal(disposed,2);
+ const up=new Box3().setFromObject(rig.getObjectByName('Cabin folding armrest -1'));assert(up.max.y>down.max.y+.15);assert(up.max.z<down.max.z-.15);
+ build(new Set(),{});assert.equal(rig.children.length,0);
+});
+for(const body of ['5door','3door'])test(`${body}: factory console surrounds the two cup recesses once, including after seat changes`,async()=>{
+ const scene=await model(body),cabin=scene.getObjectByName('Cabin');prepareCabinUpgrades(cabin,body);
+ const surround=cabin.getObjectByName('Moulded cupholder console');assert(surround);assert.equal(surround.geometry.parameters.shapes.holes.length,2);
+ const bounds=new Box3().setFromObject(surround);assert(bounds.min.y>.68&&bounds.max.y<.73);assert(bounds.min.x>-.10&&bounds.max.x<.10);
+ applyCabinUpgrades(cabin,{body,seats:true});let count=0;cabin.traverse(o=>{if(o.name==='Moulded cupholder console')count++;});assert.equal(count,1);
+});

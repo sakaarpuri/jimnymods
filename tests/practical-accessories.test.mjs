@@ -55,3 +55,6 @@ test('catalogue enhances existing source listings without duplicate entries',()=
  const context={window:{}};context.globalThis=context;for(const path of ['assets/market-catalog.js','assets/practical-accessories-data.js','assets/interior-products.js'])vm.runInNewContext(readFileSync(new URL('../'+path,import.meta.url),'utf8'),context);
  const products=context.window.JIMNY_MARKET_PRODUCTS;assert.equal(products.filter(p=>p.visual==='jimsa_dash_tray').length,1);assert.equal(products.filter(p=>p.id==='jimsa_dash_tray').length,0);assert.equal(products.find(p=>p.id==='market_4454478184585').visual,'kap_fire');assert.equal(new Set(products.map(p=>p.id)).size,products.length);
 });
+test('front drink holder pair has two independently disposable hollow cradles inside both cabin sides',()=>{
+ for(const body of ['5door','3door']){const pair=practicalAccessory('exea_cupholder',mats,{body}),rings=[],geometries=[];pair.traverse(o=>{if(o.name==='Open bottle retaining ring')rings.push(o);if(o.geometry)geometries.push(o.geometry);});assert.equal(rings.length,2);assert(rings[0].position.x<0&&rings[1].position.x>0);assert.equal(new Set(geometries).size,geometries.length);const b=new Box3().setFromObject(pair);assert(b.min.x>-.65&&b.max.x<.65);}
+});
