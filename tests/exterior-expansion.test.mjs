@@ -68,3 +68,16 @@ test('JimnyworX guards follow the tall front/rear corner profiles without cuttin
  }
  dispose(g);
 });
+
+test('five-door rugged cladding has an outward-facing wordmark on each long front insert',()=>{
+ const part=buildExteriorPart('msga_rugged_cladding','5door');
+ const marks=part.children.filter(m=>m.name==='Jimny wordmark · front door');
+ assert.equal(marks.length,2);
+ assert.deepEqual(marks.map(m=>Math.sign(m.position.x)).sort(),[-1,1]);
+ for(const mark of marks){
+  assert.ok(mark.position.z>-.275 && mark.position.z<.64);
+  const normal=new T.Vector3(0,0,1).applyQuaternion(mark.quaternion);
+  assert.ok(normal.x*mark.position.x>0);
+ }
+ assert.equal(buildExteriorPart('msga_rugged_cladding','3door'),null);
+});

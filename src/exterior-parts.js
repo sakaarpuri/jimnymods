@@ -1,4 +1,5 @@
 import * as T from 'three';
+import jimnyWordmark from '../assets/models/jimny-wordmark.json' with {type:'json'};
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import '../assets/exterior-parts-data.js';
 import {addFittedFrontCornerGuards} from './jimnyworx-front-guards.js';
@@ -39,20 +40,34 @@ function tread(g,points,pos,side,mat,spacing=.027){
  cells.forEach((c,i)=>{o.position.set(c.x,c.y,.008);o.rotation.z=c.a;o.updateMatrix();inst.setMatrixAt(i,o.matrix);});inst.position.set(...pos);if(side)inst.rotation.y=side*Math.PI/2;inst.castShadow=true;inst.receiveShadow=true;g.add(inst);
 }
 function sidePanel(g,points,side,z,mat,name,x=.772){return panel(g,points,mat,name,[side*x,0,z],side);}
+// Maruti 990J0M80T01-010: the square ends meet at the door shut.
+// Only the long (front) inserts carry the dark Jimny mark.
+function addRuggedCladding(g,side,m){
+ for(const [front,inner,outer] of [[true,-.275,.64],[false,-.305,-.79]]){
+  const x=t=>-side*(inner+(outer-inner)*t);
+  const face=(profile,mat,name,offset)=>sidePanel(g,profile.map(([t,y])=>[x(t),y]),side,0,mat,name,offset);
+  face([[0,.58],[.94,.58],[1,.731],[0,.731]],m.plastic,'Moulded cladding surround',.772);
+  face([[.012,.605],[.92,.605],[.94,.628],[.94,.665],[.89,.699],
+        [.78,.699],[.76,.694],[.68,.694],[.66,.699],[.012,.699]],
+       m.silver,'Pressed grey cladding insert',.781);
+  screw(g,[side*.790,.677,-side*x(.87)],m.bolt,side);
+  if(!front){
+   face([[.12,.607],[.13,.607],[.13,.697],[.12,.697]],m.bolt,'Rear insert crease',.788);
+   continue;
+  }
+  const width=.142,scale=width/jimnyWordmark.width;
+  const shapes=jimnyWordmark.polygons.map(points=>new T.Shape(points.map(([px,py])=>
+   new T.Vector2(px*scale-width/2,(jimnyWordmark.height/2-py)*scale))));
+  const badge=add(g,new T.ShapeGeometry(shapes),m.edge,'Jimny wordmark · front door',[side*.789,.650,inner+.135]);
+  badge.rotation.y=side*Math.PI/2;
+  badge.castShadow=false;
+ }
+}
 export function buildExteriorPart(id,body='5door'){
  const spec=EXTERIOR_PARTS[id];if(!spec||spec.diameter||!spec.bodyStyles.includes(body))return null;
  const g=new T.Group(),m=materialPalette();g.name=id;g.userData={finishTarget:id,exteriorPart:id,ownedMaterials:Object.values(m),referenceURL:spec.url,previewKind:'reference-guided'};
  const short=body==='3door',axle=short?1.125:1.295;
- if(id==='msga_rugged_cladding')for(const side of [-1,1]){
-  // Separate front/rear-door pieces preserve the door shut line.
-  for(const [start,end]of [[-.275,.64],[-.79,-.305]]){
-   const a=-side*start,b=-side*end,l=Math.min(a,b),r=Math.max(a,b);
-   sidePanel(g,[[l,.58],[r-.025,.58],[r,.731],[l,.731]],side,0,m.plastic,'Door cladding moulded surround');
-   sidePanel(g,[[l+.027,.598],[r-.044,.598],[r-.027,.710],[l+.038,.710]],side,0,m.silver,'Inset satin silver door panel',.781);
-   for(const x of [l+.06,r-.06]){const z=-side*x;screw(g,[side*.790,.692,z],m.bolt,side);}
-   box(g,[.003,.006,(r-l)-.10],[side*.790,.721,-side*(l+r)/2],m.edge,'Upper inset shadow line',.001);
-  }
- }
+ if(id==='msga_rugged_cladding')for(const side of [-1,1])addRuggedCladding(g,side,m);
  if(id==='suzuki_side_moulding')for(const side of [-1,1]){
   const points=[[-.59,.605],[.59,.605],[.615,.62],[.61,.67],[-.61,.67],[-.615,.62]];
   sidePanel(g,points,side,0,m.plastic,'Tapered black body moulding');
