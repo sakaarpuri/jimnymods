@@ -19,11 +19,26 @@ export function sectionRiverEdges(z){
  return {left:centre-(left+(6-left)*nearBridge)*taper,right:centre+(right+(6-right)*nearBridge)*taper};
 }
 export function sectionWaterExclusion(x,z){return (z>108&&z<207&&Math.abs(x-sectionRiverCentre(z))<13)||(Math.abs(z-130)<8&&x>-14&&x<50);}
-export function sectionRiverHeight(base,x,z){
+// Fords of the play world: places where both banks are graded gently enough to drive in and out.
+export const SECTION_FORDS=Object.freeze([158,188]);
+// Full strength for 4 m either side of the crossing, fading out over the next 8 m.
+export const sectionFordWeight=z=>Math.max(...SECTION_FORDS.map(centre=>smooth((12-Math.abs(z-centre))/8)));
+export function sectionRiverHeight(base,x,z,fords=false){
  const r=HIMACHAL_SECTION.river,b=HIMACHAL_SECTION.bridge;
  const d=Math.abs(x-sectionRiverCentre(z)),along=smooth((z-r.minZ)/10)*smooth((r.maxZ-z)/10);
  const cut=along*smooth((17-d)/9),bed=sectionWaterLevel(z)-.85+smooth((d-5)/9)*2;
  let result=base+(Math.min(base,bed)-base)*cut;
+ if(fords){
+  // West bank: a long ramp, about 5 m of rise over 28 m. East bank: the riverside lane runs 17 m from the
+  // stream and must not be undercut, so the bank becomes one even slope from the bed up to the lane's edge.
+  const ford=sectionFordWeight(z);
+  if(ford>0){
+   const floor=sectionWaterLevel(z)-.85;let gentle;
+   if(x<sectionRiverCentre(z)){const ramp=floor+smooth((d-6)/28)*5.2;gentle=base+(Math.min(base,ramp)-base)*along*smooth((38-d)/22);}
+   else gentle=d<17?Math.min(base,floor+Math.max(0,Math.min(1,(d-5.5)/11.5))*(Math.max(base,floor)-floor)):base;
+   result+=(Math.min(result,gentle)-result)*ford;
+  }
+ }
  // Only the bridge approaches are graded. The channel beneath its collider is
  // left visibly lower; it is never a painted-on water texture over a road.
  const outside=Math.max(0,Math.abs(x-b.x)-b.length/2);
@@ -46,7 +61,7 @@ export function sectionCollisionPlan(world){
  for(const side of [-1,1]){
   for(const h of [.5,1.02])props.push({id:`section-rail-${side}-${h}`,type:'box',x:b.x,z:b.z+side*(b.width/2+.12),y:b.deckTop+h,width:b.length,depth:.16,height:.14,yaw:0,material:'rail'});
   for(let x=b.x-b.length/2;x<=b.x+b.length/2;x+=4)props.push({id:`section-post-${side}-${x}`,type:'box',x,z:b.z+side*(b.width/2+.12),y:b.deckTop,width:.19,depth:.19,height:1.22,yaw:0,material:'rail'});
-  for(let z=116;z<201;z+=1.9){if(Math.abs(z-b.z)<5.5)continue;const pz=z+Math.sin(z*2.31)*.25,x=sectionRiverCentre(pz)+side*(8.4+Math.sin(z*.17+side)*.6+Math.sin(z*.39)*.2),y=world.height(x,pz)-.2;
+  for(let z=116;z<201;z+=1.9){if(Math.abs(z-b.z)<5.5||world.openWater&&sectionFordWeight(z)>.55)continue;const pz=z+Math.sin(z*2.31)*.25,x=sectionRiverCentre(pz)+side*(8.4+Math.sin(z*.17+side)*.6+Math.sin(z*.39)*.2),y=world.height(x,pz)-.2;
    props.push({id:`section-bank-${side}-${z}`,type:'rock',x,z:pz,y,radius:1.2+(Math.sin(z*3.9)+1)*.15,height:1.22+(Math.sin(z*1.37+side)+1)*.4,yaw:z*.4,material:'bank'});
    if(Math.sin(z*3.7+side)>.05){const toeZ=pz+.5,edges=sectionRiverEdges(toeZ),toeX=edges[side<0?'left':'right']+side*.18,floor=world.height(toeX,toeZ)-.15;
     props.push({id:`section-shore-${side}-${z}`,type:'rock',x:toeX,z:toeZ,y:floor,radius:.32+(Math.sin(z*1.29)+1)*.22,height:Math.max(.3,sectionWaterLevel(toeZ)+.05+(Math.cos(z*.9)+1)*.13-floor),yaw:z*.9,material:'bank',wet:true});

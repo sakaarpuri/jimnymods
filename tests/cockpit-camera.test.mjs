@@ -22,7 +22,7 @@ test('cockpit pose follows body yaw and slope while look-down preserves the anat
 });
 
 test('driving camera cycle has one cockpit, and old cabin choices normalize to it',()=>{
- assert.deepEqual(DRIVING_CAMERAS,['external','interior','bonnet','overview']);
+ assert.deepEqual(DRIVING_CAMERAS,['external','interior','bonnet','overview','wheels']);
  assert.equal(normalizeDrivingCamera('controls'),'interior');assert.equal(normalizeDrivingCamera('dashboard'),'interior');assert.equal(normalizeDrivingCamera('invalid'),'external');
 });
 test('bonnet camera stays ahead of the roof in body coordinates on uphill and downhill attitudes',()=>{
