@@ -1,4 +1,5 @@
 import {EXTERIOR_PARTS,WHEEL_PARTS,normalizeExteriorParts} from '../exterior-parts.js';
+import {BAY,convoyClockAt,convoyPose} from './himachal-challenges.js';
 import {companionVehicle} from './companions.js';
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -214,8 +215,57 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     playerObjects=[createNameDecals(profile.decal?profile.name:'',currentBody,paintMeshes,bodyRig,profile.nameStyle||{})];bodyRig.add(...playerObjects);car.position.copy(cp);car.rotation.copy(cr);bodyRig.rotation.copy(br);car.updateMatrixWorld(true);
   }
   let gateRoot=null,gateKey='';
+  const challengeProps=new T.Group(), cargo=new T.Group();
+  scene.add(challengeProps);car.add(cargo);
+  let convoy=[], convoyMotion=[], lastConvoyTime=-1;
+
+  function challengeSign(parent,world,x,z,yaw,words){
+    const post=mat('#715740'),board=mat('#24453e');
+    const g=new T.Group();parent.add(g);g.position.set(x,world.height(x,z),z);g.rotation.y=yaw;
+    box(g,.10,1.45,.10,0,.72,0,post);box(g,2.8,.70,.09,0,1.40,0,board);
+    const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#24453e';ctx.fillRect(0,0,512,128);
+    ctx.font='bold 46px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff6dc';ctx.fillText(words,256,65,480);
+    const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;
+    const face=new T.MeshBasicMaterial({map});face.userData.terrainTextures=[map];
+    mesh(new T.PlaneGeometry(2.76,.69),face,g,0,1.40,.052);
+  }
+
+  function setChallenge(event,run){
+    dispose(challengeProps);dispose(cargo);convoy=[];convoyMotion=run?.motion || [];lastConvoyTime=-1;
+    if(!event)return;
+    if(event.id==='rock-garden'){
+      challengeSign(challengeProps,world,54,102,Math.PI,'STEPS  /  BANK');
+      return;
+    }
+    if(event.id==='hairpin-delivery'){
+      const shell=mat('#8b783f'),strap=mat('#252e2e'),z=currentBody==='3door'?-1.03:-1.28;
+      box(cargo,.75,.38,.45,0,.97,z,shell);
+      for(const x of [-.23,.23])box(cargo,.045,.394,.466,x,.97,z,strap);
+      const end=world.mountainExtension.roads[0].points.at(-1);
+      challengeSign(challengeProps,world,end.x+3.5,end.z,Math.atan2(1,1),'RIDGE CAMP');
+      return;
+    }
+    const post=mat('#e2bb63'),c=Math.cos(BAY.heading),s=Math.sin(BAY.heading);
+    for(const side of [-1,1])for(const end of [-1,1]){
+      const x=BAY.x+side*BAY.width/2*c+end*BAY.length/2*s,z=BAY.z-side*BAY.width/2*s+end*BAY.length/2*c;
+      box(challengeProps,.1,.67,.1,x,world.height(x,z)+.335,z,post);
+    }
+    challengeSign(challengeProps,world,BAY.x-3*c,BAY.z+3*s,BAY.heading+Math.PI,'PASSING PLACE');
+    convoy=[companionVehicle(false),companionVehicle(true)];challengeProps.add(...convoy);
+    positionConvoy(0);
+  }
+
+  function positionConvoy(time){
+    if(time===lastConvoyTime)return;
+    lastConvoyTime=time;
+    convoy.forEach((vehicle,i)=>{
+      const p=convoyPose(i,time,world);
+      vehicle.position.set(p.x,p.y,p.z);vehicle.rotation.order='YXZ';vehicle.rotation.set(p.pitch,p.yaw,0);
+    });
+  }
   // deferDecor: build the drivable world now and leave trees, props and support vehicles to finishWorld().
-  function setWorld(nextWorld,nextGates,{deferDecor=false}={}){
+  function setWorld(nextWorld,nextGates,{deferDecor=false,keepCamera=false}={}){
     const sameWorld=world===nextWorld,nextGateKey=JSON.stringify(nextGates);
     if(sameWorld&&gateKey===nextGateKey)return;
     if(!sameWorld){dispose(worldRoot);gateRoot=null;world=nextWorld;}
@@ -243,11 +293,22 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     const post=mat('#eae7ce'),active=mat('#d37740'),inactive=mat('#736d55');
     nextGates.forEach((gate,i)=>{const g=new T.Group();gateRoot.add(g);const yaw=gateHeading(nextGates,i);g.position.set(gate.x,gate.elevation??world.height(gate.x,gate.z),gate.z);g.rotation.y=yaw;
       for(const side of [-1,1]){mesh(new T.CylinderGeometry(.035,.035,1.45,6),post,g,side*gate.radius,.725,0);box(g,.36,.33,.035,side*gate.radius,.98,0,(i===0?active:inactive).clone());}
+      if(gate.alternate){
+        g.userData.fork=true;
+        const other=gate.alternate,alt=new T.Group();g.add(alt);
+        g.updateMatrixWorld(true);
+        const position=new T.Vector3(other.x,world.height(other.x,other.z),other.z);
+        alt.position.copy(g.worldToLocal(position));alt.rotation.y=-yaw;
+        for(const side of [-1,1]){
+          mesh(new T.CylinderGeometry(.035,.035,1.45,6),post,alt,side*other.radius,.725,0);
+          box(alt,.36,.33,.035,side*other.radius,.98,0,active);
+        }
+      }
       gates.push(g);
     });
     const end=nextGates.at(-1);if(end){const yaw=gateHeading(nextGates,nextGates.length-1),c=Math.cos(yaw),s=Math.sin(yaw),stripe=(x,z,w,d)=>{const wx=end.x+x*c+z*s,wz=end.z-x*s+z*c,o=box(gateRoot,w,.025,d,wx,world.height(wx,wz)+.025,wz,post);o.rotation.y=yaw;};for(let i=-4;i<=4;i++)for(const side of [-1,1])stripe(side*end.radius,i,.08,.9);for(const offset of [-4,4])stripe(0,offset,end.radius*2,.08);}
     applyLighting();
-    firstCamera=true;
+    if(!keepCamera)firstCamera=true;
   }
   function render(state,index,dt,shot=''){
     car.position.set(state.x,state.y,state.z);car.rotation.y=state.yaw;applyVehicleVisualPose(bodyRig,wheels,state,visualBodyLift);contact.position.set(state.x,(world?.height(state.x,state.z)||0)+.015,state.z);contact.rotation.set(-Math.PI/2,0,-state.yaw);
@@ -306,6 +367,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     vegetation?.userData.update?.(camera);
     mirrors?.setEnabled(internal);mirrors?.update(camera,dt);
     camera.userData.skipRiverReflection=internal;
+    if(convoy.length)positionConvoy(convoyClockAt(convoyMotion,state.elapsed));
     dust.update(state,world,dt,camera,renderer.domElement.height);
     // Light flurries high on the pass. Flakes live in world space and wrap round the camera.
     {const amount=world.course.theme==='mountain'&&!internal?Math.min(1,Math.max(0,(camera.position.y-46)/16)):0;snow.visible=amount>.02;
@@ -314,7 +376,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
        snowGeometry.attributes.position.needsUpdate=true;}}}
     if(dt>0)for(const token of tokenRoot.children){token.rotation.y+=dt*1.8;if(!token.userData.taken)token.position.y=token.userData.baseY+Math.sin(performance.now()*.003+token.position.x)*.12;else{token.scale.multiplyScalar(Math.max(0,1-dt*9));token.position.y+=dt*4;if(token.scale.x<.05)token.visible=false;}}
     const target=!shot&&!inspecting?(gates[index]||beaconTarget):null;beacon.visible=false;
-    if(target){const distance=Math.hypot(target.position.x-state.x,target.position.z-state.z),fade=Math.min(1,Math.max(0,(distance-10)/22)),width=Math.max(.55,distance*.009);beacon.position.copy(target.position);beacon.scale.set(width,1,width);beacon.material.opacity=fade*(reducedMotion?.38:.34+.1*Math.sin(performance.now()*.004));beacon.visible=fade>.01;}
+    if(target&&!target.userData?.fork){const distance=Math.hypot(target.position.x-state.x,target.position.z-state.z),fade=Math.min(1,Math.max(0,(distance-10)/22)),width=Math.max(.55,distance*.009);beacon.position.copy(target.position);beacon.scale.set(width,1,width);beacon.material.opacity=fade*(reducedMotion?.38:.34+.1*Math.sin(performance.now()*.004));beacon.visible=fade>.01;}
     renderer.render(scene,camera);
     thumbnailElapsed+=dt;
     const thumbnail=document.getElementById('cabinThumbnail');
@@ -331,7 +393,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
       thumbnailFrames++;
     }
   }
-  return {loadVehicle,prepareWorld,setPlayer,setWorld,render,canvas:renderer.domElement,setInspection(index,active=true){inspectionWheel=index;inspecting=active;},
+  return {loadVehicle,prepareWorld,setPlayer,setWorld,setChallenge,render,canvas:renderer.domElement,setInspection(index,active=true){inspectionWheel=index;inspecting=active;},
     setWheelPreview(index){const next=Number.isInteger(index)&&index>=0&&index<4?index:null;if(next!==wheelPreview)thumbnailElapsed=1;wheelPreview=next;return wheelPreview;},
     setThumbnailVisible(visible){thumbnailVisible=Boolean(visible);if(thumbnailVisible)thumbnailElapsed=1;return thumbnailVisible;},
     beginCapture(width,height){capturing=true;renderer.setPixelRatio(1);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();firstCamera=true;},
@@ -353,5 +415,5 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     setFocusWheel(index){focusWheel=Number.isInteger(index)&&index>=0&&index<4?index:0;return focusWheel;},
     setChaseZoom(value){chaseZoom=Math.max(.7,Math.min(1.9,value));return chaseZoom;},
     cycleCamera(){const modes=DRIVING_CAMERAS;cameraMode=modes[(modes.indexOf(cameraMode)+1)%modes.length];firstCamera=true;return cameraMode;},
-    cameraState:()=>({scannedRocks:rockAssetsReady(),mode:cameraMode,timeOfDay:night?'night':dusk?'dusk':'day',snow:snow.visible,headlights:headlights[0].intensity,roadWash:roadWash.intensity,focusWheel,chaseZoom,tokens:tokenRoot.children.filter(token=>!token.userData.taken).length,distance:camera.position.distanceTo(car.position),position:camera.position.toArray(),target:look.toArray(),cabin:cabinControls?.snapshot(),mirrors:mirrors?.snapshot(),body:currentBody,parts:[...visibleParts],wheelRadius:visualWheelRadius,bodyLift:bodyRig.position.y,tyreType,surfaceStyles:surfaceStyler.snapshot(),thumbnail:{visible:thumbnailVisible,wheel:wheelPreview,frames:thumbnailFrames,position:cabinCamera.position.toArray()}}),resetCamera(){firstCamera=true;},info:()=>({...renderer.info.render,resolutionScale,shadowSize:sun.shadow.mapSize.x,dust:dust.active,beacon:beacon.visible}),dispose(){surfaceStyler.clear();disposed=true;dust.dispose();for(const item of [tokenGeometry,tokenMaterial,stemGeometry,stemMaterial,leafGeometry,leafMaterial,starGeometry,stars.material,snowGeometry,snow.material,beamGeometry,beamMaterial.alphaMap,beamMaterial,glowTexture])item.dispose();beacon.geometry.dispose();beacon.material.alphaMap.dispose();beacon.material.dispose();skyRequest++;skies.forEach(entry=>{entry.texture.dispose();entry.environment.dispose();});skies.clear();skyDome.geometry.dispose();skyDome.material.dispose();observer.disconnect();mirrors?.dispose();cabinControls?.dispose();cabinMaterials?.dispose();cabinTarget.dispose();dispose(worldRoot);disposeCatalogueWheels(bodyRig.getObjectByName('SpareWheel'));dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeWheelDesigns(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);disposeRockAssets();disposeVegetationAssets();disposeAuthoredPineAssets();env.dispose();daylightEnvironment?.dispose();renderer.dispose();}};
+    cameraState:()=>({scannedRocks:rockAssetsReady(),mode:cameraMode,timeOfDay:night?'night':dusk?'dusk':'day',snow:snow.visible,headlights:headlights[0].intensity,roadWash:roadWash.intensity,focusWheel,chaseZoom,tokens:tokenRoot.children.filter(token=>!token.userData.taken).length,distance:camera.position.distanceTo(car.position),position:camera.position.toArray(),target:look.toArray(),cabin:cabinControls?.snapshot(),mirrors:mirrors?.snapshot(),body:currentBody,parts:[...visibleParts],wheelRadius:visualWheelRadius,bodyLift:bodyRig.position.y,tyreType,surfaceStyles:surfaceStyler.snapshot(),thumbnail:{visible:thumbnailVisible,wheel:wheelPreview,frames:thumbnailFrames,position:cabinCamera.position.toArray()}}),resetCamera(){firstCamera=true;},info:()=>({...renderer.info.render,resolutionScale,shadowSize:sun.shadow.mapSize.x,dust:dust.active,beacon:beacon.visible}),dispose(){dispose(challengeProps);dispose(cargo);surfaceStyler.clear();disposed=true;dust.dispose();for(const item of [tokenGeometry,tokenMaterial,stemGeometry,stemMaterial,leafGeometry,leafMaterial,starGeometry,stars.material,snowGeometry,snow.material,beamGeometry,beamMaterial.alphaMap,beamMaterial,glowTexture])item.dispose();beacon.geometry.dispose();beacon.material.alphaMap.dispose();beacon.material.dispose();skyRequest++;skies.forEach(entry=>{entry.texture.dispose();entry.environment.dispose();});skies.clear();skyDome.geometry.dispose();skyDome.material.dispose();observer.disconnect();mirrors?.dispose();cabinControls?.dispose();cabinMaterials?.dispose();cabinTarget.dispose();dispose(worldRoot);disposeCatalogueWheels(bodyRig.getObjectByName('SpareWheel'));dispose(bodyRig);disposeCatalogueWheels(wheelRoot);disposeWheelDesigns(wheelRoot);disposeTyreTypes(wheelRoot);dispose(wheelRoot);disposeRockAssets();disposeVegetationAssets();disposeAuthoredPineAssets();env.dispose();daylightEnvironment?.dispose();renderer.dispose();}};
 }

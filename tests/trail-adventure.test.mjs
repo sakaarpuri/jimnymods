@@ -20,10 +20,11 @@ const play=makeWorld(mountain,'driver',{adventure:true}),sim=makeWorld(mountain,
 const routes=difficulty=>ADVENTURE_EVENTS.map(event=>adventureRoute(event,id=>makeGates(mountain,difficulty,id)));
 const routeOf=(id,difficulty='driver')=>routes(difficulty)[ADVENTURE_EVENTS.findIndex(e=>e.id===id)];
 
-test('Adventure offers five distinct events, with rising star times',()=>{
- assert.deepEqual(ADVENTURE_EVENTS.map(e=>e.id),['grand-traverse','pass-road','river-run','apple-hunt','rock-garden']);
+test('Himachal offers timed events and clean-driving challenges',()=>{
+ assert.deepEqual(ADVENTURE_EVENTS.map(e=>e.id),['grand-traverse','pass-road','river-run','apple-hunt','rock-garden','hairpin-delivery','passing-place']);
  for(const event of ADVENTURE_EVENTS){
-  assert(event.name&&event.summary&&ADVENTURE_MISSIONS[event.id]===event,event.id);assert(event.par[0]>20&&event.par[1]>event.par[0],event.id);
+  assert(event.name&&event.summary&&ADVENTURE_MISSIONS[event.id]===event,event.id);if(event.technical){assert.ok(event.spawn);assert.ok(!event.par);continue;}
+  assert(event.par[0]>20&&event.par[1]>event.par[0],event.id);
   assert.equal([event.chain,event.route,event.hunt].filter(Boolean).length,1,`${event.id} is a chain, an authored route or a hunt`);
   for(const id of event.chain||[])assert(missions.some(m=>m.id===id),id);
   if(!event.chain)assert(Number.isFinite(event.spawn.x)&&Number.isFinite(event.spawn.z),`${event.id} has its own start`);
@@ -65,7 +66,7 @@ test('stars and the race clock',()=>{
 
 test('apples are few, sit off the direct line on drivable ground and are collected by driving through',()=>{
  for(const [index,event] of ADVENTURE_EVENTS.entries()){
-  if(event.hunt)continue;
+  if(event.hunt||event.technical)continue;
   const gates=routes('driver')[index],spawn=event.spawn||missions.find(m=>m.id===event.chain[0]).spawn||play.spawn,apples=adventureApples(spawn,gates,play),line=[spawn,...gates];
   // A compact loop such as the river run may have no spot that is a detour from every leg.
   assert(apples.length>=(event.route?0:2)&&apples.length<=7,`${event.id}: ${apples.length} apples`);if(!apples.length)continue;
@@ -199,12 +200,12 @@ test('Adventure is wired as the Himachal default without leaking into other cour
  const game=read('src/trail-game.js'),scene=read('src/trail/scene.js'),css=read('assets/drive-controls.css');
  assert.match(game,/adventure=course\.id==='mountain'&&driveStyle==='adventure'/);
  assert.match(game,/if\(countdown>0\)\{[\s\S]{0,260}state\.parking=true/,'the car is held during the countdown');
- assert.match(game,/\}else input=adventureDrive\(state,input,world\.surface\(state\.x,state\.z\)\);/);
+ assert.match(game,/input=technicalRun\?technicalDrive\(state,input,surface,gates\[gate\]\):adventureDrive\(state,input,surface\)/);
  assert.match(game,/if\(adventure\)\{finishAdventure\(\);return;\}/);assert.match(game,/location\.hash!=='#lessons'\)\{selected=COURSES\.find\(c=>c\.id==='mountain'\)/);
  assert.match(game,/timeTrialActive=!adventure&&/);assert.match(game,/makeWorld\(course,difficulty,\{adventure:nextAdventure\}\)/);assert.match(game,/&&!!world\.openWater===nextAdventure/);
  assert.match(game,/const crumb=adventure\|\|freeRoam\?crumbs\.back\(state\.elapsed\):null/);assert.match(game,/view\.render\(running\?blendPose\(previousPose,state,accumulator\*60\):state/);
  assert.match(game,/const review=freeRoam&&/,'the scenery review start is limited to free roam');
- assert.match(game,/if\(!freeRoam&&!hunt\)\{const status=adventure\?/);assert.match(game,/if\(hunt&&countdown<=0&&tokens\.length&&takenTokens\.size===tokens\.length\)\{finish\(\);return;\}/);
+ assert.match(game,/if\(!freeRoam&&!hunt\)\{\s*let status;\s*if\(technicalRun\)/);assert.match(game,/else status=adventure\?\{reached:countdown<=0/);assert.match(game,/if\(hunt&&countdown<=0&&tokens\.length&&takenTokens\.size===tokens\.length\)\{finish\(\);return;\}/);
  assert.match(game,/view\.setTimeOfDay\(skyMode\(\)\)/);assert.match(scene,/lamp\.intensity=night\?270:dusk\?70:0/);assert.match(scene,/roadWash\.intensity=night\?2\.4:dusk\?\.45:0/,'a road wash carries the light well ahead at night');assert.match(scene,/new T\.SpotLight\('#fff0d2',0,0,\.52,\.8,1\.5\)/,'headlights fall off slowly enough to light the track well ahead');
  assert.match(scene,/chaseYaw\+=Math\.atan2\(Math\.sin\(state\.yaw-chaseYaw\)/);assert.match(scene,/if\(course\.id==='mountain'\)worldRoot\.add\(createHimachalLandmarks\(world\)\)/);
  assert.match(scene,/setTimeOfDay\(mode\)\{night=mode==='night';dusk=mode==='dusk'/);assert.match(read('src/trail/environment.js'),/parent\.add\(boundarySkirt\(world\)\)/);

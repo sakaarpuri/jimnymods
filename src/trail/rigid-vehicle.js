@@ -70,6 +70,25 @@ export async function createRigidVehicle(terrain, state, options = {}) {
   }
   // Physical perimeter. No invisible teleport when leaving a recommended route.
   for (const [x,z,w,d] of [[bounds.minX-1,(bounds.minZ+bounds.maxZ)/2,1,sz/2+2],[bounds.maxX+1,(bounds.minZ+bounds.maxZ)/2,1,sz/2+2],[0,bounds.minZ-1,sx/2+2,1],[0,bounds.maxZ+1,sx/2+2,1]]) simulation.createCollider(RAPIER.ColliderDesc.cuboid(w,80,d).setTranslation(x,30,z));
+  // Passing Place supplies road-aligned poses for the same two SUVs seen by the driver.
+  const traffic=(options.convoy || []).map((pose,index)=>{
+    const rotation=trafficRotation(pose);
+    const body=simulation.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased()
+      .setTranslation(pose.x,pose.y,pose.z).setRotation(rotation));
+    simulation.createCollider(RAPIER.ColliderDesc.roundCuboid(.88,.69,index?2.1:1.88,.06)
+      .setTranslation(0,.93,0).setFriction(.6),body);
+    return body;
+  });
+  function trafficRotation({yaw,pitch}){
+    const s=Math.sin(yaw/2),c=Math.cos(yaw/2),p=Math.sin(pitch/2),q=Math.cos(pitch/2);
+    return {x:c*p,y:s*q,z:-s*p,w:c*q};
+  }
+  function setConvoy(poses){
+    poses.forEach((pose,i)=>{
+      traffic[i].setNextKinematicTranslation({x:pose.x,y:pose.y,z:pose.z});
+      traffic[i].setNextKinematicRotation(trafficRotation(pose));
+    });
+  }
   const chassis = simulation.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(state.x,terrain.height(state.x,state.z)+ORIGIN_HEIGHT+.08,state.z).setLinearDamping(.07).setAngularDamping(.65).setCcdEnabled(true).setAdditionalMassProperties(state.mass,{x:0,y:0,z:0},{x:1700,y:1900,z:600},{x:0,y:0,z:0,w:1}));
   const chassisColliders = [
     simulation.createCollider(RAPIER.ColliderDesc.cuboid(.70,.09,state.wheelbase/2+.35).setTranslation(0,-.38,0).setDensity(0).setFriction(.4),chassis),
@@ -167,5 +186,5 @@ export async function createRigidVehicle(terrain, state, options = {}) {
     return s;
   }
   reset();
-  return {step:stepVehicle,reset,dispose(){if(!disposed){disposed=true;simulation.free();}},snapshot(){return {engine:'Rapier',contacts:[...state.wheelContacts],suspension:[...state.suspension],terrainCells:nx*nz,colliders:simulation.colliders.len()};}};
+  return {step:stepVehicle,reset,setConvoy,dispose(){if(!disposed){disposed=true;simulation.free();}},snapshot(){return {engine:'Rapier',contacts:[...state.wheelContacts],suspension:[...state.suspension],terrainCells:nx*nz,colliders:simulation.colliders.len()};}};
 }

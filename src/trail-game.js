@@ -21,7 +21,8 @@ import {GamepadDriver,mergeInputs} from './trail/gamepad.js';
 import {waypointMarker,formatDistance} from './trail/waypoint.js';
 import {createLossLedger,attributeVehiclePenalty,lossSummary,coachingTip} from './trail/score-breakdown.js';
 import {createResolutionGovernor} from './trail/adaptive-quality.js';
-import {ADVENTURE,ADVENTURE_MISSIONS,ADVENTURE_EVENTS,adventureRoute,adventureGateReached,adventureDrive,adventureStars,formatRaceTime,adventureApples,collectApples,huntApples,nearestApple,stuckWheel,Breadcrumbs} from './trail/adventure.js';
+import {createChallengeRun,challengeRoute,chooseRockLine,rockLineNames,challengeGateReached,technicalRecord,technicalStars,updateChallenge,convoyPose,convoyDuration,insideBay} from './trail/himachal-challenges.js';
+import {ADVENTURE,ADVENTURE_MISSIONS,ADVENTURE_EVENTS,adventureRoute,adventureGateReached,adventureDrive,technicalDrive,adventureStars,formatRaceTime,adventureApples,collectApples,huntApples,nearestApple,stuckWheel,Breadcrumbs} from './trail/adventure.js';
 import {capturePose,blendPose} from './trail/pose.js';
 
 const $=id=>document.getElementById(id),dialogs=['lobby','pause','help','results','shareRun','inspection','badges'];
@@ -62,6 +63,7 @@ function updatePlayer(){player=playerProfile({name:$('playerName').value,driver:
 for(const id of ['playerName','playerDecal'])$(id).addEventListener('change',updatePlayer);
 let selected=COURSES[0],course=COURSES[0],difficulty='explorer',state=createVehicle(build.body),world=makeWorld(course),gates=makeGates(course),gate=0,started=false,running=false,loading=false,sceneReady=false,view,accumulator=0,last=0,uiTick=0,notice='',noticeUntil=0,helpReturn='lobby',lastCollision=0,frameCount=0,frameSeconds=0,fps=0;
 let selectedMission=getMissions(selected)[0].id,mission=getMission(course,selectedMission),freeRoam=false,rigidVehicle=null;
+let technicalRun=null;
 let proAirborne=null,cleanGateStreak=0,segmentIncidents=0,timeTrialActive=false,losses=createLossLedger(),splits=[];
 const splitStorageKey='jimnygami-time-trial-splits-v1',savedSplits=read(splitStorageKey,{}),bestSplits=savedSplits&&typeof savedSplits==='object'&&!Array.isArray(savedSplits)?savedSplits:{};
 // Adventure style (Himachal): automatic 4×4, more power, timed runs with stars. Simulator keeps the guarded controls.
@@ -74,7 +76,10 @@ const adventureSelected=()=>selected.id==='mountain'&&driveStyle==='adventure';
 const lobbyMissions=()=>adventureSelected()?ADVENTURE_EVENTS:getMissions(selected);
 const lobbyMission=()=>lobbyMissions().find(m=>m.id===selectedMission)||lobbyMissions()[0];
 const missionTitle=()=>adventure&&ADVENTURE_MISSIONS[mission.id]?.name||mission.name;
+const technicalKey=key=>key+'-precision-v1';
 const runKey=()=>`${course.worldId}-${mission.id}-${difficulty}-${state.body}${adventure?'-adventure':''}`;
+const challengeClock=()=>Math.max(0,state.elapsed-raceStart);
+const convoyPoses=()=>[0,1].map(i=>convoyPose(i,technicalRun.convoyTime,world));
 const raceTime=()=>Math.max(0,(countdown>0?0:state.elapsed-raceStart)+racePenalty-(hunt?0:takenTokens.size*ADVENTURE.appleBonus));
 const skyMode=()=>course.id==='mountain'?timeOfDay:'day';
 const stars=count=>'★'.repeat(count)+'☆'.repeat(3-count);
@@ -85,7 +90,7 @@ const missionPicker=document.createElement('label');missionPicker.className='mis
 const proPicker=document.createElement('nav');proPicker.className='pro-picker';proPicker.setAttribute('aria-label','Optional pro trials');proPicker.hidden=true;missionPicker.before(proPicker);
 const expeditionPrep=document.createElement('section');expeditionPrep.className='expedition-prep';expeditionPrep.hidden=true;expeditionPrep.setAttribute('aria-label','Gauntlet preparation');expeditionPrep.innerHTML='<strong>Gorge gauntlet · four connected chapters</strong><ol><li>Gorge crossing · 4L / L, exposed edges</li><li>Ratchet climb · wheel placement and descent</li><li>Surge & stop · 4H / 2, then stop and select 4L / L</li><li>High reverse pocket · R positioning, then L exit</li></ol><p data-kit-status></p><p>Event rules require all-terrain or mud-terrain tyres and a raised intake for the fictional dust/spray environment. These are eligibility checks, not measured upgrades to grip, power or water capability. No water entry is allowed. A snorkel does not waterproof a Jimny.</p><p>Falling or entering the pool restarts the current chapter on dry ground. Previous chapters remain complete; each recovery costs eight score points.</p><a href="index.html#garage" data-prep-garage>Prepare your build in the garage →</a>';
 missionPicker.after(expeditionPrep);expeditionPrep.querySelector('[data-prep-garage]').onclick=()=>save('thatsuvmod-trial-return',{mission:'pro-gorge-gauntlet',course:'urban'});
-const styleLabel=document.createElement('label');styleLabel.className='style-picker';styleLabel.innerHTML='Driving style<select id="driveStyle"><option value="adventure">Adventure · automatic 4×4, more power, star times</option><option value="sim">Simulator · manual selector and transfer lever</option></select>';document.querySelector('.briefing .choices').prepend(styleLabel);
+const styleLabel=document.createElement('label');styleLabel.className='style-picker';styleLabel.innerHTML='Driving style<select id="driveStyle"><option value="adventure">Adventure · automatic 4×4 and trail events</option><option value="sim">Simulator · manual selector and transfer lever</option></select>';document.querySelector('.briefing .choices').prepend(styleLabel);
 $('driveStyle').value=driveStyle;$('driveStyle').onchange=()=>{driveStyle=$('driveStyle').value;save(styleStorageKey,driveStyle);renderLobby();};
 const timeLabel=document.createElement('label');timeLabel.className='style-picker';timeLabel.innerHTML='Time of day<select id="timeOfDay"><option value="day">Day</option><option value="dusk">Golden hour · low sun, long shadows</option><option value="night">Night · moonlight and headlights</option></select>';styleLabel.after(timeLabel);
 $('timeOfDay').value=timeOfDay;$('timeOfDay').onchange=()=>{timeOfDay=$('timeOfDay').value;save(timeStorageKey,timeOfDay);if(view&&!running){view.setTimeOfDay(skyMode());view.render(state,gate,0);}};
@@ -193,8 +198,8 @@ function renderLobby(){
   styleLabel.hidden=timeLabel.hidden=selected.id!=='mountain';$('lobby').dataset.style=adventureSelected()?'adventure':'sim';
   trialLabel.hidden=lessons||$('freeRoam').checked||adventureSelected();
   $('courseList').hidden=lessons;
-  $('courseList').replaceChildren(...COURSES.filter(c=>c.id!=='school').map(c=>{const b=document.createElement('button');b.type='button';b.dataset.course=c.id;b.setAttribute('aria-pressed',String(c.id===selected.id));const title=document.createElement('strong');title.textContent=c.name;const time=document.createElement('span');time.textContent=c.time;const note=document.createElement('small');note.textContent=c.place;b.append(title,time,note);b.onclick=()=>{selected=c;renderLobby();};return b;}));
-  $('coursePlace').textContent=selected.place;$('briefTitle').textContent=selected.name;$('briefDescription').textContent=adventureSelected()?'Three events in one high Himalayan valley: a stream you can ford, a timber bridge, winding switchbacks to a prayer-flagged pass and a paved high road back down. Inspired by Lahaul, Spiti and the Kullu passes; the map itself is fictional.':selected.description;$('lessonList').replaceChildren(...(adventureSelected()?['Beat the star times','Detour for apples: 2 seconds each','Ford the river, climb the rocks, find your own line']:selected.lessons).map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
+  $('courseList').replaceChildren(...COURSES.filter(c=>c.id==='mountain').map(c=>{const b=document.createElement('button');b.type='button';b.dataset.course=c.id;b.setAttribute('aria-pressed',String(c.id===selected.id));const title=document.createElement('strong');title.textContent=c.name;const time=document.createElement('span');time.textContent=c.time;const note=document.createElement('small');note.textContent=c.place;b.append(title,time,note);b.onclick=()=>{selected=c;renderLobby();};return b;}));
+  $('coursePlace').textContent=selected.place;$('briefTitle').textContent=selected.name;$('briefDescription').textContent=adventureSelected()?'Explore one high Himalayan valley. Race the pass road, find apples along the river or take on three precision drives. Inspired by Lahaul, Spiti and the Kullu passes; the map itself is fictional.':selected.description;$('lessonList').replaceChildren(...(adventureSelected()?['Race the timed trails','Earn precision stars with a clean drive','Explore the valley in free roam']:selected.lessons).map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
   const missions=lobbyMissions();if(!missions.some(m=>m.id===selectedMission))selectedMission=(missions.find(m=>!m.expertTrial)||missions[0]).id;
   const trials=missions.filter(m=>m.expertTrial);proPicker.hidden=!trials.length;proPicker.replaceChildren();if(trials.length){const title=document.createElement('strong');title.textContent='PRO TRIALS / exposed edges';proPicker.append(title);for(const m of trials){const button=document.createElement('button');button.type='button';button.textContent=m.name.split(' / ')[1];button.setAttribute('aria-pressed',String(selectedMission===m.id&&!$('freeRoam').checked));button.onclick=()=>{selectedMission=m.id;$('freeRoam').checked=false;renderLobby();};proPicker.append(button);}}
   $('missionChoice').replaceChildren(...missions.map(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=adventureSelected()&&ADVENTURE_MISSIONS[m.id]?.name||m.name;return o;}));$('missionChoice').value=selectedMission;
@@ -203,6 +208,12 @@ function renderLobby(){
   const key=`${selected.worldId}-${selectedMission}-${$('difficulty').value}-${$('bodyChoice').value}`,record=records[key],trial=trialRecords[key];$('best').textContent=record?`Your best: ${record.score}/100 · ${record.medal}. Chain clean checkpoints and protect your line score.`:'Clear checkpoints cleanly and protect your line score. Impacts and recoveries cost points.';if(!trialLabel.hidden&&$('timeTrial').checked)$('best').textContent+=Number.isFinite(trial)?` Personal best: ${formatTrialTime(trial)}.`:' Set your first personal best. Score at least 70 to qualify.';
   $('buildNote').textContent=adventureSelected()?'Saved paint, decals and supported visual parts carry over. Adventure style raises power and grip for play; it does not represent a stock Jimny or any product.':'Saved paint, decals and supported visual parts carry over. Driving uses approximate stock mechanical settings, not claimed product performance.';
   if(adventureSelected()&&!$('freeRoam').checked){const best=adventureRecords[key+'-adventure'],par=ADVENTURE_MISSIONS[selectedMission]?.par;$('best').textContent=(best?`Your best: ${formatRaceTime(best.seconds)} · ${stars(best.stars)}. `:'')+(par?`Three stars under ${formatRaceTime(par[0])}, two under ${formatRaceTime(par[1])}. ${lobbyMission().hunt?'The clock is the score.':`Each apple takes ${ADVENTURE.appleBonus} seconds off.`}`:'');}
+  if(adventureSelected() && lobbyMission().technical && !$('freeRoam').checked){
+    const best=adventureRecords[technicalKey(key+'-adventure')];
+    $('best').textContent=(best?`Best ${stars(best.stars)} · fastest finish ${formatRaceTime(best.seconds)}. `:'')+
+      'One star for finishing, two without recovery, three for a clean run. Time is a separate personal best.';
+    $('buildNote').textContent='Stock power and grip with automatic shifting. Both Jimny body lengths can enter.';
+  }
   const needsKit=!$('freeRoam').checked&&lobbyMission().equipmentRequired,kit=gauntletEquipment(build,window.JIMNY_MARKET_PRODUCTS||[]);expeditionPrep.hidden=!needsKit;
   expeditionPrep.querySelector('[data-kit-status]').textContent=kit.ready?'Saved build ready: off-road tyres + raised intake.':`Missing from your saved build: ${kit.missing.join(' + ')}.`;
   expeditionPrep.dataset.ready=String(kit.ready);$('startButton').disabled=!sceneReady||loading||!!needsKit&&!kit.ready;
@@ -227,6 +238,7 @@ function coaching(){
   if(adventure){
     if(countdown>0)return 'Get ready. Accelerate with W or the right pedal. S brakes; hold it when stopped to reverse.';
     if(stuckCam)return `Stuck on the ${WHEEL_NAMES[stuckWheel(state)].toLowerCase()} corner. Hold S to back up, then take a different line.`;
+    if(technicalRun)return challengeHint();
     if(state.gear==='R')return 'Reversing. Press accelerate to drive forward again.';
     if(freeRoam)return 'Free roam. Explore anywhere; Recover puts you back on your wheels.';
     if(hunt)return 'Collect every apple in any order. The marker shows the nearest. Cross the stream at the bridge or a ford.';
@@ -257,11 +269,20 @@ function coaching(){
   if(Math.abs(state.roll)>.1)return 'Uneven ground: reduce speed, avoid abrupt steering and keep the car aligned with the track.';
   return course.theme==='urban'?(loose?cueText('articulation'):cueText('urban-line')):course.id==='sand'?cueText('sand-line'):cueText('mountain-line');
 }
+function challengeHint(){
+  if(mission.id==='rock-garden'&&!technicalRun.line)return 'Choose either marked opening. Left climbs the steps. Right follows the riverbank.';
+  if(gates[gate].action==='yield'){
+    if(!insideBay(state))return 'Bring the whole Jimny back inside the marked bay. The convoy is waiting.';
+    return 'Release the pedals. The Jimny will hold while both vehicles pass.';
+  }
+  return gates[gate].hint || (mission.id==='hairpin-delivery'?'Keep the camera case steady. A three-point turn is fine.':'Place your wheels between the posts. You can stop or reverse to adjust.');
+}
+
 function drawMap(){
   const c=$('map').getContext('2d'),b=world.bounds,scale=156/world.size,x=v=>12+(b.maxX-v)*scale,z=v=>168-(v-b.minZ)*scale;c.clearRect(0,0,180,180);c.strokeStyle='#78878c';c.lineWidth=1;c.strokeRect(12,12,156,156);
   for(const place of world.discoveries||[]){c.fillStyle=discovered.has(place.id)?'#91b19b':'#efab74';c.beginPath();c.arc(x(place.x),z(place.z),3,0,Math.PI*2);c.fill();}
   if(hunt)tokens.forEach((apple,index)=>{if(takenTokens.has(index))return;c.fillStyle='#ff6b5e';c.beginPath();c.arc(x(apple.x),z(apple.z),3.2,0,Math.PI*2);c.fill();});
-  if(!freeRoam&&gates.length){c.strokeStyle='#cc8b60';c.lineWidth=2;c.beginPath();gates.forEach((p,i)=>i?c.lineTo(x(p.x),z(p.z)):c.moveTo(x(p.x),z(p.z)));c.stroke();const goal=gates[gate];c.fillStyle='#f8c19c';c.beginPath();c.arc(x(goal.x),z(goal.z),4,0,Math.PI*2);c.fill();}
+  if(!freeRoam&&gates.length){c.strokeStyle='#cc8b60';c.lineWidth=2;c.beginPath();gates.forEach((p,i)=>i?c.lineTo(x(p.x),z(p.z)):c.moveTo(x(p.x),z(p.z)));c.stroke();const goal=gates[gate];if(goal.alternate){c.fillStyle='#f8c19c';c.beginPath();c.arc(x(goal.alternate.x),z(goal.alternate.z),4,0,Math.PI*2);c.fill();}c.fillStyle='#f8c19c';c.beginPath();c.arc(x(goal.x),z(goal.z),4,0,Math.PI*2);c.fill();}
   c.save();c.translate(x(state.x),z(state.z));c.rotate(-state.yaw);c.fillStyle='#fff9df';c.beginPath();c.moveTo(0,-6);c.lineTo(4,5);c.lineTo(-4,5);c.closePath();c.fill();c.restore();
 }
 function updateHUD(){
@@ -275,7 +296,14 @@ function updateHUD(){
   const nearest=hunt?nearestApple(state,tokens,takenTokens):null;
   $('checkpointLabel').textContent=hunt?`Apples ${takenTokens.size} / ${tokens.length}${nearest?` · nearest ${Math.round(Math.hypot(state.x-nearest.x,state.z-nearest.z))} m`:''}`:freeRoam?(world.discoveries?.length?`Free roam · ${discovered.size}/${world.discoveries.length} places found`:`Free roam · ${Math.round(world.size)} m yard`):`Checkpoint ${gate+1} / ${gates.length} · ${Math.round(Math.hypot(state.x-gates[gate].x,state.z-gates[gate].z))} m`;$('progress').hidden=freeRoam;$('progress').max=hunt?tokens.length:gates.length;$('progress').value=hunt?takenTokens.size:gate;$('courseLabel').textContent=freeRoam?course.name:missionTitle();
   $('lineScore').hidden=freeRoam;$('lineScore').textContent=`Line score ${resultFor(state,course,difficulty,mission.id).score}/100${cleanGateStreak>1?` · ${cleanGateStreak} clean gates`:''}${timeTrialActive?` · ${formatTrialTime(state.elapsed)}`:''}`;
-  if(adventure&&!freeRoam){const time=raceTime(),par=ADVENTURE_MISSIONS[mission.id]?.par||[90,130];$('lineScore').textContent=countdown>0?'Get ready':`${formatRaceTime(time)} · ${time<=par[0]?`★★★ under ${formatRaceTime(par[0])}`:time<=par[1]?`★★ under ${formatRaceTime(par[1])}`:'★'}${tokens.length?` · apples ${takenTokens.size}/${tokens.length}`:''}`;}
+  if(technicalRun){
+    const faults=technicalRun.hardHits+technicalRun.cuts;
+    const label=mission.id==='hairpin-delivery'?(technicalRun.hardHits?'Case jolted':'Case intact'):
+      mission.id==='rock-garden'?(rockLineNames[technicalRun.line]||'Choose either line'):
+      gates[gate].action==='yield'?`Convoy · ${Math.ceil(convoyDuration-technicalRun.convoyTime)} s`:'Passing place';
+    $('lineScore').textContent=countdown>0?'Get ready':`${label} · ${faults} faults · ${state.recoveries} recoveries`;
+    if(gates[gate].hint || !technicalRun.line && mission.id==='rock-garden')$('checkpointLabel').textContent=challengeHint();
+  }else if(adventure&&!freeRoam){const time=raceTime(),par=ADVENTURE_MISSIONS[mission.id]?.par||[90,130];$('lineScore').textContent=countdown>0?'Get ready':`${formatRaceTime(time)} · ${time<=par[0]?`★★★ under ${formatRaceTime(par[0])}`:time<=par[1]?`★★ under ${formatRaceTime(par[1])}`:'★'}${tokens.length?` · apples ${takenTokens.size}/${tokens.length}`:''}`;}
   if(mission.chained&&!freeRoam)$('checkpointLabel').textContent=`Chapter ${gates[gate].chapter+1}/4 · ${GAUNTLET_STAGES[gates[gate].chapter].name} · ${gate+1}/${gates.length}`;
   const message=coaching();if($('coachText').textContent!==message)$('coachText').textContent=message;
   if(running&&message!==lastSpokenCue&&voice.sayAutomatic(message))lastSpokenCue=message;
@@ -296,21 +324,22 @@ async function start(){
   voice.stop();voice.resetAutomatic();voiceEvents.length=0;voice.setEnabled(voiceWanted);lastSpokenCue='';spotter.reset();
   const nextBody=$('bodyChoice').value,nextCourse=selected,nextDifficulty=$('difficulty').value;
   proAirborne=null;
-  try{await Promise.all([view.loadVehicle(nextBody,build),view.prepareWorld(nextCourse)]);updatePlayer();const nextAdventure=nextCourse.id==='mountain'&&driveStyle==='adventure',reuseWorld=course.id===nextCourse.id&&difficulty===nextDifficulty&&!!world.openWater===nextAdventure;course=nextCourse;difficulty=nextDifficulty;if(!reuseWorld)world=makeWorld(course,difficulty,{adventure:nextAdventure});adventure=course.id==='mountain'&&driveStyle==='adventure';const event=adventure&&(ADVENTURE_EVENTS.find(m=>m.id===selectedMission)||ADVENTURE_EVENTS[0]);mission=event?{...event,spawn:event.spawn||getMission(course,event.chain[0]).spawn}:getMission(course,selectedMission);freeRoam=$('freeRoam').checked;hunt=adventure&&!freeRoam&&!!mission.hunt;timeTrialActive=!adventure&&!freeRoam&&course.id!=='school'&&$('timeTrial').checked;gates=adventure?adventureRoute(mission,id=>makeGates(course,difficulty,id)):makeGates(course,difficulty,mission.id);$('game').dataset.style=adventure?'adventure':'sim';state=createVehicle(nextBody);Object.assign(state,(!freeRoam&&mission.spawn)||world.spawn||{x:0,z:0,yaw:0});
+  try{await Promise.all([view.loadVehicle(nextBody,build),view.prepareWorld(nextCourse)]);updatePlayer();const nextAdventure=nextCourse.id==='mountain'&&driveStyle==='adventure',reuseWorld=course.id===nextCourse.id&&difficulty===nextDifficulty&&!!world.openWater===nextAdventure;course=nextCourse;difficulty=nextDifficulty;if(!reuseWorld)world=makeWorld(course,difficulty,{adventure:nextAdventure});adventure=course.id==='mountain'&&driveStyle==='adventure';const event=adventure&&(ADVENTURE_EVENTS.find(m=>m.id===selectedMission)||ADVENTURE_EVENTS[0]);mission=event?{...event,spawn:event.spawn||getMission(course,event.chain[0]).spawn}:getMission(course,selectedMission);freeRoam=$('freeRoam').checked;hunt=adventure&&!freeRoam&&!!mission.hunt;technicalRun=adventure&&!freeRoam&&mission.technical?createChallengeRun():null;timeTrialActive=!adventure&&!freeRoam&&course.id!=='school'&&$('timeTrial').checked;gates=adventure?adventureRoute(mission,id=>makeGates(course,difficulty,id)):makeGates(course,difficulty,mission.id);$('game').dataset.style=adventure?'adventure':'sim';state=createVehicle(nextBody);Object.assign(state,(!freeRoam&&mission.spawn)||world.spawn||{x:0,z:0,yaw:0});
     // Scenery review only: free roam can start at "#at=x,z,yaw". It carries no score.
     const review=freeRoam&&/^#at=(-?[\d.]+),(-?[\d.]+)(?:,(-?[\d.]+))?$/.exec(location.hash);if(review)Object.assign(state,{x:+review[1],z:+review[2],yaw:+(review[3]||0)});
-    state.y=(world.supportHeight||world.height)(state.x,state.z);gate=0;lastCollision=0;cleanGateStreak=0;segmentIncidents=0;losses=createLossLedger();splits=[];takenTokens=new Set();if(adventure&&gates.length>1&&Math.hypot(gates[0].x-state.x,gates[0].z-state.z)<7)gates.shift();tokens=adventure&&!freeRoam?(hunt?huntApples(world,mission.hunt):adventureApples(state,gates,world)):[];view.setTokens(tokens);crumbs.reset();previousPose=null;wasWading=false;edgeWarned=-Infinity;countdown=adventure&&!freeRoam?3:0;raceStart=0;racePenalty=0;stuckCam=false;upsideDown=0;if(adventure){state.gear='D';state.range='4H';}discovered.clear();state.wheelHeights=[0,0,0,0];replayBuffer.reset();rigidVehicle?.dispose();rigidVehicle=null;const physicsMark=performance.now();rigidVehicle=await createRigidVehicle(world,state);timings.physics=performance.now()-physicsMark;view.setWorld(world,freeRoam?[]:gates);view.finishWorld();view.setTimeOfDay(skyMode());view.setBeaconTarget(null);started=true;noticeUntil=0;for(const id of ['hud','quick','console'])$(id).hidden=false;updateHUD();resume();}
+    state.y=(world.supportHeight||world.height)(state.x,state.z);gate=0;lastCollision=0;cleanGateStreak=0;segmentIncidents=0;losses=createLossLedger();splits=[];takenTokens=new Set();if(adventure&&gates.length>1&&Math.hypot(gates[0].x-state.x,gates[0].z-state.z)<7)gates.shift();tokens=adventure&&!freeRoam&&!technicalRun?(hunt?huntApples(world,mission.hunt):adventureApples(state,gates,world)):[];view.setTokens(tokens);crumbs.reset();previousPose=null;wasWading=false;edgeWarned=-Infinity;countdown=adventure&&!freeRoam?3:0;raceStart=0;racePenalty=0;stuckCam=false;upsideDown=0;if(adventure){state.gear='D';state.range='4H';}discovered.clear();state.wheelHeights=[0,0,0,0];replayBuffer.reset();rigidVehicle?.dispose();rigidVehicle=null;const physicsMark=performance.now();rigidVehicle=await createRigidVehicle(world,state,{convoy:technicalRun&&mission.id==='passing-place'?convoyPoses():[]});timings.physics=performance.now()-physicsMark;view.setWorld(world,freeRoam?[]:gates);view.finishWorld();view.setChallenge(technicalRun?mission:null,technicalRun);$('retryChallenge').hidden=!technicalRun;view.setTimeOfDay(skyMode());view.setBeaconTarget(null);started=true;noticeUntil=0;for(const id of ['hud','quick','console'])$(id).hidden=false;updateHUD();resume();}
   catch(error){$('buildNote').textContent='The vehicle or driving world could not start. Your saved build is safe; please retry or reload.';console.error(error);}
   finally{loading=false;$('startButton').disabled=false;$('startButton').textContent='Drive this course';renderLobby();}
 }
 function recover(){
-  cleanGateStreak=0;segmentIncidents++;if(adventure&&!freeRoam&&countdown<=0)racePenalty+=ADVENTURE.recoverPenalty;
+  cleanGateStreak=0;segmentIncidents++;if(adventure&&!freeRoam&&!technicalRun&&countdown<=0)racePenalty+=ADVENTURE.recoverPenalty;
   proAirborne=null;
+  if(technicalRun){technicalRun.airTime=0;technicalRun.fallSpeed=0;technicalRun.outsideTime=0;technicalRun.outside=false;technicalRun.backedIn=false;}
   spotter.reset();
   replayBuffer.cut();
   if(mission.chained&&!freeRoam){const restart=gauntletRecovery(gates,gate);gate=restart.gate;Object.assign(state,restart.spawn);state.y=(world.supportHeight||world.height)(state.x,state.z);state.vx=state.vz=state.speed=state.steer=state.slip=state.throttle=0;state.parking=true;state.gear='N';state.recoveries++;rigidVehicle?.reset(state);view.resetCamera();clearInputs();announce(`Chapter ${restart.chapter+1}/4 restarted: ${restart.name}. Earlier chapters kept. Eight score points used. Select the required range and gear; release the parking brake.`);return;}
   // Adventure and free roam put the car back a moment before the trouble, not at the last checkpoint or the start.
-  const crumb=adventure||freeRoam?crumbs.back(state.elapsed):null,point=crumb||(!freeRoam&&gate?gates[gate-1]:((!freeRoam&&mission.spawn)||world.spawn||{x:0,z:0,yaw:0})),next=gates[gate];previousPose=null;state.x=point.x;state.z=point.z;state.y=(world.supportHeight||world.height)(point.x,point.z);state.yaw=crumb?crumb.yaw:freeRoam||!next?(point.yaw||0):mission.expertTrial?(point.heading??point.yaw??0):Math.atan2(next.x-point.x,next.z-point.z);state.vx=state.vz=state.speed=state.steer=state.slip=state.throttle=0;state.parking=true;state.gear='N';state.recoveries++;state.penalty+=0;rigidVehicle?.reset(state);view.resetCamera();clearInputs();announce(adventure?(freeRoam?'Back on your wheels.':`Back on the trail where you left it. ${ADVENTURE.recoverPenalty} seconds added.`):freeRoam?(crumb?'Recovered a few metres back. Choose D and release the parking brake.':'Returned to the start. Choose D and release the parking brake.'):'Recovered to your last checkpoint. Eight score points used. Select the required gear and release the parking brake.');
+  const crumb=adventure||freeRoam?crumbs.back(state.elapsed):null,point=crumb||(!freeRoam&&gate?gates[gate-1]:((!freeRoam&&mission.spawn)||world.spawn||{x:0,z:0,yaw:0})),next=gates[gate];previousPose=null;state.x=point.x;state.z=point.z;state.y=(world.supportHeight||world.height)(point.x,point.z);state.yaw=crumb?crumb.yaw:freeRoam||!next?(point.yaw||0):mission.expertTrial?(point.heading??point.yaw??0):Math.atan2(next.x-point.x,next.z-point.z);state.vx=state.vz=state.speed=state.steer=state.slip=state.throttle=0;state.parking=true;state.gear='N';state.recoveries++;state.penalty+=0;rigidVehicle?.reset(state);view.resetCamera();clearInputs();announce(technicalRun?'Recovered. Finish this run for one star, or retry from the pause menu.':adventure?(freeRoam?'Back on your wheels.':`Back on the trail where you left it. ${ADVENTURE.recoverPenalty} seconds added.`):freeRoam?(crumb?'Recovered a few metres back. Choose D and release the parking brake.':'Returned to the start. Choose D and release the parking brake.'):'Recovered to your last checkpoint. Eight score points used. Select the required gear and release the parking brake.');
 }
 function mountainContinuation(courseId,missionId){
   if(courseId!=='mountain')return null;
@@ -336,9 +365,24 @@ function finish(){
   const continuation=mountainContinuation(course.id,mission.id);
   $('resultAdvice').textContent=(continuation?.advice||(r.score>=90?'A controlled run. Try a tighter line on the next challenge.':coachingTip(lost)||'Try again with earlier braking, smaller steering inputs and less wheelspin.'))+(persisted?' Your best score is saved on this device.':' Browser storage is unavailable; this score could not be saved.');$('nextCourse').textContent=continuation?.label||(course.id==='school'?(getMissions(course).at(-1).id===mission.id?'Choose another lesson':'Next lesson'):'Choose the next trail');showDialog('results');voice.sayCue('mission-complete',{force:true});
 }
+function finishTechnical(){
+  const seconds=challengeClock(),earned=technicalStars(technicalRun,state.recoveries),key=technicalKey(runKey());
+  const best=technicalRecord(adventureRecords[key],seconds,earned);
+  adventureRecords[key]=best;save(adventureStorageKey,adventureRecords);
+  $('resultTitle').textContent=stars(earned);$('resultTitle').setAttribute('aria-label',`${earned} of 3 stars`);
+  $('resultText').textContent=`${missionTitle()} · ${state.body==='3door'?'3-door':'5-door'}${technicalRun.line?' · '+rockLineNames[technicalRun.line]:''}`;
+  const stats=[[formatRaceTime(seconds),'Time'],[String(technicalRun.hardHits),'Hard impacts'],[String(technicalRun.cuts),'Trail departures'],[String(state.recoveries),'Recoveries']];
+  $('resultStats').replaceChildren(...stats.map(([value,label])=>{
+    const tile=document.createElement('div'),n=document.createElement('strong'),caption=document.createElement('span');
+    n.textContent=value;caption.textContent=label;tile.append(n,caption);return tile;
+  }));
+  const tip=state.recoveries?'Finish without using Recover for a second star.':technicalRun.hardHits?'Slow down before the rough section and settle the wheels before the next ledge.':technicalRun.cuts?'Keep the wheels on your chosen line between the posts.':technicalRun.line?'Try the other line to the lookout.':'Clean drive. All three stars earned.';
+  $('resultAdvice').textContent=`${tip} Personal best ${stars(best.stars)} · fastest finish ${formatRaceTime(best.seconds)}.`;
+}
 function finishAdventure(){
   document.querySelector('[data-loss-list]')?.remove();
   state.finished=true;state.vx=state.vz=state.speed=0;state.parking=true;running=false;
+  if(technicalRun){finishTechnical();$('nextCourse').textContent='Next trail';showDialog('results');voice.sayCue('mission-complete',{force:true});return;}
   const seconds=raceTime(),par=ADVENTURE_MISSIONS[mission.id]?.par||[90,130],earned=adventureStars(seconds,par),key=runKey(),previous=adventureRecords[key],isBest=!previous||seconds<previous.seconds;
   if(isBest){adventureRecords[key]={seconds:+seconds.toFixed(1),stars:earned,tokens:takenTokens.size,date:new Date().toISOString()};save(adventureStorageKey,adventureRecords);bestSplits[key]=[...splits];save(splitStorageKey,bestSplits);}
   $('resultTitle').textContent=stars(earned);$('resultTitle').setAttribute('aria-label',`${earned} of 3 stars`);$('resultText').textContent=`${missionTitle()} · ${state.body==='3door'?'3-door':'5-door'} Jimny`;
@@ -350,7 +394,7 @@ function finishAdventure(){
 function updateStuckCam(){
   const current=$('cameraButton').value;
   if(!adventure){if(current==='wheels'&&(spotter.lowProgress>.6||state.wheelContacts?.includes(false)))view.setFocusWheel(stuckWheel(state));return;}
-  const stuck=countdown<=0&&spotter.lowProgress>1.1&&Math.abs(state.speed)<.8;
+  const stuck=countdown<=0&&!(technicalRun&&gates[gate].action==='yield')&&spotter.lowProgress>1.1&&Math.abs(state.speed)<.8;
   if(stuck&&!stuckCam&&current!=='wheels'){stuckCam=true;stuckClear=0;stuckReturn=current;view.setFocusWheel(stuckWheel(state));$('cameraButton').value=view.setCamera('wheels');updateCameraLabel();toast('Stuck?','Hold S to back up, then try another line');}
   else if(stuckCam){
     stuckClear=Math.abs(state.speed)>1.4?stuckClear+.1:0;
@@ -366,7 +410,11 @@ function physicsTick(){
       const before=Math.ceil(countdown);countdown-=1/60;state.parking=true;input={steer:0,throttle:0,brake:1,handbrake:false};
       if(countdown<=0){raceStart=state.elapsed;state.parking=false;toast('Go!',missionTitle());trailAudio.cue('checkpoint');}
       else if(Math.ceil(countdown)!==before||before===3&&countdown>2.97)toast(String(Math.ceil(countdown)));
-    }else input=adventureDrive(state,input,world.surface(state.x,state.z));
+    }else {
+      const surface=world.surface(state.x,state.z);
+      input=technicalRun?technicalDrive(state,input,surface,gates[gate]):adventureDrive(state,input,surface);
+      if(technicalRun && mission.id==='passing-place')rigidVehicle?.setConvoy(convoyPoses());
+    }
     // Water slows the car in proportion to its depth; the last metres before the map edge are deep scree, not a wall.
     const level=world.waterSurface?.(state.x,state.z),b=world.bounds,edge=Math.min(state.x-b.minX,b.maxX-state.x,state.z-b.minZ,b.maxZ-state.z);
     state.wading=level==null?0:Math.max(0,level-state.y);state.extraDrag=Math.min(1,state.wading/.7)+3*clamp((16-edge)/16,0,1);
@@ -378,7 +426,7 @@ function physicsTick(){
   const hazard=world.recoveryReason?.(state);if(hazard){recover();announce(hazard+(mission.chained&&!freeRoam?` Chapter ${gates[gate].chapter+1}/4 restarted on dry ground; earlier chapters kept.`:''),7);return;}
   if(adventure){
     upsideDown=Math.abs(state.roll)>1.25||Math.abs(state.pitch)>1.25?upsideDown+1/60:0;
-    if(upsideDown>1.4){upsideDown=0;recover();toast('Rolled over',freeRoam?'Back on your wheels':`Back on your wheels · +${ADVENTURE.recoverPenalty} s`);return;}
+    if(upsideDown>1.4){upsideDown=0;recover();toast('Rolled over',technicalRun?'Recovered on the trail':freeRoam?'Back on your wheels':`Back on your wheels · +${ADVENTURE.recoverPenalty} s`);return;}
     for(const index of collectApples(state,tokens,takenTokens)){takenTokens.add(index);view.takeToken(index);trailAudio.cue('checkpoint');haptic(.3,70);toast(`Apple ${takenTokens.size} / ${tokens.length}`,hunt?(takenTokens.size<tokens.length?`${tokens.length-takenTokens.size} to find`:'All found'):`−${ADVENTURE.appleBonus} s`);}
     if(hunt&&countdown<=0&&tokens.length&&takenTokens.size===tokens.length){finish();return;}
   }
@@ -392,7 +440,30 @@ function physicsTick(){
   if(state.impact>.8&&state.elapsed-lastCollision>1){state.penalty+=6;losses.impacts+=6;view.impact(Math.min(.3,state.impact*.06));haptic(Math.min(1,.4+state.impact/4),160);lastCollision=state.elapsed;segmentIncidents++;cleanGateStreak=0;spotter.contact(state.elapsed);trailAudio.cue('impact');if(!adventure)announce(cueText('contact'),3);}
   // Open worlds have physical perimeter barriers, not invisible corridor resets.
   if(!adventure&&!world.contains(state.x,state.z,4)&&performance.now()>noticeUntil)announce(cueText('world-edge'),3);
-  if(!freeRoam&&!hunt){const status=adventure?{reached:countdown<=0&&adventureGateReached(state,gates[gate])}:checkpointStatus(state,gates[gate],difficulty);
+  if(!freeRoam&&!hunt){
+    let status;
+    if(technicalRun){
+      status={reached:false};
+      if(countdown<=0){
+        const fork=mission.id==='rock-garden' && !technicalRun.line;
+        if(fork && state.wheelContacts.filter(Boolean).length>=2){
+          const line=chooseRockLine(state,gates[0]);
+          if(line){
+            technicalRun.line=line;
+            gates=challengeRoute(mission,id=>makeGates(course,difficulty,id),line);
+            // The fork is only an option before a line is chosen.
+            delete gates[0].alternate;
+            view.setWorld(world,gates,{keepCamera:true});toast(rockLineNames[line],'Follow the posts to the lookout');
+          }
+        }
+        const hits=technicalRun.hardHits,cuts=technicalRun.cuts;
+        updateChallenge(technicalRun,mission,gates,gate,state,1/60);
+        if(technicalRun.hardHits>hits)toast(mission.id==='hairpin-delivery'?'Camera case jolted':'Hard impact','Ease off before the next obstacle');
+        if(technicalRun.cuts>cuts)toast('Outside the marked trail','Rejoin the line to continue');
+        const positionReached=adventureGateReached(state,gates[gate]);
+        status.reached=(!fork||!!technicalRun.line) && challengeGateReached(technicalRun,state,gates[gate],positionReached);
+      }
+    }else status=adventure?{reached:countdown<=0&&adventureGateReached(state,gates[gate])}:checkpointStatus(state,gates[gate],difficulty);
     if(status.reached){cleanGateStreak=segmentIncidents?0:cleanGateStreak+1;segmentIncidents=0;splits.push(state.elapsed);if(gate===gates.length-1)finish();else{gate++;trailAudio.cue('checkpoint');checkpointFeedback();if(!adventure)announce(`Checkpoint ${gate} cleared${cleanGateStreak>1?` · ${cleanGateStreak} clean gates in a row`:''}. ${trainingRequirement()||'Choose your line to the next marker.'}`,3);}}
   }
   replayBuffer.add(state,gate);
@@ -400,6 +471,7 @@ function physicsTick(){
   spotter.update(state,input,world);
 }
 function checkpointFeedback(){
+  if(technicalRun){if(gates[gate].hint)toast('Next move',gates[gate].hint);haptic(.25,60);return;}
   const best=timeTrialActive||adventure?bestSplits[runKey()]?.[splits.length-1]:undefined,delta=Number.isFinite(best)?splits.at(-1)-best:null;
   // Long Adventure routes have a gate every few seconds; confirm only every fifth one.
   if(adventure&&gates.length>16&&gate%5){haptic(.2,50);return;}
@@ -409,6 +481,7 @@ function checkpointFeedback(){
 function updateWaypoint(){
   const target=running&&!freeRoam?(hunt?nearestApple(state,tokens,takenTokens):gates[gate]):null;
   if(hunt&&view)view.setBeaconTarget(target?{x:target.x,y:target.y,z:target.z}:null);
+  if(technicalRun && mission.id==='rock-garden' && !technicalRun.line){waypoint.hidden=true;return;}
   if(!target||!view||!stageWidth){waypoint.hidden=true;return;}
   const distance=Math.hypot(state.x-target.x,state.z-target.z);
   // Close enough that the gate itself is the guide.
@@ -459,9 +532,10 @@ $('nextCourse').onclick=async()=>{
     renderLobby();$('nextCourse').disabled=true;try{await start();if(!running)showDialog('lobby');}finally{$('nextCourse').disabled=false;}return;
   }
   if(course.id==='school'){selected=course;const lessons=getMissions(course);selectedMission=lessons[(lessons.findIndex(m=>m.id===mission.id)+1)%lessons.length].id;}
-  else{const destinations=COURSES.filter(c=>c.id!=='school');selected=destinations[(destinations.indexOf(course)+1)%destinations.length];selectedMission=getMissions(selected)[0].id;}
+  else{selected=COURSES.find(c=>c.id==='mountain');const choices=getMissions(selected);selectedMission=choices[(choices.findIndex(m=>m.id===mission.id)+1)%choices.length].id;}
   $('difficulty').value=difficulty;renderLobby();showDialog('lobby');
 };$('replay').onclick=()=>{selected=course;selectedMission=mission.id;$('freeRoam').checked=freeRoam;$('difficulty').value=difficulty;$('bodyChoice').value=state.body;start();};
+$('retryChallenge').onclick=()=>{if(technicalRun&&!loading)$('replay').click();};
 $('resetButton').onclick=()=>{if(running)recover();};
 function syncThumbnail(){const visible=!thumbnailCollapsed&&(wheelPreview!==null||$('cameraButton').value!=='interior');coachPanel.dataset.thumbnail=thumbnailCollapsed?'collapsed':'expanded';coachPanel.dataset.wheelPreview=String(wheelPreview!==null);$('cabinPreview').hidden=!visible;cabinCard.hidden=!visible;thumbnailToggle.hidden=!thumbnailCollapsed||(wheelPreview===null&&$('cameraButton').value==='interior');thumbnailToggle.textContent=wheelPreview!==null?'Show wheel close-up':'Show cabin view';thumbnailToggle.setAttribute('aria-expanded',String(visible));view?.setThumbnailVisible(visible&&(coachPanel.dataset.coaching!=='compact'||wheelPreview!==null));}
 function updateCameraLabel(){const interior=$('cameraButton').value==='interior';$('game').dataset.camera=$('cameraButton').value;$('cabinPreview').setAttribute('aria-label',wheelPreview!==null?`${WHEEL_NAMES[wheelPreview]} live close-up. Open paused inspection.`:`Live cabin controls: ${state.gear}, ${state.range}. ${interior?'Switch to exterior':'Open cockpit'} view.`);$('cabinPreview').setAttribute('aria-pressed',String(interior));$('cabinPreview').querySelector('span').textContent=wheelPreview!==null?'Wheel close-up · inspect':interior?'Return to exterior':'Open cockpit';syncThumbnail();}
@@ -548,6 +622,8 @@ for(const id of ['skyweave','staircase','surge','high-pocket','gorge-gauntlet'])
 if(obstacleReviewMissions[location.hash]){const [id,missionId]=obstacleReviewMissions[location.hash];selected=COURSES.find(c=>c.id===id);selectedMission=missionId;}
 // Himachal is the game's front door; #lessons and the review links still open their own course.
 if(!himachalReviewMissions[location.hash]&&!obstacleReviewMissions[location.hash]&&location.hash!=='#lessons'){selected=COURSES.find(c=>c.id==='mountain');selectedMission=getMissions(selected)[0].id;if(driveStyle==='adventure')$('difficulty').value='driver';}
+const linkedChallenge=ADVENTURE_EVENTS.find(m=>m.technical && location.hash==='#'+m.id);
+if(linkedChallenge){selected=COURSES.find(c=>c.id==='mountain');selectedMission=linkedChallenge.id;driveStyle='adventure';$('driveStyle').value=driveStyle;}
 renderLobby();showDialog('lobby');
 const disclaimer=document.createElement('p');disclaimer.className='fine';disclaimer.textContent='jimnygami is an independent platform and is not affiliated with, endorsed by, or sponsored by Suzuki Motor Corporation or Maruti Suzuki India Limited. Suzuki and Jimny are trademarks of their respective owners.';$('lobby').append(disclaimer);
 try{const mark=performance.now();loadStage('Loading your Jimny…',.55,7);course=selected;difficulty=$('difficulty').value;world=makeWorld(course,difficulty,{adventure:adventureSelected()});timings.world=performance.now()-mark;gates=makeGates(course,difficulty,selectedMission);view=createTrailScene($('stage'));applyGraphics();timings.scene=performance.now()-mark-timings.world;const downloads=Promise.all([view.loadVehicle($('bodyChoice').value,build),view.prepareWorld(course)]);await paint();const warm=performance.now();warmLandscape(world);timings.terrain=performance.now()-warm;await downloads;timings.assets=performance.now()-mark-timings.world-timings.scene;loadStage(course.id==='mountain'?'Shaping the valley…':'Building the course…',.97,4);$('startButton').textContent='Almost there…';await paint();const built=performance.now();view.setWorld(world,gates,{deferDecor:true});view.setTimeOfDay(skyMode());timings.landscape=performance.now()-built;timings.ready=performance.now()-mark;view.setPlayer({...player,nameStyle:build.design||{}});syncKeyboardHints();$('loadStatus').hidden=true;$('stage').setAttribute('aria-busy','false');sceneReady=true;$('startButton').textContent='Drive this course';renderLobby();requestAnimationFrame(frame);

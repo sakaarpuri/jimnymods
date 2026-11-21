@@ -1,3 +1,4 @@
+import {TECHNICAL_EVENTS,challengeRoute,insideBay} from './himachal-challenges.js';
 import {gateReached} from './courses.js';
 
 // Adventure driving for the Himachal trails: an arcade layer over the same
@@ -5,7 +6,7 @@ import {gateReached} from './courses.js';
 // engine force and tyre grip, and scores by time. It is deliberately not a
 // representation of a stock Jimny; Simulator style keeps the guarded controls.
 export const ADVENTURE=Object.freeze({power:1.75,grip:1.15,recoverPenalty:5,appleBonus:2,appleRadius:2.8});
-// Three events in one valley. Names cite Himachal areas as inspiration; the map is fictional.
+// Timed and precision events share one valley. Names cite Himachal areas as inspiration; the map is fictional.
 // par = [three-star, two-star] seconds, set from scripts/adventure-times.mjs. They are not human-tested.
 export const ADVENTURE_EVENTS=Object.freeze([
  {id:'grand-traverse',chain:['rock-river-bypass','mountain-ascent','mountain-tarmac'],name:'Himachal grand traverse',summary:'The whole expedition in one run: riverside climb, timber bridge, winding switchbacks to the prayer-flagged pass and the high road back down. Inspired by the Gramphu–Batal track and the climb to Kunzum La.',skill:'Endurance',mode:'4H',par:[205,285]},
@@ -14,7 +15,7 @@ export const ADVENTURE_EVENTS=Object.freeze([
  {id:'river-run',spawn:{x:62,z:96,yaw:0},route:[[46,112],[41,138],[40,151],[33,158],[22,160],[22,172],[22,183],[10,189],[-4,192],[-13,180],[-9,165],[6,158],[22,156],[36,155],[43,172],[60,190]],name:'River run',summary:'Drop in at the lower ford, drive up the stream bed between the boulders, climb out at the upper ford and cross back to the lookout. Inspired by the nallah crossings on the Gramphu–Batal track.',skill:'Fording',mode:'4H',par:[54,76]},
  // No route at all: every apple, in any order.
  {id:'apple-hunt',spawn:{x:62,z:96,yaw:0},hunt:{count:10,centre:[14,150],radius:88,avoid:[46,140,100,205]},name:'Apple hunt',summary:'Ten apples are scattered across both banks of the stream. Collect them all in any order; the marker points to the nearest. Cross by the bridge or a ford: your route is the puzzle.',skill:'Route finding',mode:'4H',par:[125,170]},
- {id:'rock-garden',chain:['cross-axle'],tight:true,name:'Rock garden',summary:'Slow, technical and unforgiving: thread every pair of posts over the offset rock steps. Driving round them does not count. Inspired by the boulder beds of the Chandra river.',skill:'Wheel placement',mode:'4L',par:[65,95]}
+ ...TECHNICAL_EVENTS
 ]);
 export const ADVENTURE_MISSIONS=Object.freeze(Object.fromEntries(ADVENTURE_EVENTS.map(event=>[event.id,event])));
 export const adventureMission=mission=>ADVENTURE_MISSIONS[mission?.id]||null;
@@ -30,6 +31,7 @@ export function adventureGates(gates,{tight=false}={}){
 }
 // Gates for an event. makeGates is passed in so this module stays free of world state.
 export function adventureRoute(mission,gatesFor){
+  if(mission.technical)return challengeRoute(mission,gatesFor);
   if(mission.hunt)return [];
   if(mission.route)return mission.route.map(([x,z],index,all)=>({x,z,radius:index===all.length-1?5.5:5}));
   const parts=mission.chain.map(id=>adventureGates(gatesFor(id),mission));
@@ -38,8 +40,8 @@ export function adventureRoute(mission,gatesFor){
 }
 export const adventureGateReached=(state,gate)=>gateReached(state,gate);
 // Arcade pedals: the brake becomes reverse once stopped, and the accelerator returns to Drive.
-export function adventureDrive(state,input,surface='loose',dt=1/60){
-  state.parking=false;state.powerScale=ADVENTURE.power;state.gripScale=ADVENTURE.grip;
+export function adventureDrive(state,input,surface='loose',dt=1/60,stock=false){
+  state.parking=false;state.powerScale=stock?1:ADVENTURE.power;state.gripScale=stock?1:ADVENTURE.grip;
   let throttle=input.throttle||0,brake=input.brake||0;
   if(state.gear!=='R'){
     state.gear='D';
@@ -53,6 +55,14 @@ export function adventureDrive(state,input,surface='loose',dt=1/60){
   const paved=surface==='tarmac'||surface==='wet-tarmac',speed=Math.abs(state.speed),steep=Math.abs(state.pitch||0)>.2;
   state.range=paved?'2H':state.range==='4L'?(speed>6.5||!steep&&speed>3?'4H':'4L'):(steep&&speed<2.2&&throttle>.5?'4L':'4H');
   return {...input,throttle,brake};
+}
+export function technicalDrive(state,input,surface,gate){
+  const drive=adventureDrive(state,input,surface,1/60,true);
+  if(gate?.action==='yield' && insideBay(state) && !input.throttle && !input.brake){
+    state.parking=true;
+    return {...drive,throttle:0,brake:1};
+  }
+  return drive;
 }
 export function adventureStars(seconds,par=[90,130]){return seconds<=par[0]?3:seconds<=par[1]?2:1;}
 export function formatRaceTime(seconds){const t=Math.max(0,Number.isFinite(seconds)?seconds:0),whole=Math.floor(t);return `${Math.floor(whole/60)}:${String(whole%60).padStart(2,'0')}.${Math.floor((t-whole)*10)}`;}
