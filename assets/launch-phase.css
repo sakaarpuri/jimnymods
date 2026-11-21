@@ -1,5 +1,4 @@
-/* Drive remains deferred. Part details, buying options and fitters are live. */
-a[href*="game.html"],
+/* Drive, part details, buying options and fitters are live. */
 [data-mode="clubs"],[data-mode="tools"],
 [data-mode-select="clubs"],[data-mode-select="tools"],
 [data-discover="comfort"] {display:none!important}

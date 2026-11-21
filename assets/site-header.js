@@ -9,6 +9,7 @@
     {label:'Parts',mode:'parts',hash:'parts-title'},
     {label:'Fitters & sellers',mode:'fitters',hash:'shops-title'},
     {label:'Trip planner',href:'trip-planner.html',page:'trip',tripPlanner:true},
+    {label:'Drive',href:'game.html',page:'drive'},
   ];
   // Written by index.html whenever the build, region or body changes.
   const CONTEXT_KEY='thatsuvmod-header-context';
