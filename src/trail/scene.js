@@ -265,7 +265,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     });
   }
   // deferDecor: build the drivable world now and leave trees, props and support vehicles to finishWorld().
-  function setWorld(nextWorld,nextGates,{deferDecor=false}={}){
+  function setWorld(nextWorld,nextGates,{deferDecor=false,keepCamera=false}={}){
     const sameWorld=world===nextWorld,nextGateKey=JSON.stringify(nextGates);
     if(sameWorld&&gateKey===nextGateKey)return;
     if(!sameWorld){dispose(worldRoot);gateRoot=null;world=nextWorld;}
@@ -308,7 +308,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     });
     const end=nextGates.at(-1);if(end){const yaw=gateHeading(nextGates,nextGates.length-1),c=Math.cos(yaw),s=Math.sin(yaw),stripe=(x,z,w,d)=>{const wx=end.x+x*c+z*s,wz=end.z-x*s+z*c,o=box(gateRoot,w,.025,d,wx,world.height(wx,wz)+.025,wz,post);o.rotation.y=yaw;};for(let i=-4;i<=4;i++)for(const side of [-1,1])stripe(side*end.radius,i,.08,.9);for(const offset of [-4,4])stripe(0,offset,end.radius*2,.08);}
     applyLighting();
-    firstCamera=true;
+    if(!keepCamera)firstCamera=true;
   }
   function render(state,index,dt,shot=''){
     car.position.set(state.x,state.y,state.z);car.rotation.y=state.yaw;applyVehicleVisualPose(bodyRig,wheels,state,visualBodyLift);contact.position.set(state.x,(world?.height(state.x,state.z)||0)+.015,state.z);contact.rotation.set(-Math.PI/2,0,-state.yaw);

@@ -27,7 +27,8 @@ jobs:
           fi
       - run: node --test tests/himachal-challenges.test.mjs tests/trail-adventure.test.mjs tests/himachal-mountain.test.mjs
       - if: always() && !cancelled()
-        run: node scripts/himachal-challenge-runs.mjs
+        run: |
+          for level in explorer driver expert; do DIFFICULTY=$level node scripts/himachal-challenge-runs.mjs || exit 1; done
   screen:
     runs-on: ubuntu-latest
     timeout-minutes: 18

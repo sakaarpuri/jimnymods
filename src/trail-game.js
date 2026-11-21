@@ -453,7 +453,7 @@ function physicsTick(){
             gates=challengeRoute(mission,id=>makeGates(course,difficulty,id),line);
             // The fork is only an option before a line is chosen.
             delete gates[0].alternate;
-            view.setWorld(world,gates);toast(rockLineNames[line],'Follow the posts to the lookout');
+            view.setWorld(world,gates,{keepCamera:true});toast(rockLineNames[line],'Follow the posts to the lookout');
           }
         }
         const hits=technicalRun.hardHits,cuts=technicalRun.cuts;

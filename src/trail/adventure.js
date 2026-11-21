@@ -6,7 +6,7 @@ import {gateReached} from './courses.js';
 // engine force and tyre grip, and scores by time. It is deliberately not a
 // representation of a stock Jimny; Simulator style keeps the guarded controls.
 export const ADVENTURE=Object.freeze({power:1.75,grip:1.15,recoverPenalty:5,appleBonus:2,appleRadius:2.8});
-// Three events in one valley. Names cite Himachal areas as inspiration; the map is fictional.
+// Timed and precision events share one valley. Names cite Himachal areas as inspiration; the map is fictional.
 // par = [three-star, two-star] seconds, set from scripts/adventure-times.mjs. They are not human-tested.
 export const ADVENTURE_EVENTS=Object.freeze([
  {id:'grand-traverse',chain:['rock-river-bypass','mountain-ascent','mountain-tarmac'],name:'Himachal grand traverse',summary:'The whole expedition in one run: riverside climb, timber bridge, winding switchbacks to the prayer-flagged pass and the high road back down. Inspired by the Gramphu–Batal track and the climb to Kunzum La.',skill:'Endurance',mode:'4H',par:[205,285]},

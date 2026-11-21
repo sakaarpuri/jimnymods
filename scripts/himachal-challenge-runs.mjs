@@ -8,8 +8,10 @@ import {technicalDrive} from '../src/trail/adventure.js';
 import {TECHNICAL_EVENTS,challengeRoute,createChallengeRun,updateChallenge,challengeGateReached,chooseRockLine,technicalStars,convoyPose,station,insideBay} from '../src/trail/himachal-challenges.js';
 
 const mountain=COURSES.find(course=>course.id==='mountain');
-const world=makeWorld(mountain,'driver',{adventure:true});
-const gatesFor=id=>makeGates(mountain,'driver',id);
+const difficulty=process.env.DIFFICULTY || 'driver';
+if(!['explorer','driver','expert'].includes(difficulty))throw new Error('Choose explorer, driver or expert');
+const world=makeWorld(mountain,difficulty,{adventure:true});
+const gatesFor=id=>makeGates(mountain,difficulty,id);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const angle=value=>Math.atan2(Math.sin(value),Math.cos(value));
 const none=new Set();
@@ -58,7 +60,7 @@ for(const body of ['3door','5door'])for(const event of TECHNICAL_EVENTS){
         }
       }
       const stars=finished?technicalStars(run,state.recoveries):0;
-      console.log(JSON.stringify({body,event:event.id,line,finished,stars,gates:index+'/'+gates.length,hits:run.hardHits,cuts:run.cuts,
+      console.log(JSON.stringify({body,difficulty,event:event.id,line,finished,stars,gates:index+'/'+gates.length,hits:run.hardHits,cuts:run.cuts,
         seconds:+state.elapsed.toFixed(1),position:[state.x,state.z,state.yaw].map(v=>+v.toFixed(2)),reverseIndex}));
       if(stars!==3)failed++;
     }finally{engine.dispose();}
