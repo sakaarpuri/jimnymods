@@ -11,6 +11,10 @@ for(const difficulty of (process.env.DIFFICULTY||'driver').split(',')){
  const world=makeWorld(course,difficulty,{adventure:true});const rocks=world.obstacles.filter(o=>o.type==='rock'&&o.radius>.6);
  for(const mission of ADVENTURE_EVENTS){
   if(process.env.MISSION&&mission.id!==process.env.MISSION)continue;
+  if(mission.technical){
+    if(process.env.MISSION)throw new Error('Use node scripts/himachal-challenge-runs.mjs for the precision challenges.');
+    continue;
+  }
   const first=mission.spawn?{spawn:mission.spawn}:getMission(course,mission.chain[0]),state=createVehicle(process.env.BODY==='3door'?'3door':'5door');Object.assign(state,first.spawn||world.spawn);
   const engine=await createRigidVehicle(world,state),hunt=!!mission.hunt,apples=hunt?huntApples(world,mission.hunt):[],gates=hunt?apples.map(a=>({...a,radius:1.6})):adventureRoute(mission,id=>makeGates(course,difficulty,id)),taken=new Set(),crumbs=new Breadcrumbs();
   if(!hunt)apples.push(...adventureApples(state,gates,world));let wet=0,progressMark=null,progressTick=0,index=0,done=false,reason='time limit',stall=0,backing=0,recoveries=0,top=0,rough=0,ticks=0,lastPitch=0,lastRoll=0,maxClimb=-Infinity;const cruise=Number(process.env.CRUISE||(mission.tight?4:11));

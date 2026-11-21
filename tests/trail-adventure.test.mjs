@@ -20,10 +20,11 @@ const play=makeWorld(mountain,'driver',{adventure:true}),sim=makeWorld(mountain,
 const routes=difficulty=>ADVENTURE_EVENTS.map(event=>adventureRoute(event,id=>makeGates(mountain,difficulty,id)));
 const routeOf=(id,difficulty='driver')=>routes(difficulty)[ADVENTURE_EVENTS.findIndex(e=>e.id===id)];
 
-test('Adventure offers five distinct events, with rising star times',()=>{
- assert.deepEqual(ADVENTURE_EVENTS.map(e=>e.id),['grand-traverse','pass-road','river-run','apple-hunt','rock-garden']);
+test('Himachal offers timed events and clean-driving challenges',()=>{
+ assert.deepEqual(ADVENTURE_EVENTS.map(e=>e.id),['grand-traverse','pass-road','river-run','apple-hunt','rock-garden','hairpin-delivery','passing-place']);
  for(const event of ADVENTURE_EVENTS){
-  assert(event.name&&event.summary&&ADVENTURE_MISSIONS[event.id]===event,event.id);assert(event.par[0]>20&&event.par[1]>event.par[0],event.id);
+  assert(event.name&&event.summary&&ADVENTURE_MISSIONS[event.id]===event,event.id);if(event.technical){assert.ok(event.spawn);assert.ok(!event.par);continue;}
+  assert(event.par[0]>20&&event.par[1]>event.par[0],event.id);
   assert.equal([event.chain,event.route,event.hunt].filter(Boolean).length,1,`${event.id} is a chain, an authored route or a hunt`);
   for(const id of event.chain||[])assert(missions.some(m=>m.id===id),id);
   if(!event.chain)assert(Number.isFinite(event.spawn.x)&&Number.isFinite(event.spawn.z),`${event.id} has its own start`);
@@ -65,7 +66,7 @@ test('stars and the race clock',()=>{
 
 test('apples are few, sit off the direct line on drivable ground and are collected by driving through',()=>{
  for(const [index,event] of ADVENTURE_EVENTS.entries()){
-  if(event.hunt)continue;
+  if(event.hunt||event.technical)continue;
   const gates=routes('driver')[index],spawn=event.spawn||missions.find(m=>m.id===event.chain[0]).spawn||play.spawn,apples=adventureApples(spawn,gates,play),line=[spawn,...gates];
   // A compact loop such as the river run may have no spot that is a detour from every leg.
   assert(apples.length>=(event.route?0:2)&&apples.length<=7,`${event.id}: ${apples.length} apples`);if(!apples.length)continue;

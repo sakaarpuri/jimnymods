@@ -69,7 +69,10 @@ export function createMountainExtension(localHeight,legacyRouteDistance){
     bank.sum+=(height+(road.kind==='gravel'?-.42:.48)*lateral)*weight;bank.weight+=weight;banks.set(road.id,bank);
    }
    if(best.has(road.id)&&distance>=best.get(road.id).distance)continue;
-   best.set(road.id,{id:road.id,kind:road.kind,x:px,z:pz,distance,signedDistance,height,s:a.s+(b.s-a.s)*t,halfWidth:road.width/2,blendWidth:road.blendWidth,heading:Math.atan2(dx,dz)});
+   const station=a.s+(b.s-a.s)*t;
+   // A graded lay-by on the uphill side. The tapers use the same surface as the wheels.
+   const widening=road.kind==='gravel'&&signedDistance<0 ? 3.8*smooth((station-348)/10)*smooth((384-station)/10) : 0;
+   best.set(road.id,{id:road.id,kind:road.kind,x:px,z:pz,distance,signedDistance,height,s:station,halfWidth:road.width/2+widening,blendWidth:road.blendWidth,heading:Math.atan2(dx,dz)});
   }memoX=x;memoZ=z;memoProfiles=profiles;return memo=[...best.values()].map(p=>({...p,bankHeight:banks.get(p.id)?.weight?banks.get(p.id).sum/banks.get(p.id).weight:p.height}));
  };
  const nearestRoad=(x,z)=>roadSamples(x,z).reduce((best,p)=>!best||p.distance<best.distance?p:best,null);
