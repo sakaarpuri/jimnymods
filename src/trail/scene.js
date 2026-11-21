@@ -294,6 +294,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
     nextGates.forEach((gate,i)=>{const g=new T.Group();gateRoot.add(g);const yaw=gateHeading(nextGates,i);g.position.set(gate.x,gate.elevation??world.height(gate.x,gate.z),gate.z);g.rotation.y=yaw;
       for(const side of [-1,1]){mesh(new T.CylinderGeometry(.035,.035,1.45,6),post,g,side*gate.radius,.725,0);box(g,.36,.33,.035,side*gate.radius,.98,0,(i===0?active:inactive).clone());}
       if(gate.alternate){
+        g.userData.fork=true;
         const other=gate.alternate,alt=new T.Group();g.add(alt);
         g.updateMatrixWorld(true);
         const position=new T.Vector3(other.x,world.height(other.x,other.z),other.z);
@@ -375,7 +376,7 @@ mirrors?.dispose();mirrors=null;cabinControls?.dispose();cabinMaterials?.dispose
        snowGeometry.attributes.position.needsUpdate=true;}}}
     if(dt>0)for(const token of tokenRoot.children){token.rotation.y+=dt*1.8;if(!token.userData.taken)token.position.y=token.userData.baseY+Math.sin(performance.now()*.003+token.position.x)*.12;else{token.scale.multiplyScalar(Math.max(0,1-dt*9));token.position.y+=dt*4;if(token.scale.x<.05)token.visible=false;}}
     const target=!shot&&!inspecting?(gates[index]||beaconTarget):null;beacon.visible=false;
-    if(target){const distance=Math.hypot(target.position.x-state.x,target.position.z-state.z),fade=Math.min(1,Math.max(0,(distance-10)/22)),width=Math.max(.55,distance*.009);beacon.position.copy(target.position);beacon.scale.set(width,1,width);beacon.material.opacity=fade*(reducedMotion?.38:.34+.1*Math.sin(performance.now()*.004));beacon.visible=fade>.01;}
+    if(target&&!target.userData?.fork){const distance=Math.hypot(target.position.x-state.x,target.position.z-state.z),fade=Math.min(1,Math.max(0,(distance-10)/22)),width=Math.max(.55,distance*.009);beacon.position.copy(target.position);beacon.scale.set(width,1,width);beacon.material.opacity=fade*(reducedMotion?.38:.34+.1*Math.sin(performance.now()*.004));beacon.visible=fade>.01;}
     renderer.render(scene,camera);
     thumbnailElapsed+=dt;
     const thumbnail=document.getElementById('cabinThumbnail');

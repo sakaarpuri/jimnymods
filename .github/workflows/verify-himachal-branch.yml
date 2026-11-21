@@ -26,4 +26,5 @@ jobs:
             git push origin HEAD:refs/heads/codex/himachal-precision-drives
           fi
       - run: node --test tests/himachal-challenges.test.mjs tests/trail-adventure.test.mjs tests/himachal-mountain.test.mjs
-      - run: node scripts/himachal-challenge-runs.mjs
+      - if: always() && !cancelled()
+        run: node scripts/himachal-challenge-runs.mjs

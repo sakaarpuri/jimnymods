@@ -200,12 +200,12 @@ test('Adventure is wired as the Himachal default without leaking into other cour
  const game=read('src/trail-game.js'),scene=read('src/trail/scene.js'),css=read('assets/drive-controls.css');
  assert.match(game,/adventure=course\.id==='mountain'&&driveStyle==='adventure'/);
  assert.match(game,/if\(countdown>0\)\{[\s\S]{0,260}state\.parking=true/,'the car is held during the countdown');
- assert.match(game,/\}else input=adventureDrive\(state,input,world\.surface\(state\.x,state\.z\)\);/);
+ assert.match(game,/input=technicalRun\?technicalDrive\(state,input,surface,gates\[gate\]\):adventureDrive\(state,input,surface\)/);
  assert.match(game,/if\(adventure\)\{finishAdventure\(\);return;\}/);assert.match(game,/location\.hash!=='#lessons'\)\{selected=COURSES\.find\(c=>c\.id==='mountain'\)/);
  assert.match(game,/timeTrialActive=!adventure&&/);assert.match(game,/makeWorld\(course,difficulty,\{adventure:nextAdventure\}\)/);assert.match(game,/&&!!world\.openWater===nextAdventure/);
  assert.match(game,/const crumb=adventure\|\|freeRoam\?crumbs\.back\(state\.elapsed\):null/);assert.match(game,/view\.render\(running\?blendPose\(previousPose,state,accumulator\*60\):state/);
  assert.match(game,/const review=freeRoam&&/,'the scenery review start is limited to free roam');
- assert.match(game,/if\(!freeRoam&&!hunt\)\{const status=adventure\?/);assert.match(game,/if\(hunt&&countdown<=0&&tokens\.length&&takenTokens\.size===tokens\.length\)\{finish\(\);return;\}/);
+ assert.match(game,/if\(!freeRoam&&!hunt\)\{\s*let status;\s*if\(technicalRun\)/);assert.match(game,/else status=adventure\?\{reached:countdown<=0/);assert.match(game,/if\(hunt&&countdown<=0&&tokens\.length&&takenTokens\.size===tokens\.length\)\{finish\(\);return;\}/);
  assert.match(game,/view\.setTimeOfDay\(skyMode\(\)\)/);assert.match(scene,/lamp\.intensity=night\?270:dusk\?70:0/);assert.match(scene,/roadWash\.intensity=night\?2\.4:dusk\?\.45:0/,'a road wash carries the light well ahead at night');assert.match(scene,/new T\.SpotLight\('#fff0d2',0,0,\.52,\.8,1\.5\)/,'headlights fall off slowly enough to light the track well ahead');
  assert.match(scene,/chaseYaw\+=Math\.atan2\(Math\.sin\(state\.yaw-chaseYaw\)/);assert.match(scene,/if\(course\.id==='mountain'\)worldRoot\.add\(createHimachalLandmarks\(world\)\)/);
  assert.match(scene,/setTimeOfDay\(mode\)\{night=mode==='night';dusk=mode==='dusk'/);assert.match(read('src/trail/environment.js'),/parent\.add\(boundarySkirt\(world\)\)/);
