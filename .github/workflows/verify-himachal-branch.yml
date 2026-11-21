@@ -28,3 +28,31 @@ jobs:
       - run: node --test tests/himachal-challenges.test.mjs tests/trail-adventure.test.mjs tests/himachal-mountain.test.mjs
       - if: always() && !cancelled()
         run: node scripts/himachal-challenge-runs.mjs
+  screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build
+      - run: npm install --prefix "$RUNNER_TEMP/jimny-browser" playwright-core@1.57.0
+      - run: PLAYWRIGHT_PATH="$RUNNER_TEMP/jimny-browser/node_modules/playwright-core" CHROME_PATH=$(which google-chrome) node scripts/check-himachal-touch.mjs
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build
+      - run: node --test --test-concurrency=2 > "$RUNNER_TEMP/tests.log" || { grep -A 10 '^not ok' "$RUNNER_TEMP/tests.log" | cut -c1-400; exit 1; }
+      - run: tail -10 "$RUNNER_TEMP/tests.log"
