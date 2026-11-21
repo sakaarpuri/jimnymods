@@ -49,8 +49,8 @@ test('tags are only ever job ids and never come from the shop name or badge',()=
 test('India city pills reproduce the real counts, with two-city listings counted in both',()=>{
  const india=SHOPS.filter(s=>(s.country||'IN')==='IN'),counts={};
  for(const s of india)for(const a of work.areasFor(s))counts[a]=(counts[a]||0)+1;
- assert.equal(india.length,23);
- assert.deepEqual(plain(counts),{'Delhi NCR':9,'Bengaluru':5,'Himachal':4,'Mumbai':2,'Hyderabad':1,'Chennai':1,'Kolkata':1,'Punjab':1});
+ assert.equal(india.length,24);
+ assert.deepEqual(plain(counts),{'Delhi NCR':9,'Bengaluru':6,'Himachal':4,'Mumbai':2,'Hyderabad':1,'Chennai':1,'Kolkata':1,'Punjab':1});
  assert.deepEqual(plain(work.areasFor(shop('BigDaddy Customs'))),['Delhi NCR','Bengaluru']);
  assert.deepEqual(plain(work.areasFor(shop('ESSARR 4x4 / Auto Tarun'))),['Bengaluru']);
 });

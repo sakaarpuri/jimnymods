@@ -26,7 +26,8 @@ export function practicalAccessory(id,mats,{body='5door',cargoTop=.700,cargoLeft
  const g=new T.Group();g.name=id;g.userData.finishTarget=id;g.userData.cataloguePart={...spec};
  const shift=body==='3door'?.17:0,cargoZ=-1.445+shift;
  if(id==='exea_cupholder'){
-  const x=.57,y=1.165,z=.25-shift;
+  for(const side of [-1,1]){
+  const x=side*.57,y=1.165,z=.25-shift;
   box(g,.075,.018,.035,x,y+.065,z+.07,mats.trim,'Cupholder dash bracket');
   box(g,.018,.085,.035,x,y+.025,z+.07,mats.trim,'Cupholder offset arm');
   cyl(g,.047,.006,x,y-.045,z,mats.trim,'Cup cradle floor');
@@ -34,6 +35,7 @@ export function practicalAccessory(id,mats,{body='5door',cargoTop=.700,cargoLeft
   for(const a of [0,2.1,4.2]){box(g,.012,.058,.012,x+Math.cos(a)*.042,y-.017,z+Math.sin(a)*.042,mats.trim,'Bottle retaining finger');}
   tray(g,.085,.022,.026,x,y-.015,z-.064,mats,'Phone slot');
   for(const s of [-1,1])cyl(g,.003,.005,x+s*.025,y+.076,z+.07,mats.metal,'Holder fixing screw');
+  }
  }else if(id==='exea_phone_mount'){
   tray(g,.075,.035,.008,-.18,1.275,.44-shift,mats,'Phone mount foot');
   tube(g,[[-.18,1.28,.44-shift],[-.18,1.34,.37-shift]],.008,mats.darkmetal,'Phone ball-joint arm');

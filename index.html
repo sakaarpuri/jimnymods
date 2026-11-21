@@ -770,10 +770,10 @@ const MODS = [
    desc:"Modular gear panels for rear windows and tailgate — the biggest Jimny interior trend.",
    in:[["Amazon.in","https://www.amazon.in/s?k=jimny+molle+panel"]],
    intl:[["Front Runner","https://www.frontrunneroutfitters.com"]]},
-  {id:"armrest", interior:true, hot:true, name:"Armrest Console Box", price:[2000,8000], usd:"$30–100",
-   desc:"Adds centre-console storage and an armrest. Check seat travel, handbrake access and mounting before fitting.",
-   in:[["Amazon.in","https://www.amazon.in/s?k=jimny+armrest+console"]],
-   intl:[["APIO Japan","https://www.apio.jp"]]},
+  {id:"armrest", interior:true, hot:true, name:"Folding seat armrests · front pair", bodyStyles:['5door'], quote:true, price:[0,0], usd:"Confirm pair price",
+   desc:"Separate hinged armrests for the two front seats. Fold up or lower in the preview. Representative geometry; confirm the pair, seat mounting, travel and handbrake clearance with the supplier.",
+   in:[["Nunkun 4x4","https://www.nunkun4x4.com/products/jimny-seat-left-and-right-adjustable-armrests"]],
+   intl:[]},
   {id:"dashcam", interior:true, hot:true, name:"Dashcam (Front + Rear)", price:[5000,25000], usd:"$70–300",
    desc:"Loop-recording cameras with parking mode — insurance for road and trail.",
    in:[["Amazon.in","https://www.amazon.in/s?k=dashcam+front+and+rear"]],
@@ -963,7 +963,7 @@ const fmtInr = n => n===0 ? "₹0" : "₹" + (n>=100000 ? (n/100000).toFixed(1).
 const fmt = n => window.jimnyRegion==='IN'?fmtInr(n):window.JimnyMoney.approx(n);
 const escHtml = value => String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const POPULAR_MOD_IDS=["autostylenn_big_suzuki_grille","market_8087496753377","bimbra_snorkel","market_stedi_spot","market_dd_dual","tires","mats","dashcam"];
-const PART_PREVIEW_ANGLES={suzuki_nomade_flatrack:'roof',suzuki_nomade_steelwheel:'wheel-detail',skinnyjim_backbone:'rear',skinnyjim_jerry_tray:'rear',fr_slimline2:'roof',fr_slimline2_tall:'roof',ladder:'rear',sparecover:'rear',mudflaps:'rear',spoiler:'rear',drawer:'storage',molle:'seatbacks',shelf:'storage',seats:'seats',mats:'footwell',headunit:'interior',steering:'interior',armrest:'console',dashcam:'interior',ambient:'footwell',sliders:'side',cladding:'side',visors:'side',hingecovers:'side',skid:'underside'};
+const PART_PREVIEW_ANGLES={suzuki_nomade_flatrack:'roof',suzuki_nomade_steelwheel:'wheel-detail',skinnyjim_backbone:'rear',skinnyjim_jerry_tray:'rear',fr_slimline2:'roof',fr_slimline2_tall:'roof',ladder:'rear',sparecover:'rear',mudflaps:'rear',spoiler:'rear',drawer:'storage',molle:'seatbacks',shelf:'storage',seats:'seats',mats:'footwell',headunit:'interior',steering:'interior',armrest:'seats',dashcam:'interior',ambient:'footwell',sliders:'side',cladding:'side',visors:'side',hingecovers:'side',skid:'underside'};
 Object.assign(PART_PREVIEW_ANGLES,Object.fromEntries(Object.values(globalThis.JimnyExteriorParts||{}).map(p=>[p.visual,p.camera])));
 Object.assign(PART_PREVIEW_ANGLES,{mod_reardoor_molle:'cargo',mod_halfmolly_5door:'cargo',exploresetups_drawer_5door:'cargo',doortrim:'doors',touring:'touring'});
 Object.assign(PART_PREVIEW_ANGLES,Object.fromEntries(Object.values(globalThis.JimnyPracticalParts||{}).map(p=>[p.visual,p.camera])));
@@ -1066,7 +1066,7 @@ function pruneSurfaceFinishes(design,parts){const allowed=new Set([...Object.key
 const EXTRA_GRAPHICS=[['pinstripe','Twin pinstripe'],['rally','Rally side band'],['checker','Chequered flag'],['compass','Compass rose'],['pixel','Digital trail'],['contour','Alpine contour'],['sunset','Sunset sweep'],['mesa','Mesa stripes'],['rocker','Rocker trail'],['switchback','Switchback'],['summit','Summit silhouette'],['circuit','Circuit slashes'],['kanji','Tokyo slashes'],['tideline','Tide lines'],['dunes','Dune sweep'],['waypoint','Waypoint trail'],['heritageblock','Heritage block']];
 DESIGN_GROUPS.find(g=>g.id==='grille').options.push({id:'smesh',name:'Mesh grille · Suzuki S emblem',label:'Mesh S emblem',price:[6000,9500],sources:[["S-emblem grille options","https://jimny4x4product.com/product-category/grills/"]]});
 EXTRA_GRAPHICS.forEach(([id,name])=>DESIGN_GROUPS.find(g=>g.id==='decal').options.push({id,name,label:name,price:[3500,15000],sources:[["Find a vinyl graphics fitter","https://www.google.com/maps/search/car+vinyl+graphics+studio+near+me"]]}));
-Object.assign(designState,{decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{},grilleColour:'original',badgeColour:'original'});
+Object.assign(designState,{decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,armrestsFolded:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{},grilleColour:'original',badgeColour:'original'});
 const studio = document.getElementById("studio");
 // Cosmetic galleries depict the configurable car, never an unrelated concept.
 DESIGN_GROUPS.forEach(g=>g.options.forEach(o=>o.img=jimnyModelImage(g.id,o.id)));
@@ -1202,7 +1202,7 @@ function markPackageState(){
 }
 function applyPackageDesign(pkg){
   designState.allBlack=false;designState.partFinishes={};designState.partColours={};
-  designState.seatFabric='canvas';designState.touringMode='travel';designState.touringDrawers=false;
+  designState.seatFabric='canvas';designState.touringMode='travel';designState.touringDrawers=false;designState.armrestsFolded=false;
   designState.decalColour='auto';designState.nameDecal='';designState.nameFont='clean';designState.nameSize='medium';designState.wheelDesign='factory';designState.cabin='tan';
   designState.roofColour='original';designState.grilleColour='original';designState.badgeColour='original';
   if(!pkg?.design) return;
@@ -1220,7 +1220,7 @@ function applyPkg(id,mode="add",{notify=true}={}){
   if(mode==="replace"){
     Object.keys(state).forEach(k=>state[k]=false);
     document.querySelectorAll('input[data-id]').forEach(cb=>{cb.checked=false});
-    Object.assign(designState,{finish:"oem",decal:"none",grille:"oem",decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{}});
+    Object.assign(designState,{finish:"oem",decal:"none",grille:"oem",decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,armrestsFolded:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{}});
   }
   addPartsToBuild(p.parts);
   applyPackageDesign(p);
@@ -1368,6 +1368,7 @@ function sanitizeBuild(data){
   cleanDesign.seatFabric=['canvas','tweed','houndstooth','leather'].includes(source.design?.seatFabric)?source.design.seatFabric:'canvas';
   cleanDesign.touringMode=source.design?.touringMode==='camp'?'camp':'travel';
   cleanDesign.touringDrawers=source.design?.touringDrawers===true;
+  cleanDesign.armrestsFolded=source.design?.armrestsFolded===true;
   cleanDesign.wheelFinish=['oem','graphite','bronze','silver','black'].includes(source.design?.wheelFinish)?source.design.wheelFinish:'oem';
   cleanDesign.tyreType=['highway','allterrain','mudterrain'].includes(source.design?.tyreType)?source.design.tyreType:(Array.isArray(source.parts)&&source.parts.some(id=>partFamily(id)==='tires')?'allterrain':'highway');
   const tyre=source.tyre||{}, allowed={width:[195,215,225,235],ratio:[70,75,80],rim:[15,16],lift:[0,38,50]};
@@ -1733,7 +1734,7 @@ function renderSnapshots(){savedBuildsEl.innerHTML=buildSnapshots.length?`<optio
 function loadPayload(data){
   data=sanitizeBuild(data);
   const bodyChanged=bodyStyle!==data.body;bodyStyle=data.body;
-  Object.keys(state).forEach(k=>state[k]=false);(data.parts||[]).forEach(id=>state[id]=true);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem",decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{}},data.design||{});buildNameEl.value=data.name||"My Jimny";selectedPaint=data.colour||'#d9b744';
+  Object.keys(state).forEach(k=>state[k]=false);(data.parts||[]).forEach(id=>state[id]=true);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem",decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,armrestsFolded:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{}},data.design||{});buildNameEl.value=data.name||"My Jimny";selectedPaint=data.colour||'#d9b744';
   document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=!!state[cb.dataset.id]);DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));
   if(data.tyre){tyreWidth.value=data.tyre.width;tyreRatio.value=data.tyre.ratio;tyreRim.value=data.tyre.rim;liftHeight.value=data.tyre.lift}updateTyreCalc();update();
   if(bodyChanged)window.dispatchEvent(new CustomEvent('jimny-model-change',{detail:bodyStyle}));
@@ -1755,7 +1756,7 @@ document.getElementById("downloadBuild").addEventListener("click",async()=>{
 });
 document.getElementById('exportBuildImage').addEventListener('click',()=>document.getElementById('downloadBuild').click());
 document.getElementById("printBuild").addEventListener("click",()=>window.print());
-document.getElementById("clearBuild").addEventListener("click",()=>{if(!confirm("Clear all selected parts and design changes?"))return;rememberUndo();Object.keys(state).forEach(k=>state[k]=false);document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=false);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem",decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{},grilleColour:'original',badgeColour:'original'});DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));update();showToast("Build cleared","Undo",undoLastChange)});
+document.getElementById("clearBuild").addEventListener("click",()=>{if(!confirm("Clear all selected parts and design changes?"))return;rememberUndo();Object.keys(state).forEach(k=>state[k]=false);document.querySelectorAll("input[data-id]").forEach(cb=>cb.checked=false);Object.assign(designState,{finish:"oem",decal:"none",grille:"oem",decalColour:'auto',nameDecal:'',nameFont:'clean',nameSize:'medium',wheelDesign:'factory',cabin:'tan',seatFabric:'canvas',touringMode:'travel',touringDrawers:false,armrestsFolded:false,roofColour:'original',wheelFinish:'oem',tyreType:'highway',allBlack:false,partFinishes:{},partColours:{},grilleColour:'original',badgeColour:'original'});DESIGN_GROUPS.forEach(g=>document.querySelectorAll(`[data-group="${g.id}"]`).forEach(b=>{const on=b.dataset.option===designState[g.id];b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))}));update();showToast("Build cleared","Undo",undoLastChange)});
 
 document.addEventListener('click',e=>{
   const compareRemove=e.target.closest('[data-remove-compare]');if(compareRemove){compareIds.delete(compareRemove.dataset.removeCompare);renderCompare();applyPartFilters();}
@@ -1934,7 +1935,7 @@ const garageParts=document.getElementById('garagePartChoices');
 const GARAGE_CABIN_COLOURS=[['tan','Sandstone'],['saddle','Saddle'],['olive','Olive'],['stone','Stone'],['black','Charcoal']];
 function studioPreviewPath(file){return `assets/previews/${bodyStyle==='3door'?'swb/':''}${file}.webp`; }
 function garagePartImage(id){const m=modById[id];if(bodyStyle==='3door'&&!garageCanPreview(id))return '';return studioPreviewPath(`${m?.lightProfile?'lamp-':'part-'}${id}`);}
-function garagePartCards(ids){return `<div class="garage-part-grid">${ids.filter(garageCanPreview).map(id=>{const m=modById[id],supported=garageCanPreview(id);return `<article class="garage-part"><button type="button" class="garage-fit" data-garage-fit="${id}" aria-pressed="${!!state[id]}"${supported?'':' disabled'} aria-label="${state[id]?'Remove':'Fit'} ${escHtml(m.name)}"><img src="${garagePartImage(id)}" alt="${escHtml(m.name)} · actual representative 3D preview" width="800" height="600" loading="lazy"><span class="garage-part-name">${escHtml(m.name)}</span><span class="garage-fit-state">${supported?(state[id]?'Fitted · tap to remove':'Tap to fit'):'Research only for JB74'}</span></button><button type="button" class="garage-edit" data-edit-fitted="${id}"${state[id]?"":" hidden"} aria-label="Edit ${escHtml(m.name)} on the car">Edit</button><button type="button" class="garage-source" data-source-part="${id}">Details & where to buy</button></article>`;}).join('')}</div>`;}
+function garagePartCards(ids){return `<div class="garage-part-grid">${ids.filter(garageCanPreview).map(id=>{const m=modById[id],supported=garageCanPreview(id);return `<article class="garage-part"><button type="button" class="garage-fit" data-garage-fit="${id}" aria-pressed="${!!state[id]}"${supported?'':' disabled'} aria-label="${state[id]?'Remove':'Fit'} ${escHtml(m.name)}"><img src="${garagePartImage(id)}" alt="${escHtml(m.name)} · actual representative 3D preview" width="800" height="600" loading="lazy"><span class="garage-part-name">${escHtml(m.name)}</span><span class="garage-fit-state">${supported?(state[id]?'Fitted · tap to remove':'Tap to fit'):'Research only for JB74'}</span></button><button type="button" class="garage-edit" data-edit-fitted="${id}"${state[id]?"":" hidden"} aria-label="Edit ${escHtml(m.name)} on the car">Edit</button>${id==='armrest'?`<button type="button" class="garage-source" data-armrest-fold aria-pressed="${!!designState.armrestsFolded}"${state.armrest?'':' hidden'}>${designState.armrestsFolded?'Lower armrests':'Fold armrests up'}</button>`:''}<button type="button" class="garage-source" data-source-part="${id}">Details & where to buy</button></article>`;}).join('')}</div>`;}
 function renderVisualEditors(){
   for(const group of ['finish','grille']){
     const grid=document.querySelector(`[aria-label="${group==='finish'?'Paint finishes':'Grille choices'}"]`);grid.classList.add('visual-option-grid');
@@ -1989,6 +1990,7 @@ function refreshGarage(){
   refreshSurfaceControls();
   const engine=window.jimny3D?.getState(),ready=!!engine?.detailedReady&&!engine.modelLoading;
   document.querySelectorAll('[data-garage-fit]').forEach(button=>{const id=button.dataset.garageFit,supported=garageCanPreview(id);button.disabled=!ready||!supported;button.setAttribute('aria-pressed',String(!!state[id]));button.setAttribute('aria-label',`${state[id]?'Remove':'Fit'} ${modById[id].name}`);button.closest('.garage-part')?.querySelector('.garage-edit')?.toggleAttribute('hidden',!state[id]);button.querySelector('.garage-fit-state').textContent=!supported?'Research only for JB74':!ready?'Preparing 3D model…':state[id]?'Fitted · tap to remove':'Tap to fit';});
+  document.querySelectorAll('[data-armrest-fold]').forEach(b=>{b.hidden=!state.armrest;b.disabled=!ready;b.setAttribute('aria-pressed',String(!!designState.armrestsFolded));b.textContent=designState.armrestsFolded?'Lower armrests':'Fold armrests up';});
   document.querySelector('[data-garage-undo]').disabled=!undoHistory.length;
   document.querySelectorAll('[data-garage-design]').forEach(b=>{const on=designState[b.dataset.garageDesign]===b.dataset.garageOption;b.setAttribute('aria-pressed',String(on));b.disabled=!ready;const label=b.querySelector('.visual-state');if(label)label.textContent=on?'Selected · tap to reset':'Tap to apply';});
   document.querySelectorAll('[data-graphic]').forEach(b=>{const on=designState.decal===b.dataset.graphic;b.disabled=!ready;b.querySelector('.visual-state')?.replaceChildren(on?'Selected · tap to remove':'Tap to apply');});
@@ -2038,6 +2040,7 @@ document.addEventListener('click',e=>{
   const mode=e.target.closest('[data-mode-select]');if(mode&&!mode.closest('#siteNav')){setWorkbenchMode(mode.dataset.modeSelect);return;}
   const category=e.target.closest('[data-garage-category]');if(category){openGarageCategory(category.dataset.garageCategory);return;}
   const design=e.target.closest('[data-garage-design]');if(design){rememberUndo();chooseDesign(design.dataset.garageDesign,design.dataset.garageOption,true);return;}
+  if(e.target.closest('[data-armrest-fold]')){if(!state.armrest)return;rememberUndo();designState.armrestsFolded=!designState.armrestsFolded;update();window.jimny3D?.view('seats');return;}
   const fit=e.target.closest('[data-garage-fit]');if(fit){if(!window.jimny3D?.getState().detailedReady)return;rememberUndo();const id=fit.dataset.garageFit;if(setPartSelection(id,!state[id])===false)return;update();window.jimny3D.view(PART_PREVIEW_ANGLES[modById[id]?.visual||id]||'orbit');return;}
   if(e.target.closest('[data-garage-undo]')){undoLastChange();refreshGarage();}
   if(e.target.closest('[data-garage-image]'))document.getElementById('exportBuildImage').click();

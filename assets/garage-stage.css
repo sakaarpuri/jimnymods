@@ -417,3 +417,6 @@ html[data-ui-theme] .build-drawer .drawer-versions>summary{justify-content:space
 
 .garage-dock-backdrop{display:none}
 @media(max-width:899px){body.phone-garage.garage-car-docked[data-mode=explore] .garage-dock-backdrop{display:block;position:fixed;top:var(--site-header-h);left:0;right:0;height:72px;background:var(--a-ground);border-bottom:1px solid var(--a-line);z-index:40}}
+/* The folding action gets its own row; supplier and Edit remain separate targets. */
+html[data-ui-theme] #garage .garage-part>[data-armrest-fold]{grid-column:1 / -1;grid-row:3;color:var(--a-text)!important}
+html[data-ui-theme] #garage .garage-part>[data-armrest-fold][hidden]{display:none!important}
